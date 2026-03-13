@@ -49,9 +49,23 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 3. Forwards to origin via QStash
 4. Origin persists event, optionally fans out to outbound delivery
 
+## Authentication
+
+Dual auth model:
+- **Dashboard users:** Clerk sessions via `@hono/clerk-auth` middleware. Clerk org ID maps to internal `org_id` via `clerk_org_id` column on organizations table.
+- **Programmatic access:** Custom `emhq_` prefixed API keys. SHA-256 hashed in `api_keys` table, verified with `crypto.timingSafeEqual`. Multiple active keys per org for zero-downtime rotation.
+
+Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenantScope` (RLS) → route handler.
+
 ## Multi-Tenancy
 
-Shared schema with PostgreSQL Row-Level Security. `org_id` on every table. `SET LOCAL app.current_tenant` per request.
+Shared schema with PostgreSQL Row-Level Security. `org_id` on every table. `SET LOCAL app.current_tenant` per request within a Drizzle transaction (`withTenant()`). UUID validation before SQL execution.
+
+Two database roles:
+- `app_user` — RLS enforced, used at runtime
+- `app_admin` — BYPASSRLS, used for org/key lookups, migrations, BullMQ workers
+
+Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
 
 ## Key Decisions
 - See docs/DECISIONS.md for architectural decision records

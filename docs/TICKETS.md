@@ -240,7 +240,7 @@
 
 ---
 
-### T-012: Auth & Multi-Tenant Foundation [x]
+### T-012: Auth & Multi-Tenant Foundation [x] [verified]
 **Phase:** 1
 **Effort:** Medium
 **Complexity:** Moderate
