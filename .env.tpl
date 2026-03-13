@@ -1,8 +1,9 @@
 # EmitHQ Environment Variables
 # Uses 1Password references — inject with: op run --env-file=.env.tpl -- <command>
 
-# Database
+# Database (use direct Neon connection, not -pooler hostname, for SET LOCAL support)
 DATABASE_URL=op://EmitHQ/database/connection-string
+DATABASE_ADMIN_URL=op://EmitHQ/database/admin-connection-string
 
 # Redis (Upstash)
 REDIS_URL=op://EmitHQ/redis/url

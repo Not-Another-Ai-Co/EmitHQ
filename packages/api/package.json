@@ -11,5 +11,10 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@clerk/backend": "^3.2.0",
+    "@hono/clerk-auth": "^3.1.0",
+    "hono": "^4.12.7"
   }
 }

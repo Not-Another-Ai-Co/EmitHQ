@@ -120,3 +120,39 @@
 - Pylon — taken ($20M B2B support platform)
 
 **Consequences:** All branding, code, and docs use "EmitHQ" as product name. Repo under Not-Another-Ai-Co GitHub org.
+
+---
+
+## DEC-008 | 2026-03-13 | Auth: Dual Clerk Sessions + Custom API Keys
+
+**Status:** Active
+**Linked to:** T-012
+
+**Context:** EmitHQ needs two auth modes — browser dashboard (Clerk sessions) and programmatic SDK/API access (API keys). Architecture spec had a single `api_key_hash` column on organizations.
+
+**Decision:** Dual auth via `@hono/clerk-auth` middleware + custom `emhq_` prefixed API keys. Separate `api_keys` table (not a column on organizations) for multiple active keys per org, zero-downtime rotation, and soft-delete revocation. Clerk org ID maps to internal `org_id` via `clerk_org_id` column on organizations. SHA-256 hashing for key storage, `timingSafeEqual` for verification.
+
+**Alternatives considered:**
+- Clerk-only API keys (`acceptsToken: 'api_key'`) — less control over prefix, rotation, revocation
+- Single `api_key_hash` on organizations — no rotation support, one key per org
+- bcrypt for key hashing — unnecessary for high-entropy secrets (192-bit), adds 100ms per request
+
+**Consequences:** Two DB roles needed: `app_user` (RLS enforced) and `app_admin` (BYPASSRLS for org/key lookup). Direct Neon connection required (not pooler) for `SET LOCAL` support. Key shown once on creation — lost keys require rotation.
+
+---
+
+## DEC-009 | 2026-03-13 | DB: Drizzle ORM with Native RLS Policies
+
+**Status:** Active
+**Linked to:** T-012
+
+**Context:** Needed an ORM that supports PostgreSQL RLS policies as first-class schema citizens, with migration generation.
+
+**Decision:** Drizzle ORM with `pgPolicy()` for inline RLS policy definitions. `drizzle-kit generate` emits RLS SQL automatically. `db.transaction()` + `SET LOCAL app.current_tenant` for tenant isolation (Drizzle guarantees connection affinity). `node-postgres` driver with direct Neon connection.
+
+**Alternatives considered:**
+- Prisma — no native RLS support; would require raw SQL migrations for policies
+- Raw SQL migrations — more control but no schema-as-code, harder to maintain
+- Neon HTTP driver — doesn't support multi-statement transactions needed for SET LOCAL
+
+**Consequences:** Schema changes go through `drizzle-kit generate` → `drizzle-kit migrate`. Migrations must run as `app_admin` (BYPASSRLS), not `app_user`. `entities.roles.provider: 'neon'` in drizzle config to avoid managing Neon system roles.

@@ -240,7 +240,7 @@
 
 ---
 
-### T-012: Auth & Multi-Tenant Foundation
+### T-012: Auth & Multi-Tenant Foundation [x]
 **Phase:** 1
 **Effort:** Medium
 **Complexity:** Moderate
@@ -250,12 +250,12 @@
 **Description:** Implement authentication (Clerk or chosen provider) and multi-tenant data isolation. Every query must be scoped to tenant. Include: user signup/login, organization/workspace creation, API key generation for programmatic access, and tenant-scoped database queries.
 
 **Acceptance criteria:**
-- [ ] Auth provider integrated (signup, login, logout, password reset)
-- [ ] Organization/workspace model with tenant isolation
-- [ ] API key generation and management (create, revoke, rotate)
-- [ ] All database queries scoped by tenant_id — no cross-tenant data leakage
-- [ ] Role model (owner, admin, member) with permission checks
-- [ ] Tests covering: signup flow, API key auth, tenant isolation, permission boundaries
+- [x] Auth provider integrated (signup, login, logout, password reset)
+- [x] Organization/workspace model with tenant isolation
+- [x] API key generation and management (create, revoke, rotate)
+- [x] All database queries scoped by tenant_id — no cross-tenant data leakage
+- [x] Role model (owner, admin, member) with permission checks
+- [x] Tests covering: signup flow, API key auth, tenant isolation, permission boundaries
 
 ---
 
