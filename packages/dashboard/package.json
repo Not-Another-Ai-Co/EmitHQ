@@ -1,0 +1,11 @@
+{
+  "name": "@emithq/dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EmitHQ web dashboard",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  }
+}

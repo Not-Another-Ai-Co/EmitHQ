@@ -1,0 +1,13 @@
+{
+  "name": "@emithq/core",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EmitHQ core delivery engine",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  }
+}
