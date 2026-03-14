@@ -7,6 +7,8 @@ import {
   generateSigningSecret,
   deliverWebhook,
   buildWebhookHeaders,
+  validateTransformRules,
+  TransformValidationError,
 } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
@@ -72,6 +74,7 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
     uid?: string;
     eventTypeFilter?: string[];
     rateLimit?: number;
+    transformRules?: unknown[];
   }>();
 
   if (!body.url || typeof body.url !== 'string') {
@@ -81,6 +84,19 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
   const urlError = validateEndpointUrl(body.url);
   if (urlError) {
     return c.json({ error: { code: 'validation_error', message: urlError } }, 400);
+  }
+
+  // Validate transformation rules if provided
+  let validatedRules = null;
+  if (body.transformRules !== undefined) {
+    try {
+      validatedRules = validateTransformRules(body.transformRules);
+    } catch (err) {
+      if (err instanceof TransformValidationError) {
+        return c.json({ error: { code: 'validation_error', message: err.message } }, 400);
+      }
+      throw err;
+    }
   }
 
   const signingSecret = generateSigningSecret();
@@ -97,6 +113,7 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
       signingSecret,
       eventTypeFilter: body.eventTypeFilter ?? null,
       rateLimit: body.rateLimit ?? null,
+      transformRules: validatedRules,
     })
     .returning();
 
@@ -111,6 +128,7 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
         eventTypeFilter: created.eventTypeFilter,
         disabled: created.disabled,
         rateLimit: created.rateLimit,
+        transformRules: created.transformRules,
         createdAt: created.createdAt,
       },
     },
@@ -150,6 +168,7 @@ endpointRoutes.get('/:appId/endpoint', async (c) => {
       disabled: endpoints.disabled,
       failureCount: endpoints.failureCount,
       rateLimit: endpoints.rateLimit,
+      transformRules: endpoints.transformRules,
       createdAt: endpoints.createdAt,
     })
     .from(endpoints)
@@ -291,6 +310,7 @@ endpointRoutes.put('/:appId/endpoint/:epId', async (c) => {
     rateLimit?: number | null;
     disabled?: boolean;
     uid?: string;
+    transformRules?: unknown[] | null;
   }>();
 
   // Validate URL if being updated
@@ -301,12 +321,25 @@ endpointRoutes.put('/:appId/endpoint/:epId', async (c) => {
     }
   }
 
+  // Validate transformation rules if being updated
+  if (body.transformRules !== undefined && body.transformRules !== null) {
+    try {
+      validateTransformRules(body.transformRules);
+    } catch (err) {
+      if (err instanceof TransformValidationError) {
+        return c.json({ error: { code: 'validation_error', message: err.message } }, 400);
+      }
+      throw err;
+    }
+  }
+
   const updates: Record<string, unknown> = {};
   if (body.url !== undefined) updates.url = body.url;
   if (body.description !== undefined) updates.description = body.description;
   if (body.eventTypeFilter !== undefined) updates.eventTypeFilter = body.eventTypeFilter;
   if (body.rateLimit !== undefined) updates.rateLimit = body.rateLimit;
   if (body.uid !== undefined) updates.uid = body.uid;
+  if (body.transformRules !== undefined) updates.transformRules = body.transformRules;
 
   // Re-enabling: reset circuit breaker state
   if (body.disabled === false && existing.disabled) {

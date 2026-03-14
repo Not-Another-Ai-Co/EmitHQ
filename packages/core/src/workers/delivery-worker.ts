@@ -10,6 +10,7 @@ import {
   computeBackoffDelay,
 } from '../queue/backoff';
 import type { DeliveryJobData } from '../queue/delivery-queue';
+import { applyTransformation } from '../transformation/transform';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_BODY_LENGTH = 1024;
@@ -116,6 +117,7 @@ export async function processDeliveryJob(data: DeliveryJobData, attemptsMade = 0
       disabled: endpoints.disabled,
       failureCount: endpoints.failureCount,
       rateLimit: endpoints.rateLimit,
+      transformRules: endpoints.transformRules,
     })
     .from(endpoints)
     .where(eq(endpoints.id, data.endpointId))
@@ -139,8 +141,14 @@ export async function processDeliveryJob(data: DeliveryJobData, attemptsMade = 0
     throw new UnrecoverableError(`Endpoint ${data.endpointId} is disabled`);
   }
 
+  // Apply per-endpoint payload transformation (passthrough if no rules)
+  const transformedPayload = applyTransformation(
+    message.payload,
+    endpoint.transformRules as import('../transformation/transform').TransformRule[] | null,
+  );
+
   // Serialize payload and sign
-  const payloadStr = JSON.stringify(message.payload);
+  const payloadStr = JSON.stringify(transformedPayload);
   const webhookHeaders = buildWebhookHeaders(message.id, payloadStr, endpoint.signingSecret);
 
   // Deliver

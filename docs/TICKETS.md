@@ -369,7 +369,7 @@
 
 ---
 
-### T-018: Payload Transformation Engine
+### T-018: Payload Transformation Engine [x]
 **Phase:** 3
 **Effort:** Medium
 **Complexity:** Moderate
@@ -379,13 +379,13 @@
 **Description:** Build the no-code payload transformation layer — one of the key differentiators identified in research. Allow customers to reshape webhook payloads before delivery using JSONPath or template expressions, without writing code.
 
 **Acceptance criteria:**
-- [ ] Transformation rule model: source field → target field mapping
-- [ ] JSONPath-based field extraction
-- [ ] Template expressions for computed fields (concatenation, date formatting)
-- [ ] Transformation preview (show before/after given a sample payload)
-- [ ] Transformation applied per-endpoint (different endpoints can reshape differently)
-- [ ] Passthrough mode (no transformation) as default
-- [ ] Tests: field mapping, JSONPath extraction, template expressions, preview accuracy
+- [x] Transformation rule model: source field → target field mapping (TransformRule interface with sourcePath, targetField, template)
+- [x] JSONPath-based field extraction (dot-notation subset: $.key, $.arr[0], $.obj['key'])
+- [x] Template expressions for computed fields ({{...}} interpolation, formatDate, uppercase, lowercase, concat)
+- [x] Transformation preview (POST /api/v1/transform/preview — stateless before/after)
+- [x] Transformation applied per-endpoint (transformRules JSONB column on endpoints table, applied in delivery worker)
+- [x] Passthrough mode (no transformation) as default (null/empty rules = passthrough)
+- [x] Tests: field mapping, JSONPath extraction, template expressions, preview accuracy, validation, security (prototype pollution blocked)
 
 ---
 

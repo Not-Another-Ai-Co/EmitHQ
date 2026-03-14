@@ -31,6 +31,17 @@ export {
   generateSigningSecret,
 } from './signing/webhook-signer';
 
+// Transformation
+export {
+  extractJsonPath,
+  renderTemplate,
+  applyTransformation,
+  previewTransformation,
+  validateTransformRules,
+  TransformValidationError,
+} from './transformation/transform';
+export type { TransformRule } from './transformation/transform';
+
 // Workers
 export {
   deliverWebhook,

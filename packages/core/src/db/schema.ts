@@ -95,6 +95,7 @@ export const endpoints = pgTable(
     disabledReason: text('disabled_reason'),
     failureCount: integer('failure_count').default(0),
     rateLimit: integer('rate_limit'),
+    transformRules: jsonb('transform_rules'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (t) => [
