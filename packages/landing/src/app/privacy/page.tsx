@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { LegalBanner } from '@/components/legal-banner';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -11,7 +10,6 @@ export default function PrivacyPage() {
   return (
     <div className="py-16">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
-        <LegalBanner />
         <h1 className="mb-2 text-3xl font-bold">Privacy Policy</h1>
         <p className="mb-12 text-sm text-[var(--color-text-muted)]">Last updated: March 13, 2026</p>
 
