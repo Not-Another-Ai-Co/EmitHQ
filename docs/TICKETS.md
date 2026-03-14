@@ -436,7 +436,7 @@
 
 ---
 
-### T-021: Legal Documents [x]
+### T-021: Legal Documents [x] [verified]
 **Phase:** 4
 **Effort:** Low
 **Complexity:** Simple
