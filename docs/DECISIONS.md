@@ -207,3 +207,21 @@
 - Transient "delivering" status — adds a DB write with no consumer until dashboard (T-017); deferred
 
 **Consequences:** Worker concurrency capped at 5 (matching `adminPool.max`). Response body truncated to 1KB. T-015 will refine retry schedule with custom backoff strategy.
+
+---
+
+## DEC-013 | 2026-03-13 | Retry: Full-Jitter Fixed Schedule + BullMQ Failed Set as DLQ
+
+**Status:** Active
+**Linked to:** T-015
+
+**Context:** Architecture spec defines a specific retry schedule (5s/30s/2m/15m/1h/4h/24h) with full jitter. BullMQ has no native DLQ — exhausted jobs land in the Redis failed set.
+
+**Decision:** Fixed delay array indexed by `attemptsMade` with full jitter (`Math.floor(Math.random() * cap)`) via BullMQ's `settings.backoffStrategy`. BullMQ's built-in failed set serves as DLQ for MVP — `worker.on('failed')` detects exhaustion (`attemptsMade >= MAX_DELIVERY_ATTEMPTS`) and marks DB status as `exhausted`. Replay creates a fresh job with reset attempts (not `job.retry()` which preserves attempt count). `reEnableEndpoint()` resets `disabled`, `disabledReason`, and `failureCount`.
+
+**Alternatives considered:**
+- Separate `webhook-dlq` BullMQ queue — cleaner separation but adds Redis overhead and complexity for MVP
+- BullMQ built-in exponential backoff — doesn't match spec schedule, no full jitter
+- Pure exponential formula — approximates but doesn't match exact spec delays
+
+**Consequences:** `delivery_attempts.status` now has 4 values: `pending`, `delivered`, `failed`, `exhausted`. `nextAttemptAt` populated on failure for dashboard display. Replay API at `POST /api/v1/app/:appId/msg/:msgId/retry`.

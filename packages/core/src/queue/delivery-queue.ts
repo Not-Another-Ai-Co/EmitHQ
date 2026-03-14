@@ -1,5 +1,6 @@
 import { Queue } from 'bullmq';
 import { createRedisConnection } from './redis';
+import { MAX_DELIVERY_ATTEMPTS } from './backoff';
 
 export interface DeliveryJobData {
   messageId: string;
@@ -20,8 +21,8 @@ export function getDeliveryQueue(): Queue<DeliveryJobData> {
     queue = new Queue<DeliveryJobData>('webhook-delivery', {
       connection: createRedisConnection(),
       defaultJobOptions: {
-        attempts: 8,
-        backoff: { type: 'exponential', delay: 1_000 },
+        attempts: MAX_DELIVERY_ATTEMPTS,
+        backoff: { type: 'custom' },
         removeOnComplete: { count: 1_000 },
         removeOnFail: { count: 5_000 },
       },

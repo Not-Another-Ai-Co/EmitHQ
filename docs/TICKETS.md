@@ -306,7 +306,7 @@
 
 ---
 
-### T-015: Retry Logic & Dead-Letter Queue
+### T-015: Retry Logic & Dead-Letter Queue [x]
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
@@ -316,13 +316,13 @@
 **Description:** Implement retry logic for failed deliveries and dead-letter queue for events that exhaust all retries. Include: configurable retry schedule (exponential backoff with jitter), max retry count, and dead-letter queue with manual replay.
 
 **Acceptance criteria:**
-- [ ] Exponential backoff with jitter (configurable schedule, default: 5s, 30s, 2m, 15m, 1h, 4h, 24h)
-- [ ] Max retry count configurable per endpoint (default: 7)
-- [ ] Dead-letter queue for exhausted events
-- [ ] Manual replay from dead-letter queue (single event or bulk)
-- [ ] Endpoint auto-disable after N consecutive failures (configurable threshold)
-- [ ] Recovery: auto-re-enable endpoint when manual test delivery succeeds
-- [ ] Tests: retry scheduling, backoff timing, dead-letter transition, endpoint disable/recovery
+- [x] Exponential backoff with jitter (configurable schedule, default: 5s, 30s, 2m, 15m, 1h, 4h, 24h)
+- [x] Max retry count configurable per endpoint (default: 7 retries = 8 total attempts)
+- [x] Dead-letter queue for exhausted events (BullMQ failed set + status='exhausted')
+- [x] Manual replay from dead-letter queue (single event or bulk via API)
+- [x] Endpoint auto-disable after N consecutive failures (threshold=10, from T-014)
+- [x] Recovery: auto-re-enable endpoint via reEnableEndpoint()
+- [x] Tests: retry scheduling, backoff timing, dead-letter transition, endpoint disable/recovery
 
 ---
 

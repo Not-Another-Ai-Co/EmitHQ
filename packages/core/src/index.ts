@@ -14,6 +14,13 @@ export type { GeneratedKey } from './auth/api-key';
 // Queue
 export { getDeliveryQueue, enqueueDelivery } from './queue/delivery-queue';
 export { createRedisConnection } from './queue/redis';
+export {
+  computeBackoffDelay,
+  webhookBackoffStrategy,
+  RETRY_DELAYS_MS,
+  MAX_DELIVERY_ATTEMPTS,
+} from './queue/backoff';
+export { replayDelivery, replayMessage, reEnableEndpoint } from './queue/replay';
 export type { DeliveryJobData } from './queue/delivery-queue';
 
 // Signing
@@ -25,5 +32,10 @@ export {
 } from './signing/webhook-signer';
 
 // Workers
-export { deliverWebhook, processDeliveryJob, startDeliveryWorker } from './workers/delivery-worker';
+export {
+  deliverWebhook,
+  processDeliveryJob,
+  startDeliveryWorker,
+  handleExhaustedDelivery,
+} from './workers/delivery-worker';
 export type { DeliveryResult } from './workers/delivery-worker';

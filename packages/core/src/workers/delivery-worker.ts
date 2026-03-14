@@ -4,6 +4,11 @@ import { createRedisConnection } from '../queue/redis';
 import { adminDb } from '../db/client';
 import { messages, endpoints, deliveryAttempts } from '../db/schema';
 import { buildWebhookHeaders } from '../signing/webhook-signer';
+import {
+  webhookBackoffStrategy,
+  MAX_DELIVERY_ATTEMPTS,
+  computeBackoffDelay,
+} from '../queue/backoff';
 import type { DeliveryJobData } from '../queue/delivery-queue';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -82,8 +87,11 @@ export async function deliverWebhook(
 /**
  * Process a single delivery job: load data, sign, POST, record result.
  * Exported for testability — called by the BullMQ Worker processor.
+ *
+ * @param data - Job payload with message/endpoint/attempt IDs
+ * @param attemptsMade - BullMQ attempt count (0 on first try, increments on retries)
  */
-export async function processDeliveryJob(data: DeliveryJobData): Promise<void> {
+export async function processDeliveryJob(data: DeliveryJobData, attemptsMade = 0): Promise<void> {
   // Load message payload
   const [message] = await adminDb
     .select({
@@ -141,16 +149,24 @@ export async function processDeliveryJob(data: DeliveryJobData): Promise<void> {
     : DEFAULT_TIMEOUT_MS;
   const result = await deliverWebhook(endpoint.url, payloadStr, webhookHeaders, timeoutMs);
 
+  // Compute next retry time for display (if this attempt fails and retries remain)
+  const nextRetryDelay =
+    !result.success && attemptsMade + 1 < MAX_DELIVERY_ATTEMPTS
+      ? computeBackoffDelay(attemptsMade + 1)
+      : null;
+
   // Record the attempt
   await adminDb
     .update(deliveryAttempts)
     .set({
       status: result.success ? 'delivered' : 'failed',
+      attemptNumber: attemptsMade + 1,
       responseStatus: result.statusCode,
       responseBody: result.responseBody,
       responseTimeMs: result.responseTimeMs,
       errorMessage: result.errorMessage,
       attemptedAt: new Date(),
+      nextAttemptAt: nextRetryDelay !== null ? new Date(Date.now() + nextRetryDelay) : null,
     })
     .where(eq(deliveryAttempts.id, data.attemptId));
 
@@ -191,6 +207,20 @@ export async function processDeliveryJob(data: DeliveryJobData): Promise<void> {
 }
 
 /**
+ * Handle exhausted delivery attempts (all retries consumed).
+ * Marks the delivery attempt as 'exhausted' in the database.
+ */
+export async function handleExhaustedDelivery(data: DeliveryJobData): Promise<void> {
+  await adminDb
+    .update(deliveryAttempts)
+    .set({
+      status: 'exhausted',
+      nextAttemptAt: null,
+    })
+    .where(eq(deliveryAttempts.id, data.attemptId));
+}
+
+/**
  * Create and start the BullMQ delivery worker.
  * Call this from the Railway worker entry point.
  */
@@ -198,13 +228,26 @@ export function startDeliveryWorker(): Worker<DeliveryJobData> {
   const worker = new Worker<DeliveryJobData>(
     'webhook-delivery',
     async (job) => {
-      await processDeliveryJob(job.data);
+      await processDeliveryJob(job.data, job.attemptsMade);
     },
     {
       connection: createRedisConnection(),
       concurrency: 5,
+      settings: {
+        backoffStrategy: webhookBackoffStrategy,
+      },
     },
   );
+
+  // Detect exhausted deliveries (all retries consumed)
+  worker.on('failed', (job, err) => {
+    if (!job) return;
+    const isExhausted = job.attemptsMade >= MAX_DELIVERY_ATTEMPTS;
+    if (!isExhausted) return;
+
+    // Mark as exhausted in DB (fire-and-forget — worker continues processing)
+    handleExhaustedDelivery(job.data).catch(() => {});
+  });
 
   return worker;
 }
