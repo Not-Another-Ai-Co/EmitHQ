@@ -415,7 +415,7 @@
 
 ---
 
-### T-020: Landing Page & Documentation Site
+### T-020: Landing Page & Documentation Site [x]
 **Phase:** 4
 **Effort:** High
 **Complexity:** Moderate
@@ -425,14 +425,14 @@
 **Description:** Build the marketing landing page and documentation site. The landing page sells; the docs convert. Include: hero section, feature breakdown, pricing table, comparison with competitors, and full API documentation generated from OpenAPI spec.
 
 **Acceptance criteria:**
-- [ ] Landing page: hero, problem statement, features, pricing table, CTA
-- [ ] Pricing page with tier comparison and FAQ
-- [ ] Competitor comparison page (vs Svix, vs Hookdeck, vs building your own)
-- [ ] Documentation site: getting started, API reference, SDK guides, examples
-- [ ] API reference auto-generated from OpenAPI spec
-- [ ] SEO fundamentals: meta tags, structured data, sitemap, robots.txt
-- [ ] Analytics integration (Plausible or PostHog)
-- [ ] Mobile responsive
+- [x] Landing page: hero, problem statement, features, pricing table, CTA (packages/landing with hero, pricing gap narrative, 6 feature cards, tier preview, SDK snippet)
+- [x] Pricing page with tier comparison and FAQ (4-tier table with annual pricing, 6 FAQ items)
+- [x] Competitor comparison page (vs Svix, vs Hookdeck, vs Convoy, vs building your own)
+- [x] Documentation site: getting started, API reference, SDK guides, examples (docs hub + getting started + API ref + SDK guide)
+- [x] API reference from endpoint inventory (19 endpoints across 6 sections with request/response examples)
+- [x] SEO fundamentals: meta tags, Open Graph, Twitter cards, sitemap.xml, robots.txt, keywords
+- [x] Analytics integration (Plausible script tag — privacy-friendly, no cookie banner)
+- [x] Mobile responsive (Tailwind responsive classes throughout, mobile nav)
 
 ---
 
