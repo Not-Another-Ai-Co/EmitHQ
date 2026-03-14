@@ -415,7 +415,7 @@
 
 ---
 
-### T-020: Landing Page & Documentation Site [x]
+### T-020: Landing Page & Documentation Site [x] [verified]
 **Phase:** 4
 **Effort:** High
 **Complexity:** Moderate
