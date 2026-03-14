@@ -32,15 +32,20 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 └──────────────────────────────────────────────┘
 ```
 
-## Data Flow: Outbound
+## Data Flow: Outbound (Implemented: T-013)
 
-1. Customer calls `POST /api/v1/app/{app_id}/msg/` with event payload
-2. API validates auth → sets RLS context → persists message to PostgreSQL
-3. Fan-out: create delivery_attempt row per matching endpoint
-4. Enqueue BullMQ job per delivery
-5. Worker: sign payload (Standard Webhooks), POST to endpoint, record result
-6. On failure: exponential backoff with jitter, circuit breaker per endpoint
-7. On exhaustion: move to DLQ, send operational webhook
+1. Customer calls `POST /api/v1/app/:appId/msg` with `{ eventType, payload, eventId? }`
+2. Quota middleware checks `event_count_month` against tier limit (free=100K, starter=500K, growth=2M, scale=10M)
+3. Auth middleware validates API key or Clerk session → sets RLS context
+4. Resolve application by UUID or `uid` within tenant scope
+5. Persist message to PostgreSQL (BEFORE queueing — critical)
+6. Fan-out: find active endpoints matching `eventTypeFilter`, create `delivery_attempt` rows (status=pending)
+7. Enqueue one BullMQ job per delivery attempt (best-effort — message safe in DB if queue fails)
+8. Increment `event_count_month` atomically in same transaction
+9. Return 202 Accepted with message ID
+10. Worker (T-014): sign payload, POST to endpoint, record result
+11. On failure: exponential backoff with jitter, circuit breaker per endpoint
+12. On exhaustion: move to DLQ, send operational webhook
 
 ## Data Flow: Inbound
 

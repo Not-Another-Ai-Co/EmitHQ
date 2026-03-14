@@ -264,7 +264,7 @@
 
 ---
 
-### T-013: Event Ingestion API [x]
+### T-013: Event Ingestion API [x] [verified with notes]
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
