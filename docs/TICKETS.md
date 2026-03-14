@@ -306,7 +306,7 @@
 
 ---
 
-### T-015: Retry Logic & Dead-Letter Queue [x]
+### T-015: Retry Logic & Dead-Letter Queue [x] [verified]
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
