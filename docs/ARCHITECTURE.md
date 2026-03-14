@@ -43,9 +43,15 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 7. Enqueue one BullMQ job per delivery attempt (best-effort — message safe in DB if queue fails)
 8. Increment `event_count_month` atomically in same transaction
 9. Return 202 Accepted with message ID
-10. Worker (T-014): sign payload, POST to endpoint, record result
-11. On failure: exponential backoff with jitter, circuit breaker per endpoint
-12. On exhaustion: move to DLQ, send operational webhook
+10. BullMQ Worker (T-014): load message payload + endpoint config from adminDb (BYPASSRLS)
+11. Sign payload per Standard Webhooks spec: `HMAC-SHA256(msg_{id}.{timestamp}.{body}, whsec_secret)` → `v1,{base64}`
+12. HTTP POST to endpoint URL via native `fetch` + `AbortSignal.timeout()` (default 30s)
+13. Record result in `delivery_attempts`: status, statusCode, responseBody (1KB), responseTimeMs
+14. On 2xx: mark `delivered`, reset endpoint `failureCount`
+15. On 5xx/timeout/network error: mark `failed`, increment `failureCount`, BullMQ retries with exponential backoff
+16. On 400/401/403/404/410: throw `UnrecoverableError` (no retry — permanent error)
+17. Circuit breaker: `failureCount ≥ 10` → disable endpoint with reason `circuit_breaker`
+18. On exhaustion (T-015): move to DLQ, send operational webhook
 
 ## Data Flow: Inbound
 
