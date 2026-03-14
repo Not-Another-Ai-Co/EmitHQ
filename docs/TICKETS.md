@@ -349,7 +349,7 @@
 
 ---
 
-### T-017: Dashboard — Event Log & Monitoring [x]
+### T-017: Dashboard — Event Log & Monitoring [x] [verified with notes]
 **Phase:** 3
 **Effort:** High
 **Complexity:** Complex
