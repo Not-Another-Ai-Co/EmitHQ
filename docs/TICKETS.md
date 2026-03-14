@@ -349,7 +349,7 @@
 
 ---
 
-### T-017: Dashboard — Event Log & Monitoring
+### T-017: Dashboard — Event Log & Monitoring [x]
 **Phase:** 3
 **Effort:** High
 **Complexity:** Complex
@@ -359,13 +359,13 @@
 **Description:** Build the web dashboard for monitoring webhook deliveries. Include: event log with filtering/search, delivery attempt details, endpoint health overview, and real-time delivery status.
 
 **Acceptance criteria:**
-- [ ] Event log view: filterable by status, endpoint, event type, date range
-- [ ] Event detail view: payload, delivery attempts with status/timing, retry schedule
-- [ ] Endpoint health view: success rate, average latency, failure count, last delivery
-- [ ] Dashboard overview: events today, success rate, active endpoints, pending retries
-- [ ] Dead-letter queue view with replay actions
-- [ ] Responsive design (works on mobile for on-call debugging)
-- [ ] Tests: data loading, filtering, pagination, replay action
+- [x] Event log view: filterable by status, endpoint, event type, date range (GET /:appId/msg with query filters + events page with filter input)
+- [x] Event detail view: payload, delivery attempts with status/timing, retry schedule (GET /:appId/msg/:msgId with joined attempts + detail panel)
+- [x] Endpoint health view: success rate, average latency, failure count, last delivery (GET /:appId/endpoint-health with aggregates + endpoint cards)
+- [x] Dashboard overview: events today, success rate, active endpoints, pending retries (GET /:appId/stats + overview page with stat cards)
+- [x] Dead-letter queue view with replay actions (GET /:appId/dlq + DLQ page with replay buttons)
+- [x] Responsive design (works on mobile for on-call debugging) (sidebar + mobile bottom nav, responsive grid, hidden columns on mobile)
+- [x] Tests: data loading, filtering, pagination, replay action (11 API contract tests for dashboard endpoints)
 
 ---
 
