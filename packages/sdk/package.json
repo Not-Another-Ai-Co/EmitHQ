@@ -1,13 +1,37 @@
 {
   "name": "@emithq/sdk",
   "version": "0.1.0",
-  "description": "EmitHQ TypeScript SDK",
+  "description": "EmitHQ TypeScript SDK — webhook infrastructure client",
   "license": "MIT",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "webhooks",
+    "webhook",
+    "emithq",
+    "sdk",
+    "api"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Not-Another-Ai-Co/EmitHQ.git",
+    "directory": "packages/sdk"
   }
 }

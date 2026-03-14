@@ -389,7 +389,7 @@
 
 ---
 
-### T-019: TypeScript SDK
+### T-019: TypeScript SDK [x]
 **Phase:** 3
 **Effort:** Medium
 **Complexity:** Moderate
@@ -399,14 +399,15 @@
 **Description:** Build the first-party TypeScript/JavaScript SDK. This is the primary developer experience — it must be excellent. Include: typed client, event sending, endpoint management, and comprehensive documentation with examples.
 
 **Acceptance criteria:**
-- [ ] npm package with TypeScript types
-- [ ] Client initialization with API key
-- [ ] Methods: sendEvent(), createEndpoint(), listEndpoints(), getEvent(), replayEvent()
-- [ ] Error handling with typed errors (RateLimitError, ValidationError, AuthError)
-- [ ] Automatic retry on transient failures (5xx, network errors)
-- [ ] README with quickstart example
+- [x] npm package with TypeScript types
+- [x] Client initialization with API key
+- [x] Methods: sendEvent(), createEndpoint(), listEndpoints(), getEndpoint(), updateEndpoint(), deleteEndpoint(), testEndpoint(), replayEvent(), replayAttempt()
+- [x] Error handling with typed errors (RateLimitError, ValidationError, AuthError)
+- [x] Automatic retry on transient failures (5xx, network errors)
+- [x] README with quickstart example
 - [ ] Published to npm (Julian to create npm account if needed)
-- [ ] Tests: all methods, error scenarios, retry behavior
+- [x] Tests: all methods, error scenarios, retry behavior
+- [x] verifyWebhook() for consumers to verify incoming webhook signatures (WebCrypto API)
 
 ---
 
