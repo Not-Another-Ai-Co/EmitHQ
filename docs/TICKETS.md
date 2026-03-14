@@ -1,223 +1,11 @@
 # Tickets — Webhook Infrastructure SaaS
 
+> Last verified: 2026-03-13
+> Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
+
+Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality gates | `[x] [verified] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
+
 ## Webhook SaaS Business Build — 2026-03-13
-
-### Phase 0: Business Foundation Research
-*Before writing any code, understand every dimension of the business. Each ticket produces a research artifact that feeds subsequent decisions.*
-
----
-
-### T-001: Competitive Deep-Dive — Svix, Hookdeck, Convoy, Outpost [x]
-**Phase:** 0
-**Effort:** Medium
-**Complexity:** Simple
-**Depends on:** none
-**Research:** docs/research/middleware-saas-opportunity.md
-
-**Description:** Deep-dive into every direct competitor. Map their exact features, pricing tiers, API surface, documentation quality, open-source strategy, funding status, team size, and customer reviews. Identify precisely where each is strong and weak. Produce a competitive matrix and positioning map.
-
-**Acceptance criteria:**
-- [x] Feature matrix covering: delivery guarantees, retry policies, fan-out, transformations, SDKs, dashboard, multi-tenancy, self-hosted option
-- [x] Pricing breakdown with exact tier limits (events, endpoints, retention, support)
-- [x] G2/Capterra/HN sentiment summary per competitor (what customers love, what they complain about)
-- [x] Funding/team size/revenue estimates where public
-- [x] Clear positioning gaps identified — where no competitor serves well
-- [x] Artifact: `docs/research/competitive-landscape.md`
-
----
-
-### T-002: Customer Discovery — Who Buys Webhook Infrastructure and Why [x]
-**Phase:** 0
-**Effort:** Medium
-**Complexity:** Simple
-**Depends on:** none
-**Research:** docs/research/middleware-saas-opportunity.md
-
-**Description:** Research who the actual buyers are. Map buyer personas, their pain points, buying triggers, and decision criteria. Analyze public case studies, forum posts, job listings mentioning webhooks, and GitHub issues to understand what drives purchase decisions. Determine whether the buyer is the individual developer, the engineering lead, or the platform team.
-
-**Acceptance criteria:**
-- [x] 3-5 buyer personas with role, company stage, pain point, buying trigger
-- [x] Analysis of webhook-related job postings (what companies are hiring for this)
-- [x] Forum/HN/Reddit thread analysis — what triggers someone to search for a webhook platform
-- [x] Purchase decision criteria ranked (reliability > price > features > DX > support)
-- [x] Identification of "hair on fire" use cases — when is this urgent, not just nice-to-have
-- [x] Artifact: `docs/research/customer-discovery.md`
-
----
-
-### T-003: Pricing Model Validation [x]
-**Phase:** 0
-**Effort:** Medium
-**Complexity:** Moderate
-**Depends on:** T-001, T-002
-**Research:** docs/research/middleware-saas-opportunity.md
-
-**Description:** Design the pricing model based on competitive data and customer personas. Determine the pricing metric (events, endpoints, API calls, or hybrid), tier structure, free tier limits, and expansion triggers. Model unit economics: what does it cost us to deliver 1M webhook events? What margins do we need? Apply Van Westendorp and value-based pricing frameworks from the knowledge base.
-
-**Acceptance criteria:**
-- [x] Pricing metric selected with rationale (events vs endpoints vs hybrid)
-- [x] 3-4 tier structure with specific limits and prices
-- [x] Free tier design — generous enough to drive adoption, constrained enough to convert
-- [x] Unit economics model: infrastructure cost per 1M events at each provider (Cloudflare, Railway, AWS)
-- [x] Margin analysis at each tier (target: 80%+ gross margin)
-- [x] Comparison against competitor pricing showing clear differentiation
-- [x] Artifact: `docs/research/pricing-model.md`
-
----
-
-### T-004: Legal & Business Structure Research [x]
-**Phase:** 0
-**Effort:** Low
-**Complexity:** Simple
-**Depends on:** none
-**Research:** none
-
-**Description:** Research the legal and business structure requirements for a SaaS business. Cover: entity type (LLC vs C-Corp), state of incorporation, data processing agreements (DPA), terms of service requirements for infrastructure middleware, privacy policy requirements, and liability considerations specific to webhook delivery (what happens when we lose someone's events?). Julian will handle actual filings.
-
-**Acceptance criteria:**
-- [x] Entity type recommendation with rationale (LLC vs C-Corp for SaaS)
-- [x] State of incorporation recommendation (Delaware vs Nevada vs home state)
-- [x] DPA template requirements for B2B SaaS handling customer data
-- [x] ToS key clauses for infrastructure middleware (SLA language, liability caps, data handling)
-- [x] Privacy policy requirements (GDPR, CCPA implications for webhook payload data)
-- [x] Liability analysis — what's our exposure if webhooks are lost/delayed
-- [x] List of accounts/registrations Julian needs to create manually
-- [x] Artifact: `docs/research/legal-structure.md`
-
----
-
-### T-005: Open-Source Strategy Research [x]
-**Phase:** 0
-**Effort:** Medium
-**Complexity:** Moderate
-**Depends on:** T-001
-**Research:** docs/research/middleware-saas-opportunity.md
-
-**Description:** Research the open-source vs. closed-source decision deeply. Analyze how Svix (open-source), Hookdeck (closed), and Outpost (open-source) use licensing as strategy. Study the Plausible, PostHog, and Cal.com open-core models. Determine: what to open-source, what to keep proprietary, which license (MIT, AGPL, BSL, ELv2), and how to prevent self-hosting from cannibalizing revenue.
-
-**Acceptance criteria:**
-- [x] License comparison matrix: MIT vs AGPL vs BSL vs ELv2 with pros/cons for our case
-- [x] Analysis of Svix's open-source strategy — what they open, what they gate
-- [x] Analysis of Plausible/PostHog open-core models — conversion rates from self-hosted to paid
-- [x] Recommendation: what's open (core engine) vs. proprietary (dashboard, multi-tenant, analytics)
-- [x] Self-hosting cannibalization mitigation strategy
-- [x] Community contribution strategy — how to attract contributors without giving away the business
-- [x] Artifact: `docs/research/open-source-strategy.md`
-
----
-
-### T-006: Content & Distribution Strategy [x]
-**Phase:** 0
-**Effort:** Medium
-**Complexity:** Simple
-**Depends on:** T-002, T-005
-**Research:** docs/research/middleware-saas-opportunity.md
-
-**Description:** Design the full content and distribution strategy. Determine: what content to create (technical blog posts, comparison pages, tutorials, documentation), SEO keyword targets, HN/Reddit/Dev.to strategy, developer community platform (Discord vs Slack vs GitHub Discussions), and the Show HN launch plan. This is the primary growth engine — treat it as seriously as the product.
-
-**Acceptance criteria:**
-- [x] SEO keyword research — 20+ target keywords with search volume and difficulty
-- [x] Content calendar for first 3 months (blog topics, comparison pages, tutorials)
-- [x] Show HN launch plan — timing, post format, engagement strategy
-- [x] Developer community platform decision with rationale
-- [x] Social media strategy (Twitter/X, LinkedIn, Dev.to) — what to post, how often
-- [x] Integration marketplace strategy (list on Vercel, Railway, etc.)
-- [x] Artifact: `docs/research/content-distribution-strategy.md`
-
----
-
-### T-007: Metrics, Analytics & Feedback Loop Design [x]
-**Phase:** 0
-**Effort:** Medium
-**Complexity:** Moderate
-**Depends on:** T-003
-**Research:** none
-
-**Description:** Design the metrics framework and feedback loops that will drive all business and technical decisions post-launch. Define: which metrics to track (MRR, churn, ARPU, NPS, feature usage, reliability SLOs), how to collect them, how to review them, and what automated actions they trigger. This is the "nervous system" of the business — it's how we know what's working and what isn't.
-
-**Acceptance criteria:**
-- [x] Business metrics dashboard spec: MRR, ARR, churn rate, ARPU, LTV, CAC, NPS
-- [x] Product metrics spec: events processed, delivery success rate, p99 latency, API error rates
-- [x] User behavior tracking plan: which actions indicate engagement, expansion, churn risk
-- [x] Feedback collection system: in-app surveys, NPS triggers, churn exit surveys
-- [x] Weekly/monthly review cadence — what gets reviewed, what triggers action
-- [x] Automated alerts: churn risk signals, reliability degradation, usage spikes
-- [x] Tool selection for analytics (PostHog, Plausible, custom, Stripe metrics)
-- [x] Artifact: `docs/research/metrics-feedback-loops.md`
-
----
-
-### T-008: Technical Architecture Decision [x]
-**Phase:** 0
-**Effort:** High
-**Complexity:** Complex
-**Depends on:** T-001, T-003
-**Research:** docs/research/middleware-saas-opportunity.md
-
-**Description:** Make all major technical architecture decisions before writing code. This is NOT implementation — it's the technical blueprint. Cover: delivery pipeline architecture (how events flow from ingestion to delivery), retry strategy, dead-letter queue design, multi-tenancy model, data storage schema, edge vs. origin split, SDK design, and API surface. Compare against how Svix and Hookdeck architect their systems (from docs, blog posts, open-source code).
-
-**Acceptance criteria:**
-- [x] Event flow diagram: ingestion → queuing → delivery → retry → dead-letter
-- [x] Multi-tenancy model decision (shared DB with tenant isolation vs. schema-per-tenant)
-- [x] Data storage schema draft (events, endpoints, delivery attempts, tenants)
-- [x] Edge vs. origin decision — what runs on Cloudflare Workers vs. origin server
-- [x] Retry strategy design (exponential backoff, jitter, configurable per-endpoint)
-- [x] API surface design (REST endpoints, auth model, rate limiting)
-- [x] SDK strategy — which languages first, generation approach (OpenAPI → SDK)
-- [x] Infrastructure cost model at 10K, 100K, 1M, 10M events/day
-- [x] Artifact: `docs/research/technical-architecture.md`
-
----
-
-### Phase 1: Brand & Project Scaffolding
-*Set up the project, brand, and infrastructure before building product features.*
-
----
-
-### T-009: Brand Identity & Naming [x]
-**Phase:** 1
-**Effort:** Medium
-**Complexity:** Simple
-**Depends on:** T-002, T-006
-**Research:** docs/research/content-distribution-strategy.md
-
-**Description:** Research and recommend a product name, domain, and visual identity. Check domain availability, GitHub org availability, npm package name availability. Design the brand positioning statement and tagline. Julian will register the domain and accounts.
-
-**Acceptance criteria:**
-- [x] 5-7 name candidates with domain availability checked (via web search)
-- [x] GitHub org and npm package name availability for top candidates
-- [x] Brand positioning statement (one sentence: what we do, for whom, why us)
-- [x] Tagline options (3-5, focused on the pricing gap or reliability angle)
-- [x] Color palette and typography recommendation (developer-tool aesthetic)
-- [x] Logo concept direction (to be refined later)
-- [x] Julian action items: register domain, create GitHub org, create npm org
-- [x] Artifact: `docs/research/brand-identity.md`
-
----
-
-### T-010: Project Scaffolding & Repository Setup [x]
-**Phase:** 1
-**Effort:** Medium
-**Complexity:** Moderate
-**Depends on:** T-008, T-009
-**Research:** docs/research/technical-architecture.md
-
-**Description:** Initialize the monorepo, configure tooling, set up CI/CD, create the project CLAUDE.md and docs structure. This is the foundation everything builds on — do it right. Include: TypeScript config, ESLint, Prettier, test framework, Docker Compose for local dev, GitHub Actions, and the open-source license file.
-
-**Acceptance criteria:**
-- [x] Monorepo structure created (packages: core, api, dashboard, docs, sdk)
-- [x] TypeScript strict mode configured across all packages
-- [x] ESLint + Prettier configured with shared config
-- [x] Vitest (or chosen test framework) configured
-- [x] Docker Compose for local PostgreSQL + Redis
-- [x] GitHub Actions: lint, test, build on PR
-- [x] Project CLAUDE.md with architecture, conventions, and scaffolding system integration
-- [x] docs/ structure: ARCHITECTURE.md, CONVENTIONS.md, DECISIONS.md, TICKETS.md, MAINTENANCE.md
-- [x] LICENSE file (per T-005 decision)
-- [x] .env.tpl with op:// references for secrets
-- [x] README.md with project overview and setup instructions
-
----
 
 ### T-011: Billing & Payment Infrastructure
 **Phase:** 1
@@ -240,7 +28,7 @@
 
 ---
 
-### T-012: Auth & Multi-Tenant Foundation [x] [verified]
+### T-012: Auth & Multi-Tenant Foundation [x] [verified] [audited]
 **Phase:** 1
 **Effort:** Medium
 **Complexity:** Moderate
@@ -264,7 +52,7 @@
 
 ---
 
-### T-013: Event Ingestion API [x] [verified with notes]
+### T-013: Event Ingestion API [x] [verified with notes] [audited]
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
@@ -285,7 +73,7 @@
 
 ---
 
-### T-014: Webhook Delivery Engine [x] [verified]
+### T-014: Webhook Delivery Engine [x] [verified] [audited]
 **Phase:** 2
 **Effort:** High
 **Complexity:** Complex
@@ -306,7 +94,7 @@
 
 ---
 
-### T-015: Retry Logic & Dead-Letter Queue [x] [verified]
+### T-015: Retry Logic & Dead-Letter Queue [x] [verified] [audited]
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
@@ -326,7 +114,7 @@
 
 ---
 
-### T-016: Endpoint Management API [x] [verified]
+### T-016: Endpoint Management API [x] [verified] [audited]
 **Phase:** 2
 **Effort:** Low
 **Complexity:** Simple
@@ -349,7 +137,7 @@
 
 ---
 
-### T-017: Dashboard — Event Log & Monitoring [x] [verified with notes]
+### T-017: Dashboard — Event Log & Monitoring [x] [verified with notes] [audited]
 **Phase:** 3
 **Effort:** High
 **Complexity:** Complex
@@ -369,7 +157,7 @@
 
 ---
 
-### T-018: Payload Transformation Engine [x] [verified]
+### T-018: Payload Transformation Engine [x] [verified] [audited]
 **Phase:** 3
 **Effort:** Medium
 **Complexity:** Moderate
@@ -389,7 +177,7 @@
 
 ---
 
-### T-019: TypeScript SDK [x] [verified]
+### T-019: TypeScript SDK [x] [verified] [audited]
 **Phase:** 3
 **Effort:** Medium
 **Complexity:** Moderate
@@ -415,7 +203,7 @@
 
 ---
 
-### T-020: Landing Page & Documentation Site [x] [verified]
+### T-020: Landing Page & Documentation Site [x] [verified] [audited]
 **Phase:** 4
 **Effort:** High
 **Complexity:** Moderate
@@ -436,7 +224,7 @@
 
 ---
 
-### T-021: Legal Documents [x] [verified]
+### T-021: Legal Documents [x] [verified] [audited]
 **Phase:** 4
 **Effort:** Low
 **Complexity:** Simple

@@ -1,5 +1,7 @@
 # Decisions — EmitHQ
 
+> Last verified: 2026-03-13
+
 ## DEC-001 | 2026-03-13 | Product Category: Webhook Infrastructure Platform
 
 **Status:** Active
@@ -225,3 +227,88 @@
 - Pure exponential formula — approximates but doesn't match exact spec delays
 
 **Consequences:** `delivery_attempts.status` now has 4 values: `pending`, `delivered`, `failed`, `exhausted`. `nextAttemptAt` populated on failure for dashboard display. Replay API at `POST /api/v1/app/:appId/msg/:msgId/retry`.
+
+---
+
+## DEC-014 | 2026-03-13 | Transformation: Zero-Dependency JSONPath Subset + Templates
+
+**Status:** Active
+**Linked to:** T-018
+
+**Context:** Payload transformation is a key differentiator. Needed JSONPath extraction + template interpolation for reshaping webhook payloads before delivery.
+
+**Decision:** Custom zero-dependency implementation (~230 lines). JSONPath dot-notation subset ($.key, $.arr[0], $.obj['key']). Template interpolation ({{...}}). Built-in functions (formatDate, uppercase, lowercase, concat). Per-endpoint `transformRules` JSONB column. Applied in delivery worker before signing.
+
+**Alternatives considered:**
+- jsonpath-plus library — 150KB, security risk from filter expressions, still needs custom template code
+- jsonata — 200KB, non-standard syntax, overkill for field mapping
+
+**Consequences:** Prototype pollution blocked via BLOCKED_KEYS set. Input limits enforced (20 rules, 256 char paths, 512 char templates). targetField validated against whitelist regex.
+
+---
+
+## DEC-015 | 2026-03-13 | SDK: Zero-Dependency Fetch-Based TypeScript Client
+
+**Status:** Active
+**Linked to:** T-019
+
+**Context:** TypeScript SDK is the primary developer experience. Needed typed client, error handling, retry logic, and webhook verification.
+
+**Decision:** Zero runtime dependencies. Native `fetch` + `AbortController` for HTTP. Typed error classes mapped from HTTP status codes. Client-side retry (3 attempts, exponential backoff with jitter) on 5xx/network errors. `verifyWebhook()` using WebCrypto API for universal compatibility (Node 18+, browsers, edge). Published as `@emithq/sdk` on npm (MIT license).
+
+**Alternatives considered:**
+- axios/undici — unnecessary dependency for a simple REST client
+- Node crypto.timingSafeEqual for verification — not available in browsers/edge runtimes
+
+**Consequences:** SDK works everywhere WebCrypto is available. Custom timing-safe comparison for signature verification (XOR-based, constant-time).
+
+---
+
+## DEC-016 | 2026-03-13 | Dashboard: Separate Next.js App Calling API Over HTTP
+
+**Status:** Active
+**Linked to:** T-017
+
+**Context:** Dashboard needs to display event logs, delivery attempts, endpoint health, and DLQ. Could either import @emithq/core directly or call API endpoints.
+
+**Decision:** Separate `packages/dashboard` Next.js 15 App Router app. Calls API server over HTTP (not direct DB access). Clerk-wrapped for auth. Client components for interactive pages (events, endpoints, DLQ), server component for overview stats.
+
+**Alternatives considered:**
+- Direct @emithq/core import from Server Components — tighter coupling, bypasses API as single entry point
+- Single app with dashboard + landing — different auth requirements (Clerk vs public)
+
+**Consequences:** Required building 6 new dashboard API endpoints (message list, detail, attempts, stats, DLQ, endpoint-health). Dashboard and API are independently deployable.
+
+---
+
+## DEC-017 | 2026-03-13 | Landing Site: Separate Static Next.js App on CF Pages
+
+**Status:** Active
+**Linked to:** T-020
+
+**Context:** Marketing site and documentation need to be public (no auth), fast (static), and separately deployable from the dashboard.
+
+**Decision:** Separate `packages/landing` Next.js app with `output: 'export'` for static HTML generation. Deployed to Cloudflare Pages. No Clerk, no @emithq/core dependency. Plausible analytics (privacy-friendly, no cookies). Indigo/violet brand colors (#6366F1).
+
+**Alternatives considered:**
+- Part of dashboard app — would require conditional Clerk wrapping and public route exceptions
+- Astro — good fit for static sites but adds another framework to learn
+
+**Consequences:** Two Next.js apps in the monorepo (dashboard + landing). Landing site content must be kept in sync with API changes manually.
+
+---
+
+## DEC-018 | 2026-03-13 | Legal Entity: NotAnotherAiCo LLC (Multi-Product Umbrella)
+
+**Status:** Active (supersedes DEC-006 naming)
+**Linked to:** T-021, T-004
+
+**Context:** Julian decided EmitHQ is the second product under NotAnotherAiCo LLC (first is NAAC ERP for property management). Company domain is naac.ai.
+
+**Decision:** NotAnotherAiCo LLC is the legal entity for all products. EmitHQ is a product brand, not a separate company. npm org stays product-level (@emithq). Stripe for EmitHQ billing (SaaS subscriptions + usage metering). Payabli stays for NAAC ERP only (embedded payments — different payment flow).
+
+**Alternatives considered:**
+- Separate LLC per product — unnecessary overhead for a solo founder
+- Payabli for EmitHQ — built for embedded payments, no usage-based metering
+
+**Consequences:** Legal docs reference "NotAnotherAiCo LLC" as entity. naac.ai needs a company website showcasing both products (future work).

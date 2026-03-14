@@ -1,5 +1,7 @@
 # Architecture — EmitHQ
 
+> Last verified: 2026-03-13
+
 ## Overview
 EmitHQ is a webhook infrastructure platform handling both inbound (receiving) and outbound (sending) webhooks. Hybrid edge/origin architecture with Cloudflare Workers at the edge and Node.js on Railway as origin.
 
@@ -77,6 +79,33 @@ Two database roles:
 - `app_admin` — BYPASSRLS, used for org/key lookups, migrations, BullMQ workers
 
 Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
+
+## API Surface (19 endpoints)
+
+| Group | Endpoints | Auth |
+|-------|-----------|------|
+| Auth/Keys | POST/GET/DELETE `/api/v1/auth/keys` | Clerk session |
+| Messages | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId` | API key |
+| Endpoints | CRUD `/api/v1/app/:appId/endpoint`, test delivery | API key |
+| Replay | POST retry (message-level, attempt-level) | API key |
+| Dashboard | GET stats, msg list, DLQ, endpoint-health | API key |
+| Transform | POST `/api/v1/transform/preview` | API key |
+
+## Payload Transformation (T-018)
+
+Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFORE signing. Zero-dependency engine: JSONPath dot-notation subset, `{{...}}` template interpolation, built-in functions (formatDate, uppercase, lowercase, concat). Passthrough when rules are null/empty.
+
+## Dashboard (T-017)
+
+Next.js 15 App Router at `packages/dashboard/`. Clerk-wrapped, port 3002. Server Components + client components for interactivity. Calls API over HTTP. Pages: Overview (stats), Events (filterable log + detail panel), Endpoints (health cards), DLQ (replay buttons). Mobile responsive with sidebar + bottom nav.
+
+## Landing & Docs Site (T-020)
+
+Separate Next.js app at `packages/landing/`. Static export for CF Pages. No auth, no DB. Pages: landing (hero, pricing gap, features, code snippet), pricing (4-tier table + FAQ), compare (vs Svix/Hookdeck/Convoy + build-vs-buy), docs (getting started, API reference, SDK guide). Plausible analytics. SEO (meta, OG, sitemap, robots.txt).
+
+## TypeScript SDK (T-019)
+
+`@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints, replay, testEndpoint). Typed errors (AuthError, ValidationError, RateLimitError, etc.). Auto-retry on 5xx/network (3 attempts, exponential backoff). `verifyWebhook()` using WebCrypto API.
 
 ## Key Decisions
 - See docs/DECISIONS.md for architectural decision records

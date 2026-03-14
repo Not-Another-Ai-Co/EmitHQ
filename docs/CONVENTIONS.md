@@ -1,5 +1,7 @@
 # Conventions — EmitHQ
 
+> Last verified: 2026-03-13
+
 ## Language & Runtime
 - TypeScript strict mode (`"strict": true`) everywhere
 - Node.js 22+ (LTS) for Railway origin
