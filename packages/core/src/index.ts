@@ -15,3 +15,15 @@ export type { GeneratedKey } from './auth/api-key';
 export { getDeliveryQueue, enqueueDelivery } from './queue/delivery-queue';
 export { createRedisConnection } from './queue/redis';
 export type { DeliveryJobData } from './queue/delivery-queue';
+
+// Signing
+export {
+  signWebhook,
+  buildWebhookHeaders,
+  verifyWebhook,
+  generateSigningSecret,
+} from './signing/webhook-signer';
+
+// Workers
+export { deliverWebhook, processDeliveryJob, startDeliveryWorker } from './workers/delivery-worker';
+export type { DeliveryResult } from './workers/delivery-worker';

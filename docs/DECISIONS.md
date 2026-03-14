@@ -190,3 +190,20 @@
 - Token bucket algorithm — overkill for monthly counters
 
 **Consequences:** Need a monthly cron to reset `event_count_month = 0`. Burst limiting deferred to post-launch if abuse is observed.
+
+---
+
+## DEC-012 | 2026-03-13 | Delivery Worker: Standard Webhooks Signing + Circuit Breaker
+
+**Status:** Active
+**Linked to:** T-014
+
+**Context:** Outbound webhook delivery needs HMAC signing per Standard Webhooks spec, configurable timeouts, and automatic endpoint disabling after consecutive failures.
+
+**Decision:** BullMQ Worker using `adminDb` (BYPASSRLS) for cross-tenant processing. Standard Webhooks signing: `HMAC-SHA256(msg_{id}.{timestamp}.{body}, whsec_secret)` → `v1,{base64}`. Native `fetch` + `AbortSignal.timeout()` for HTTP delivery (Node 22+, no deps). Non-retriable codes (400/401/403/404/410) throw `UnrecoverableError`. Circuit breaker: `failureCount` incremented per failure, endpoint disabled at ≥10 consecutive failures, reset on success.
+
+**Alternatives considered:**
+- undici HTTP client — more control over connection pooling, but native fetch is sufficient for MVP
+- Transient "delivering" status — adds a DB write with no consumer until dashboard (T-017); deferred
+
+**Consequences:** Worker concurrency capped at 5 (matching `adminPool.max`). Response body truncated to 1KB. T-015 will refine retry schedule with custom backoff strategy.

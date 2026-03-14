@@ -285,7 +285,7 @@
 
 ---
 
-### T-014: Webhook Delivery Engine
+### T-014: Webhook Delivery Engine [x]
 **Phase:** 2
 **Effort:** High
 **Complexity:** Complex
@@ -295,14 +295,14 @@
 **Description:** Build the core delivery engine — the system that takes queued events and delivers them to customer-configured endpoints. This is the heart of the product. Include: HTTP delivery with configurable timeouts, signature verification (HMAC), delivery attempt logging, and success/failure tracking.
 
 **Acceptance criteria:**
-- [ ] Worker processes queued events and delivers via HTTP POST
-- [ ] HMAC signature generation (SHA-256) on every delivery
-- [ ] Configurable timeout per endpoint (default 30s)
-- [ ] Delivery attempt logged with: status code, response time, response body (truncated), headers
-- [ ] Success criteria: 2xx response = delivered, anything else = failed
-- [ ] Event status updated: pending → delivering → delivered / failed
-- [ ] Concurrent delivery to multiple endpoints (fan-out)
-- [ ] Tests: successful delivery, timeout, 5xx response, signature verification, fan-out
+- [x] Worker processes queued events and delivers via HTTP POST
+- [x] HMAC signature generation (SHA-256) on every delivery
+- [x] Configurable timeout per endpoint (default 30s)
+- [x] Delivery attempt logged with: status code, response time, response body (truncated), headers
+- [x] Success criteria: 2xx response = delivered, anything else = failed
+- [x] Event status updated: pending → delivered / failed (DEVIATION: skip transient "delivering" state until dashboard T-017)
+- [x] Concurrent delivery to multiple endpoints (fan-out via BullMQ concurrency=5)
+- [x] Tests: successful delivery, timeout, 5xx response, signature verification, fan-out
 
 ---
 
