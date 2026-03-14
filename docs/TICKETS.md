@@ -326,7 +326,7 @@
 
 ---
 
-### T-016: Endpoint Management API [x]
+### T-016: Endpoint Management API [x] [verified]
 **Phase:** 2
 **Effort:** Low
 **Complexity:** Simple
