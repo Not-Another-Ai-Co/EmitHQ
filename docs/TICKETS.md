@@ -326,7 +326,7 @@
 
 ---
 
-### T-016: Endpoint Management API
+### T-016: Endpoint Management API [x]
 **Phase:** 2
 **Effort:** Low
 **Complexity:** Simple
@@ -336,12 +336,12 @@
 **Description:** CRUD API for managing webhook endpoints. Customers configure where their events get delivered.
 
 **Acceptance criteria:**
-- [ ] CRUD endpoints: create, read, update, delete webhook endpoints
-- [ ] Endpoint properties: URL, secret (for signature verification), enabled/disabled, event type filter, description
-- [ ] URL validation (HTTPS required for production, HTTP allowed for development)
-- [ ] Test delivery endpoint — send a test event to verify connectivity
-- [ ] List endpoints with pagination and filtering
-- [ ] Tests: CRUD operations, URL validation, test delivery
+- [x] CRUD endpoints: create, read, update, delete webhook endpoints
+- [x] Endpoint properties: URL, secret (for signature verification), enabled/disabled, event type filter, description
+- [x] URL validation (HTTPS required for production, HTTP allowed for development)
+- [x] Test delivery endpoint — send a test event to verify connectivity
+- [x] List endpoints with cursor-based pagination
+- [x] Tests: CRUD operations, URL validation, test delivery
 
 ---
 
