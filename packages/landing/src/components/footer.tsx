@@ -52,14 +52,24 @@ export function Footer() {
             <h3 className="mb-3 text-sm font-semibold">Company</h3>
             <ul className="space-y-2 text-sm text-[var(--color-text-muted)]">
               <li>
-                <a href="/terms" className="hover:text-[var(--color-text)]">
+                <Link href="/terms" className="hover:text-[var(--color-text)]">
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="/privacy" className="hover:text-[var(--color-text)]">
+                <Link href="/privacy" className="hover:text-[var(--color-text)]">
                   Privacy Policy
-                </a>
+                </Link>
+              </li>
+              <li>
+                <Link href="/dpa" className="hover:text-[var(--color-text)]">
+                  DPA
+                </Link>
+              </li>
+              <li>
+                <Link href="/sla" className="hover:text-[var(--color-text)]">
+                  SLA
+                </Link>
               </li>
             </ul>
           </div>

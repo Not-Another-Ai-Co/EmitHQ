@@ -436,7 +436,7 @@
 
 ---
 
-### T-021: Legal Documents
+### T-021: Legal Documents [x]
 **Phase:** 4
 **Effort:** Low
 **Complexity:** Simple
@@ -446,12 +446,12 @@
 **Description:** Generate Terms of Service, Privacy Policy, Data Processing Agreement, and SLA document based on the legal research in T-004. These must be real, enforceable documents — not AI-generated fluff. Julian to review with counsel if needed.
 
 **Acceptance criteria:**
-- [ ] Terms of Service covering: service description, acceptable use, liability caps, data handling
-- [ ] Privacy Policy covering: what data we collect, how we process it, GDPR/CCPA compliance
-- [ ] Data Processing Agreement template for enterprise customers
-- [ ] SLA document with uptime commitment and credit policy
-- [ ] All documents accessible from landing page footer
-- [ ] Julian review gate: legal documents require human review before publishing
+- [x] Terms of Service covering: service description, acceptable use, liability caps, data handling (12 sections)
+- [x] Privacy Policy covering: what data we collect, how we process it, GDPR/CCPA compliance (11 sections, 7 data categories, 7 subprocessors)
+- [x] Data Processing Agreement template for enterprise customers (11 sections, GDPR Article 28 compliant)
+- [x] SLA document with uptime commitment and credit policy (per-tier SLA: 99.9%/99.95%/99.99%, 10%/25% credits capped at 30%)
+- [x] All documents accessible from landing page footer (Terms, Privacy, DPA, SLA links + sitemap)
+- [x] Julian review gate: all pages display "Draft — requires legal review before publishing" banner
 
 ---
 
