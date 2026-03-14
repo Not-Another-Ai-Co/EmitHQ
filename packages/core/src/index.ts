@@ -10,3 +10,8 @@ export type * from './db/types';
 // Auth
 export { generateApiKey, hashApiKey, verifyApiKey, isEmithqApiKey } from './auth/api-key';
 export type { GeneratedKey } from './auth/api-key';
+
+// Queue
+export { getDeliveryQueue, enqueueDelivery } from './queue/delivery-queue';
+export { createRedisConnection } from './queue/redis';
+export type { DeliveryJobData } from './queue/delivery-queue';

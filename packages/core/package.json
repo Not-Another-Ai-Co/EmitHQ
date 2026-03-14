@@ -14,7 +14,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "bullmq": "^5.71.0",
     "drizzle-orm": "^0.45.1",
+    "ioredis": "^5.10.0",
     "pg": "^8.20.0"
   }
 }

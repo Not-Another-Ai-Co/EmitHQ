@@ -264,7 +264,7 @@
 
 ---
 
-### T-013: Event Ingestion API
+### T-013: Event Ingestion API [x]
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
@@ -274,14 +274,14 @@
 **Description:** Build the event ingestion endpoint — the API that customers call to send webhooks through our system. Include: event validation, schema enforcement, rate limiting, and queueing for async delivery.
 
 **Acceptance criteria:**
-- [ ] POST /api/v1/events endpoint accepting event payloads
-- [ ] Event validation (required fields, payload size limits, content-type)
-- [ ] Idempotency key support (prevent duplicate deliveries)
-- [ ] Rate limiting per tenant (based on tier)
-- [ ] Events queued for async delivery (Redis or PostgreSQL queue)
-- [ ] Event stored in database with status tracking
-- [ ] API response includes event ID for tracking
-- [ ] Tests: valid event, invalid payload, rate limit hit, idempotency, large payload rejection
+- [x] POST /api/v1/app/:appId/msg endpoint accepting event payloads
+- [x] Event validation (required fields, payload size limits, content-type)
+- [x] Idempotency key support (prevent duplicate deliveries)
+- [x] Rate limiting per tenant (based on tier)
+- [x] Events queued for async delivery (BullMQ on Upstash Redis)
+- [x] Event stored in database with status tracking
+- [x] API response includes event ID for tracking
+- [x] Tests: valid event, invalid payload, rate limit hit, idempotency, large payload rejection
 
 ---
 

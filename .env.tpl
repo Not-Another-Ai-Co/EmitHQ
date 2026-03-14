@@ -5,9 +5,13 @@
 DATABASE_URL=op://EmitHQ/database/connection-string
 DATABASE_ADMIN_URL=op://EmitHQ/database/admin-connection-string
 
-# Redis (Upstash)
+# Redis (Upstash) — REST client
 REDIS_URL=op://EmitHQ/redis/url
 REDIS_TOKEN=op://EmitHQ/redis/token
+
+# Redis (Upstash) — TCP for BullMQ (ioredis)
+UPSTASH_REDIS_HOST=op://EmitHQ/redis/host
+UPSTASH_REDIS_PASSWORD=op://EmitHQ/redis/password
 
 # QStash (Upstash)
 QSTASH_TOKEN=op://EmitHQ/qstash/token

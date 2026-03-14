@@ -156,3 +156,37 @@
 - Neon HTTP driver — doesn't support multi-statement transactions needed for SET LOCAL
 
 **Consequences:** Schema changes go through `drizzle-kit generate` → `drizzle-kit migrate`. Migrations must run as `app_admin` (BYPASSRLS), not `app_user`. `entities.roles.provider: 'neon'` in drizzle config to avoid managing Neon system roles.
+
+---
+
+## DEC-010 | 2026-03-13 | Event Ingestion: Persist-Before-Enqueue with BullMQ
+
+**Status:** Active
+**Linked to:** T-013
+
+**Context:** Event ingestion endpoint needs to accept webhook messages and fan them out to delivery endpoints. Queue reliability and data durability are critical — losing a customer's event is unacceptable.
+
+**Decision:** Persist message + delivery_attempt rows to PostgreSQL within the tenant-scoped transaction BEFORE enqueueing BullMQ jobs. Queue failures are non-fatal — the message is safe in DB. BullMQ uses ioredis (TCP) to Upstash Redis with TLS. Queue and Worker are decoupled — T-013 only enqueues, T-014 adds the worker.
+
+**Alternatives considered:**
+- Enqueue first, persist later — risks data loss if worker processes before DB write
+- PostgreSQL-only queue (SKIP LOCKED) — simpler but less performant than BullMQ for high throughput
+
+**Consequences:** Recovery sweep needed (T-014) for pending delivery_attempts without corresponding BullMQ jobs. Upstash Fixed plan recommended over Pay-Per-Request for BullMQ polling costs.
+
+---
+
+## DEC-011 | 2026-03-13 | Rate Limiting: Monthly Quota via event_count_month
+
+**Status:** Active
+**Linked to:** T-013
+
+**Context:** Need per-tenant rate limiting based on pricing tiers (free=100K, starter=500K, growth=2M, scale=10M events/month).
+
+**Decision:** MVP uses `event_count_month` column on organizations table, incremented atomically in the same PostgreSQL transaction as message insert. Custom quota middleware checks count against tier limit before ingestion. No Redis-backed burst limiting for MVP — Cloudflare Workers handle edge-level rate limiting.
+
+**Alternatives considered:**
+- Redis-backed per-second rate limiting (`hono-rate-limiter`) — adds complexity and another Redis dependency for a concern already handled at the edge
+- Token bucket algorithm — overkill for monthly counters
+
+**Consequences:** Need a monthly cron to reset `event_count_month = 0`. Burst limiting deferred to post-launch if abuse is observed.
