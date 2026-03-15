@@ -57,7 +57,6 @@ export default function DlqPage() {
 
   useEffect(() => {
     fetchDlq(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const replay = async (entry: DlqEntry) => {

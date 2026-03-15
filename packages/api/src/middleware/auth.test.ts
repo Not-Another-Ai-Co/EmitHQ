@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 
 // Mock @emithq/core before importing auth middleware
 vi.mock('@emithq/core', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { createHash } = require('node:crypto');
   return {
     adminDb: {

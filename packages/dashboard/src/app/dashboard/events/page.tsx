@@ -73,7 +73,6 @@ export default function EventsPage() {
 
   useEffect(() => {
     fetchMessages(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypeFilter]);
 
   const loadDetail = async (msgId: string) => {

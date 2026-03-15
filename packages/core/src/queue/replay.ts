@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { adminDb } from '../db/client';
-import { deliveryAttempts, endpoints, messages } from '../db/schema';
+import { deliveryAttempts, endpoints } from '../db/schema';
 import { getDeliveryQueue } from './delivery-queue';
 import { MAX_DELIVERY_ATTEMPTS } from './backoff';
 

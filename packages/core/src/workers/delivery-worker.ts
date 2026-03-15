@@ -248,7 +248,7 @@ export function startDeliveryWorker(): Worker<DeliveryJobData> {
   );
 
   // Detect exhausted deliveries (all retries consumed)
-  worker.on('failed', (job, err) => {
+  worker.on('failed', (job, _err) => {
     if (!job) return;
     const isExhausted = job.attemptsMade >= MAX_DELIVERY_ATTEMPTS;
     if (!isExhausted) return;

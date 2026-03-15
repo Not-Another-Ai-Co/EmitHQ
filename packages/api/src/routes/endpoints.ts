@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, and, or, ne, desc, lt, isNull } from 'drizzle-orm';
+import { eq, and, or, ne, desc, isNull } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import {
   applications,

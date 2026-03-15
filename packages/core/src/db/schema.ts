@@ -172,7 +172,7 @@ export const inboundSources = pgTable(
     endpointPath: text('endpoint_path').notNull().unique(),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [tenantPolicy('inbound_sources')],
+  (_t) => [tenantPolicy('inbound_sources')],
 );
 
 // ─── Relations ──────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { eq, and, or, sql, isNull } from 'drizzle-orm';
-import { applications, messages, endpoints, deliveryAttempts, organizations } from '@emithq/core';
+import { applications, messages, endpoints, deliveryAttempts } from '@emithq/core';
 import { enqueueDelivery } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Hono } from 'hono';
 
 // Mock @emithq/core
@@ -126,7 +126,7 @@ function createMockTx() {
 
 describe('POST /api/v1/app/:appId/msg', () => {
   it('returns 202 with message data for valid event', async () => {
-    const { app } = createTestApp();
+    createTestApp();
 
     // Import and mount the route handler directly (skip auth middleware)
     const { Hono: H } = await import('hono');
@@ -142,7 +142,7 @@ describe('POST /api/v1/app/:appId/msg', () => {
 
       // Configure: app found, message inserted, no endpoints
       const selectCalls: number[] = [];
-      mockTx.select.mockImplementation((fields: unknown) => {
+      mockTx.select.mockImplementation((_fields: unknown) => {
         selectCalls.push(1);
         const callNum = selectCalls.length;
 

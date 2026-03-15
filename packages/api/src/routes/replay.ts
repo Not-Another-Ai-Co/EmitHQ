@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { eq, and } from 'drizzle-orm';
-import { replayDelivery, replayMessage, reEnableEndpoint } from '@emithq/core';
+import { eq } from 'drizzle-orm';
+import { replayDelivery, replayMessage } from '@emithq/core';
 import { deliveryAttempts, messages } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
