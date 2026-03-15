@@ -3,6 +3,7 @@
 > Last verified: 2026-03-13
 
 ## Overview
+
 EmitHQ is a webhook infrastructure platform handling both inbound (receiving) and outbound (sending) webhooks. Hybrid edge/origin architecture with Cloudflare Workers at the edge and Node.js on Railway as origin.
 
 ## System Diagram
@@ -65,6 +66,7 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 ## Authentication
 
 Dual auth model:
+
 - **Dashboard users:** Clerk sessions via `@hono/clerk-auth` middleware. Clerk org ID maps to internal `org_id` via `clerk_org_id` column on organizations table.
 - **Programmatic access:** Custom `emhq_` prefixed API keys. SHA-256 hashed in `api_keys` table, verified with `crypto.timingSafeEqual`. Multiple active keys per org for zero-downtime rotation.
 
@@ -75,21 +77,27 @@ Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenan
 Shared schema with PostgreSQL Row-Level Security. `org_id` on every table. `SET LOCAL app.current_tenant` per request within a Drizzle transaction (`withTenant()`). UUID validation before SQL execution.
 
 Two database roles:
+
 - `app_user` — RLS enforced, used at runtime
 - `app_admin` — BYPASSRLS, used for org/key lookups, migrations, BullMQ workers
 
 Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
 
-## API Surface (19 endpoints)
+## API Surface (23 endpoints)
 
-| Group | Endpoints | Auth |
-|-------|-----------|------|
-| Auth/Keys | POST/GET/DELETE `/api/v1/auth/keys` | Clerk session |
-| Messages | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId` | API key |
-| Endpoints | CRUD `/api/v1/app/:appId/endpoint`, test delivery | API key |
-| Replay | POST retry (message-level, attempt-level) | API key |
-| Dashboard | GET stats, msg list, DLQ, endpoint-health | API key |
-| Transform | POST `/api/v1/transform/preview` | API key |
+| Group     | Endpoints                                                  | Auth                                      |
+| --------- | ---------------------------------------------------------- | ----------------------------------------- |
+| Auth/Keys | POST/GET/DELETE `/api/v1/auth/keys`                        | Clerk session                             |
+| Messages  | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`           | API key                                   |
+| Endpoints | CRUD `/api/v1/app/:appId/endpoint`, test delivery          | API key                                   |
+| Replay    | POST retry (message-level, attempt-level)                  | API key                                   |
+| Dashboard | GET stats, msg list, DLQ, endpoint-health                  | API key                                   |
+| Transform | POST `/api/v1/transform/preview`                           | API key                                   |
+| Billing   | POST checkout, GET subscription, POST portal, POST webhook | Clerk session (webhook: Stripe signature) |
+
+## Billing (T-011)
+
+Stripe Checkout Sessions for subscription signup (Starter $49/Growth $149/Scale $349, monthly or annual). Customer Portal for self-service plan changes. Webhook handler processes 5 Stripe event types: `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.paid/payment_failed`. `billingEvents` table with unique `stripe_event_id` for idempotent webhook processing. Organizations auto-provisioned on first Clerk login. Free tier hard-blocks at 100K events; paid tiers allow overage. `invoice.paid` resets `event_count_month` per billing period.
 
 ## Payload Transformation (T-018)
 
@@ -108,5 +116,6 @@ Separate Next.js app at `packages/landing/`. Static export for CF Pages. No auth
 `@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints, replay, testEndpoint). Typed errors (AuthError, ValidationError, RateLimitError, etc.). Auto-retry on 5xx/network (3 attempts, exponential backoff). `verifyWebhook()` using WebCrypto API.
 
 ## Key Decisions
+
 - See docs/DECISIONS.md for architectural decision records
 - See docs/research/technical-architecture.md for full architecture research

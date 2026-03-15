@@ -7,7 +7,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 
 ## Webhook SaaS Business Build — 2026-03-13
 
-### T-011: Billing & Payment Infrastructure [x]
+### T-011: Billing & Payment Infrastructure [x] [verified with notes]
 
 **Phase:** 1
 **Effort:** Medium
