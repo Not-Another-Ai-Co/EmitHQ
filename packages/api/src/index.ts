@@ -7,11 +7,39 @@ import { endpointRoutes } from './routes/endpoints';
 import { transformPreviewRoutes } from './routes/transform-preview';
 import { dashboardRoutes } from './routes/dashboard';
 import { billingRoutes } from './routes/billing';
+import { metricsRoutes } from './routes/metrics';
+import { adminDb, createRedisConnection } from '@emithq/core';
+import { sql } from 'drizzle-orm';
 
 const app = new Hono();
 
-// Health check (no auth)
-app.get('/health', (c) => c.json({ status: 'ok' }));
+// Health check (no auth) — probes DB and Redis connectivity
+app.get('/health', async (c) => {
+  let dbOk = false;
+  let redisOk = false;
+
+  try {
+    await adminDb.execute(sql`SELECT 1`);
+    dbOk = true;
+  } catch {
+    /* DB unreachable */
+  }
+
+  try {
+    const redis = createRedisConnection();
+    await redis.ping();
+    await redis.quit();
+    redisOk = true;
+  } catch {
+    /* Redis unreachable */
+  }
+
+  const status = dbOk && redisOk ? 'ok' : 'degraded';
+  return c.json({ status, db: dbOk, redis: redisOk }, status === 'ok' ? 200 : 503);
+});
+
+// Metrics endpoint (secret-protected, before Clerk middleware)
+app.route('/metrics', metricsRoutes);
 
 // Mount Clerk middleware globally for session token support
 app.use('*', clerk);

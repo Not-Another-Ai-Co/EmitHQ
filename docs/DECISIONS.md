@@ -350,3 +350,22 @@
 - Monthly cron for event count reset — `invoice.paid` is the actual billing period boundary; more accurate
 
 **Consequences:** Stripe products/prices created in sandbox (3 products × 2 intervals = 6 prices). Price IDs stored in 1Password. Org auto-provisioning means first Clerk login creates the org row. Dashboard billing UI deferred to follow-up ticket.
+
+---
+
+## DEC-020 | 2026-03-15 | Monitoring: PostgreSQL SLO Queries + Better Stack + Sentry
+
+**Status:** Active
+**Linked to:** T-022
+
+**Context:** Need production monitoring for a webhook infrastructure platform selling reliability. Must track delivery success rate, latency percentiles, queue depth, and provide incident response capability.
+
+**Decision:** SLO metrics computed from existing `delivery_attempts` table via PostgreSQL aggregate queries (percentile_cont, filtered counts) — no new schema or time-series DB. `/metrics` endpoint exposes cross-tenant aggregates via `adminDb` (BYPASSRLS), protected by `METRICS_SECRET` header. `/health` extended to probe DB + Redis connectivity (returns 503 if degraded). Better Stack for external uptime monitoring + status page. Sentry for error tracking + performance monitoring. Incident runbook at `docs/RUNBOOK.md`.
+
+**Alternatives considered:**
+
+- Prometheus + Grafana — overkill for pre-launch; adds operational complexity for a solo dev
+- Custom time-series database — unnecessary when delivery_attempts already stores all SLO data
+- Datadog/New Relic — expensive; Better Stack + Sentry covers needs at $0/mo (free tiers)
+
+**Consequences:** Better Stack and Sentry accounts need to be created and API tokens stored in 1Password. `/metrics` endpoint must not be public (secret-protected). SLO queries may become slow at >100M delivery_attempts — add materialized views or time-series if needed post-launch.

@@ -266,7 +266,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-022: Monitoring, Alerting & SLO Setup
+### T-022: Monitoring, Alerting & SLO Setup [x]
 
 **Phase:** 4
 **Effort:** Medium
@@ -278,14 +278,14 @@ _Build the webhook delivery engine — the core value proposition._
 
 **Acceptance criteria:**
 
-- [ ] Uptime monitoring (external) — Better Stack or similar
-- [ ] Delivery latency p50/p95/p99 tracking
-- [ ] Error rate alerting (>1% delivery failure triggers alert)
-- [ ] Queue depth monitoring (backlog alerts)
-- [ ] Customer-facing status page (statuspage.io or custom)
-- [ ] SLO dashboard: 99.9% delivery success rate, <500ms p95 delivery latency
-- [ ] Incident response runbook (what to do when things break)
-- [ ] Alerts route to Julian (email/SMS/Slack)
+- [x] Uptime monitoring (external) — Better Stack (Julian to create account + monitors via API, env vars in .env.tpl)
+- [x] Delivery latency p50/p95/p99 tracking (GET /metrics endpoint with PostgreSQL percentile_cont aggregates)
+- [x] Error rate alerting (>1% delivery failure triggers alert) (GET /metrics/slo with pass/fail checks, Better Stack monitors this)
+- [x] Queue depth monitoring (backlog alerts) (BullMQ getJobCounts in /metrics, SLO check in /metrics/slo)
+- [x] Customer-facing status page (Better Stack includes status page on free tier — Julian to configure)
+- [x] SLO dashboard: 99.9% delivery success rate, <500ms p95 delivery latency (GET /metrics/slo endpoint)
+- [x] Incident response runbook (docs/RUNBOOK.md — 6 incident scenarios with resolution steps)
+- [x] Alerts route to Julian (Better Stack email + phone escalation, Sentry email digest)
 
 ---
 

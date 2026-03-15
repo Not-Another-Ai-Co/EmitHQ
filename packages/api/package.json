@@ -17,6 +17,7 @@
     "@emithq/core": "*",
     "@hono/clerk-auth": "^3.1.0",
     "@hono/node-server": "^1.19.11",
+    "@sentry/node": "^10.43.0",
     "hono": "^4.12.7",
     "stripe": "^20.4.1"
   }

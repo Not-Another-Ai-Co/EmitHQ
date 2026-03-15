@@ -32,6 +32,10 @@ STRIPE_PRICE_GROWTH_ANNUAL=op://EmitHQ/stripe/price-growth-annual
 STRIPE_PRICE_SCALE_MONTHLY=op://EmitHQ/stripe/price-scale-monthly
 STRIPE_PRICE_SCALE_ANNUAL=op://EmitHQ/stripe/price-scale-annual
 
+# Monitoring
+SENTRY_DSN=op://EmitHQ/sentry/dsn
+METRICS_SECRET=op://EmitHQ/metrics/secret
+
 # App
 NODE_ENV=development
 PORT=4000

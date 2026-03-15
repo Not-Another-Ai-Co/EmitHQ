@@ -1,3 +1,4 @@
+import './instrument'; // Sentry must init before other imports
 import { serve } from '@hono/node-server';
 import { app } from './index';
 
