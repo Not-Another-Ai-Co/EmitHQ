@@ -1,13 +1,13 @@
 # Tickets — Webhook Infrastructure SaaS
 
-> Last verified: 2026-03-13
+> Last verified: 2026-03-15
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality gates | `[x] [verified] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
 
 ## Webhook SaaS Business Build — 2026-03-13
 
-### T-011: Billing & Payment Infrastructure [x] [verified with notes]
+### T-011: Billing & Payment Infrastructure [x] [verified with notes] [audited]
 
 **Phase:** 1
 **Effort:** Medium
@@ -266,7 +266,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-022: Monitoring, Alerting & SLO Setup [x] [verified with notes]
+### T-022: Monitoring, Alerting & SLO Setup [x] [verified with notes] [audited]
 
 **Phase:** 4
 **Effort:** Medium
@@ -289,7 +289,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-023: Show HN Launch & Content [x] [verified]
+### T-023: Show HN Launch & Content [x] [verified] [audited]
 
 **Phase:** 4
 **Effort:** Medium
@@ -314,7 +314,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-024: Analytics & Feedback Loop Implementation [x] [verified with notes]
+### T-024: Analytics & Feedback Loop Implementation [x] [verified with notes] [audited]
 
 **Phase:** 5
 **Effort:** Medium

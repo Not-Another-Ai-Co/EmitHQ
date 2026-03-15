@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-13
+> Last verified: 2026-03-15
 
 ## Overview
 
@@ -83,7 +83,7 @@ Two database roles:
 
 Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
 
-## API Surface (23 endpoints)
+## API Surface (25 endpoints)
 
 | Group     | Endpoints                                                  | Auth                                      |
 | --------- | ---------------------------------------------------------- | ----------------------------------------- |
@@ -105,7 +105,7 @@ Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFO
 
 ## Dashboard (T-017)
 
-Next.js 15 App Router at `packages/dashboard/`. Clerk-wrapped, port 3002. Server Components + client components for interactivity. Calls API over HTTP. Pages: Overview (stats), Events (filterable log + detail panel), Endpoints (health cards), DLQ (replay buttons). Mobile responsive with sidebar + bottom nav.
+Next.js 15 App Router at `packages/dashboard/`. Clerk-wrapped, port 4002. Server Components + client components for interactivity. Calls API over HTTP. Pages: Overview (stats), Events (filterable log + detail panel), Endpoints (health cards), DLQ (replay buttons). Mobile responsive with sidebar + bottom nav.
 
 ## Landing & Docs Site (T-020)
 
@@ -118,6 +118,10 @@ Separate Next.js app at `packages/landing/`. Static export for CF Pages. No auth
 ## Monitoring & SLOs (T-022)
 
 `GET /health` probes DB (`SELECT 1`) and Redis (`PING`), returns 200 `ok` or 503 `degraded`. `GET /metrics` exposes cross-tenant SLO aggregates via `adminDb`: delivery success/retry/DLQ rates, p50/p95/p99 latency (PostgreSQL `percentile_cont`), BullMQ queue depth, DB pool stats. Protected by `METRICS_SECRET` header. `GET /metrics/slo` returns pass/fail against 3 targets: 99.9% delivery success, <500ms p95, <1000 queue depth. Sentry for error tracking. Better Stack for external uptime + status page. Incident runbook at `docs/RUNBOOK.md`.
+
+## Analytics & Feedback (T-024)
+
+`analytics_events` table for product analytics (no RLS — cross-tenant aggregation via adminDb). `trackEvent()` fire-and-forget helper tracks: `org.created`, `first_event_sent`, `subscription.created/canceled`, `endpoint.created`, `api_key.created`. `GET /metrics/business` returns MRR, ARR, ARPU, tier breakdown, churn from Stripe. `GET /metrics/report` returns 7-day summary of delivery stats + analytics events + tier distribution. GitHub Discussions for feature requests.
 
 ## Key Decisions
 

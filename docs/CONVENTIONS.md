@@ -1,14 +1,16 @@
 # Conventions — EmitHQ
 
-> Last verified: 2026-03-13
+> Last verified: 2026-03-15
 
 ## Language & Runtime
+
 - TypeScript strict mode (`"strict": true`) everywhere
 - Node.js 22+ (LTS) for Railway origin
 - Cloudflare Workers for edge code
 - Hono as API framework (runs on both Workers and Node.js)
 
 ## Code Style
+
 - ESLint + Prettier (auto-formatted by hook)
 - No `any` — use `unknown` and narrow
 - Prefer `const` over `let`
@@ -16,6 +18,7 @@
 - Barrel files (`index.ts`) only at package boundaries
 
 ## Naming
+
 - **Files:** kebab-case (`delivery-worker.ts`, `webhook-signer.ts`)
 - **Types/Interfaces:** PascalCase (`DeliveryAttempt`, `WebhookMessage`)
 - **Functions/Variables:** camelCase (`signWebhook`, `retryDelay`)
@@ -25,6 +28,7 @@
 - **Environment variables:** SCREAMING_SNAKE (`DATABASE_URL`, `REDIS_URL`)
 
 ## Database
+
 - All tables have `id UUID PRIMARY KEY DEFAULT gen_random_uuid()`
 - All tables have `created_at TIMESTAMPTZ DEFAULT NOW()`
 - Tenant tables have `org_id UUID NOT NULL` with RLS policy
@@ -32,6 +36,7 @@
 - Migrations via Drizzle ORM (or raw SQL files in `migrations/`)
 
 ## API Design
+
 - REST, versioned at `/api/v1/`
 - Cursor-based pagination (never offset)
 - Auth via `Authorization: Bearer {api_key}`
@@ -39,6 +44,7 @@
 - HTTP status codes: 200 (success), 201 (created), 400 (validation), 401 (auth), 404 (not found), 429 (rate limit), 500 (server error)
 
 ## Security
+
 - `crypto.timingSafeEqual` for ALL signature verification
 - Raw body preservation for webhook signature verification
 - Per-endpoint signing secrets, encrypted at rest
@@ -46,12 +52,14 @@
 - SSRF protection: validate endpoint URLs before delivery
 
 ## Testing
+
 - Vitest for unit and integration tests
 - Test files colocated: `foo.ts` → `foo.test.ts`
 - Minimum: one happy-path + one failure/edge case per acceptance criterion
 - Mock external HTTP calls in unit tests; real DB in integration tests
 
 ## Git
+
 - Atomic commits, imperative mood, reference ticket IDs
-- Branch: `main` (direct commits for ticket work)
-- No force-push to main
+- Branch: `master` (direct commits for ticket work)
+- No force-push to master
