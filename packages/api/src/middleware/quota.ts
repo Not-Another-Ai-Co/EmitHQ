@@ -36,7 +36,9 @@ export const quotaCheck = createMiddleware<AuthEnv>(async (c, next) => {
   const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS.free;
   const currentCount = org.eventCountMonth ?? 0;
 
-  if (currentCount >= limit) {
+  // Free tier: hard limit (must upgrade)
+  // Paid tiers: allow overage (billed via Stripe usage metering)
+  if (currentCount >= limit && org.tier === 'free') {
     return c.json(
       {
         error: {

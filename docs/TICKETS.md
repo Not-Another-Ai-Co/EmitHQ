@@ -7,7 +7,8 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 
 ## Webhook SaaS Business Build — 2026-03-13
 
-### T-011: Billing & Payment Infrastructure
+### T-011: Billing & Payment Infrastructure [x]
+
 **Phase:** 1
 **Effort:** Medium
 **Complexity:** Moderate
@@ -17,18 +18,20 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Implement Stripe integration with the pricing tiers defined in T-003. Include: subscription management, usage metering (event counts), billing portal, webhook handling for Stripe events (yes — we use webhooks to build a webhook product), and the free tier with automatic upgrade prompts.
 
 **Acceptance criteria:**
-- [ ] Stripe products and prices created matching tier structure
-- [ ] Subscription lifecycle: create, upgrade, downgrade, cancel
-- [ ] Usage metering: event count tracking reported to Stripe
-- [ ] Customer billing portal (Stripe hosted)
-- [ ] Free tier enforcement with usage limits
-- [ ] Upgrade prompts when approaching tier limits
-- [ ] Stripe webhook handler for payment events (invoice.paid, subscription.updated, etc.)
-- [ ] Tests covering subscription state transitions
+
+- [x] Stripe products and prices created matching tier structure
+- [x] Subscription lifecycle: create, upgrade, downgrade, cancel
+- [-] Usage metering: event count tracking reported to Stripe (DEFERRED: overage metering via Stripe Billing Meter deferred to post-launch; event_count_month tracked in DB)
+- [x] Customer billing portal (Stripe hosted)
+- [x] Free tier enforcement with usage limits
+- [-] Upgrade prompts when approaching tier limits (DEFERRED: post-launch — requires dashboard billing UI)
+- [x] Stripe webhook handler for payment events (invoice.paid, subscription.updated, etc.)
+- [x] Tests covering subscription state transitions
 
 ---
 
 ### T-012: Auth & Multi-Tenant Foundation [x] [verified] [audited]
+
 **Phase:** 1
 **Effort:** Medium
 **Complexity:** Moderate
@@ -38,6 +41,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Implement authentication (Clerk or chosen provider) and multi-tenant data isolation. Every query must be scoped to tenant. Include: user signup/login, organization/workspace creation, API key generation for programmatic access, and tenant-scoped database queries.
 
 **Acceptance criteria:**
+
 - [x] Auth provider integrated (signup, login, logout, password reset)
 - [x] Organization/workspace model with tenant isolation
 - [x] API key generation and management (create, revoke, rotate)
@@ -48,11 +52,13 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### Phase 2: Core Product
-*Build the webhook delivery engine — the core value proposition.*
+
+_Build the webhook delivery engine — the core value proposition._
 
 ---
 
 ### T-013: Event Ingestion API [x] [verified with notes] [audited]
+
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
@@ -62,6 +68,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Build the event ingestion endpoint — the API that customers call to send webhooks through our system. Include: event validation, schema enforcement, rate limiting, and queueing for async delivery.
 
 **Acceptance criteria:**
+
 - [x] POST /api/v1/app/:appId/msg endpoint accepting event payloads
 - [x] Event validation (required fields, payload size limits, content-type)
 - [x] Idempotency key support (prevent duplicate deliveries)
@@ -74,6 +81,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-014: Webhook Delivery Engine [x] [verified] [audited]
+
 **Phase:** 2
 **Effort:** High
 **Complexity:** Complex
@@ -83,6 +91,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Build the core delivery engine — the system that takes queued events and delivers them to customer-configured endpoints. This is the heart of the product. Include: HTTP delivery with configurable timeouts, signature verification (HMAC), delivery attempt logging, and success/failure tracking.
 
 **Acceptance criteria:**
+
 - [x] Worker processes queued events and delivers via HTTP POST
 - [x] HMAC signature generation (SHA-256) on every delivery
 - [x] Configurable timeout per endpoint (default 30s)
@@ -95,6 +104,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-015: Retry Logic & Dead-Letter Queue [x] [verified] [audited]
+
 **Phase:** 2
 **Effort:** Medium
 **Complexity:** Moderate
@@ -104,6 +114,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Implement retry logic for failed deliveries and dead-letter queue for events that exhaust all retries. Include: configurable retry schedule (exponential backoff with jitter), max retry count, and dead-letter queue with manual replay.
 
 **Acceptance criteria:**
+
 - [x] Exponential backoff with jitter (configurable schedule, default: 5s, 30s, 2m, 15m, 1h, 4h, 24h)
 - [x] Max retry count configurable per endpoint (default: 7 retries = 8 total attempts)
 - [x] Dead-letter queue for exhausted events (BullMQ failed set + status='exhausted')
@@ -115,6 +126,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-016: Endpoint Management API [x] [verified] [audited]
+
 **Phase:** 2
 **Effort:** Low
 **Complexity:** Simple
@@ -124,6 +136,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** CRUD API for managing webhook endpoints. Customers configure where their events get delivered.
 
 **Acceptance criteria:**
+
 - [x] CRUD endpoints: create, read, update, delete webhook endpoints
 - [x] Endpoint properties: URL, secret (for signature verification), enabled/disabled, event type filter, description
 - [x] URL validation (HTTPS required for production, HTTP allowed for development)
@@ -138,6 +151,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-017: Dashboard — Event Log & Monitoring [x] [verified with notes] [audited]
+
 **Phase:** 3
 **Effort:** High
 **Complexity:** Complex
@@ -147,6 +161,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Build the web dashboard for monitoring webhook deliveries. Include: event log with filtering/search, delivery attempt details, endpoint health overview, and real-time delivery status.
 
 **Acceptance criteria:**
+
 - [x] Event log view: filterable by status, endpoint, event type, date range (GET /:appId/msg with query filters + events page with filter input)
 - [x] Event detail view: payload, delivery attempts with status/timing, retry schedule (GET /:appId/msg/:msgId with joined attempts + detail panel)
 - [x] Endpoint health view: success rate, average latency, failure count, last delivery (GET /:appId/endpoint-health with aggregates + endpoint cards)
@@ -158,6 +173,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-018: Payload Transformation Engine [x] [verified] [audited]
+
 **Phase:** 3
 **Effort:** Medium
 **Complexity:** Moderate
@@ -167,6 +183,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Build the no-code payload transformation layer — one of the key differentiators identified in research. Allow customers to reshape webhook payloads before delivery using JSONPath or template expressions, without writing code.
 
 **Acceptance criteria:**
+
 - [x] Transformation rule model: source field → target field mapping (TransformRule interface with sourcePath, targetField, template)
 - [x] JSONPath-based field extraction (dot-notation subset: $.key, $.arr[0], $.obj['key'])
 - [x] Template expressions for computed fields ({{...}} interpolation, formatDate, uppercase, lowercase, concat)
@@ -178,6 +195,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-019: TypeScript SDK [x] [verified] [audited]
+
 **Phase:** 3
 **Effort:** Medium
 **Complexity:** Moderate
@@ -187,6 +205,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Build the first-party TypeScript/JavaScript SDK. This is the primary developer experience — it must be excellent. Include: typed client, event sending, endpoint management, and comprehensive documentation with examples.
 
 **Acceptance criteria:**
+
 - [x] npm package with TypeScript types
 - [x] Client initialization with API key
 - [x] Methods: sendEvent(), createEndpoint(), listEndpoints(), getEndpoint(), updateEndpoint(), deleteEndpoint(), testEndpoint(), replayEvent(), replayAttempt()
@@ -204,6 +223,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-020: Landing Page & Documentation Site [x] [verified] [audited]
+
 **Phase:** 4
 **Effort:** High
 **Complexity:** Moderate
@@ -213,6 +233,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Build the marketing landing page and documentation site. The landing page sells; the docs convert. Include: hero section, feature breakdown, pricing table, comparison with competitors, and full API documentation generated from OpenAPI spec.
 
 **Acceptance criteria:**
+
 - [x] Landing page: hero, problem statement, features, pricing table, CTA (packages/landing with hero, pricing gap narrative, 6 feature cards, tier preview, SDK snippet)
 - [x] Pricing page with tier comparison and FAQ (4-tier table with annual pricing, 6 FAQ items)
 - [x] Competitor comparison page (vs Svix, vs Hookdeck, vs Convoy, vs building your own)
@@ -225,6 +246,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-021: Legal Documents [x] [verified] [audited]
+
 **Phase:** 4
 **Effort:** Low
 **Complexity:** Simple
@@ -234,6 +256,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Generate Terms of Service, Privacy Policy, Data Processing Agreement, and SLA document based on the legal research in T-004. These must be real, enforceable documents — not AI-generated fluff. Julian to review with counsel if needed.
 
 **Acceptance criteria:**
+
 - [x] Terms of Service covering: service description, acceptable use, liability caps, data handling (12 sections)
 - [x] Privacy Policy covering: what data we collect, how we process it, GDPR/CCPA compliance (11 sections, 7 data categories, 7 subprocessors)
 - [x] Data Processing Agreement template for enterprise customers (11 sections, GDPR Article 28 compliant)
@@ -244,6 +267,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-022: Monitoring, Alerting & SLO Setup
+
 **Phase:** 4
 **Effort:** Medium
 **Complexity:** Moderate
@@ -253,6 +277,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Implement production monitoring, alerting, and SLO tracking. We're selling reliability — we must be reliable. Include: uptime monitoring, delivery latency tracking, error rate alerting, and customer-facing status page.
 
 **Acceptance criteria:**
+
 - [ ] Uptime monitoring (external) — Better Stack or similar
 - [ ] Delivery latency p50/p95/p99 tracking
 - [ ] Error rate alerting (>1% delivery failure triggers alert)
@@ -265,6 +290,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-023: Show HN Launch & Content
+
 **Phase:** 4
 **Effort:** Medium
 **Complexity:** Simple
@@ -274,6 +300,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Prepare and execute the launch. Write the Show HN post, first 3 blog posts, README for the open-source repo, and social media announcements. The Show HN post is the single most important piece of content — study what worked for Plausible, Svix, and Outpost.
 
 **Acceptance criteria:**
+
 - [ ] Show HN post draft — technically substantive, honest about what it is and isn't
 - [ ] 3 blog posts ready: (1) "Why we built this" origin story, (2) technical deep-dive on architecture, (3) comparison/positioning post
 - [ ] Open-source repo README: compelling, clear, with quickstart in <5 minutes
@@ -288,6 +315,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-024: Analytics & Feedback Loop Implementation
+
 **Phase:** 5
 **Effort:** Medium
 **Complexity:** Moderate
@@ -297,6 +325,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Implement the metrics and feedback systems designed in T-007. Wire up product analytics, NPS collection, churn surveys, and the business metrics dashboard. This is how we steer the business after launch.
 
 **Acceptance criteria:**
+
 - [ ] Product analytics tracking: key user actions instrumented
 - [ ] NPS survey triggered at day 7 and day 30
 - [ ] Churn exit survey on cancellation
@@ -307,6 +336,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 ---
 
 ### T-025: First Iteration Cycle
+
 **Phase:** 5
 **Effort:** Medium
 **Complexity:** Moderate
@@ -316,6 +346,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Description:** Review first 2-4 weeks of post-launch data. Analyze: which features are used, where users drop off, what feedback says, what the churn reasons are. Produce a prioritized iteration plan. This ticket is the first turn of the feedback loop — it creates the next batch of tickets.
 
 **Acceptance criteria:**
+
 - [ ] Data analysis: feature usage heatmap, funnel drop-off points, support ticket themes
 - [ ] User feedback synthesis: NPS scores, exit survey themes, feature requests ranked by frequency
 - [ ] Churn analysis: why did users leave, could we have prevented it

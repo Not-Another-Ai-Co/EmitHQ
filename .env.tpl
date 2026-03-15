@@ -25,6 +25,12 @@ NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=op://EmitHQ/clerk/publishable-key
 # Payments (Stripe)
 STRIPE_SECRET_KEY=op://EmitHQ/stripe/secret-key
 STRIPE_WEBHOOK_SECRET=op://EmitHQ/stripe/webhook-secret
+STRIPE_PRICE_STARTER_MONTHLY=op://EmitHQ/stripe/price-starter-monthly
+STRIPE_PRICE_STARTER_ANNUAL=op://EmitHQ/stripe/price-starter-annual
+STRIPE_PRICE_GROWTH_MONTHLY=op://EmitHQ/stripe/price-growth-monthly
+STRIPE_PRICE_GROWTH_ANNUAL=op://EmitHQ/stripe/price-growth-annual
+STRIPE_PRICE_SCALE_MONTHLY=op://EmitHQ/stripe/price-scale-monthly
+STRIPE_PRICE_SCALE_ANNUAL=op://EmitHQ/stripe/price-scale-annual
 
 # App
 NODE_ENV=development

@@ -12,6 +12,7 @@
 **Decision:** Build a webhook infrastructure platform (both inbound and outbound) filling the $49-490/mo pricing gap.
 
 **Alternatives considered:**
+
 - Background job orchestration (Node.js) — higher complexity, stronger funded competition (Inngest)
 - SOC2 pre-audit readiness — requires compliance domain expertise, sales-assisted GTM
 
@@ -29,6 +30,7 @@
 **Decision:** 4-tier pricing: Free (100K events), Starter ($49, 500K), Growth ($149, 2M), Scale ($349, 10M). Retries free. Events = messages delivered.
 
 **Alternatives considered:**
+
 - Endpoint-based pricing — doesn't correlate with infrastructure cost
 - API call pricing — conflates ingestion with management calls
 
@@ -46,6 +48,7 @@
 **Decision:** AGPL-3.0 for server (copyleft prevents SaaS clones), MIT for SDKs (maximum adoption). CLA for dual-licensing contributor code.
 
 **Alternatives considered:**
+
 - MIT — too permissive for solo founder; cloud providers could clone
 - ELv2 — not OSI-approved; limits community trust
 - BSL — source-available but not open-source; time-bomb complexity
@@ -64,6 +67,7 @@
 **Decision:** Cloudflare Workers for edge (inbound reception, signature verification, rate limiting). Railway for origin (API server, BullMQ workers, PostgreSQL access). QStash bridges edge→origin.
 
 **Alternatives considered:**
+
 - All-Railway — no edge presence, slower inbound reception
 - All-Workers — can't run persistent queue consumers, no TCP connections
 - Fly.io instead of Railway — comparable, but Railway has simpler DX
@@ -82,6 +86,7 @@
 **Decision:** Shared schema with `org_id` on every table. PostgreSQL Row-Level Security policies. `SET LOCAL app.current_tenant` per request.
 
 **Alternatives considered:**
+
 - Schema-per-tenant — migration complexity at N schemas
 - Database-per-tenant — operational overhead, connection explosion
 
@@ -99,6 +104,7 @@
 **Decision:** Nevada LLC. Pass-through taxation, no state income tax, $425 formation + $350/year.
 
 **Alternatives considered:**
+
 - Delaware C-Corp — better for VC but unnecessary for bootstrapped; adds franchise tax + registered agent cost
 - Nevada C-Corp — double taxation without VC benefit
 
@@ -116,6 +122,7 @@
 **Decision:** EmitHQ. Domain: emithq.com. "Emit" is developer-native vocabulary (events emit). "HQ" avoids generic word conflicts and improves SEO.
 
 **Alternatives considered:**
+
 - Emit (bare) — emit.dev unavailable; generic word SEO challenges
 - Herald — existing heraldapp on GitHub; common word
 - Signet — Signet Jewelers dominates SEO
@@ -135,6 +142,7 @@
 **Decision:** Dual auth via `@hono/clerk-auth` middleware + custom `emhq_` prefixed API keys. Separate `api_keys` table (not a column on organizations) for multiple active keys per org, zero-downtime rotation, and soft-delete revocation. Clerk org ID maps to internal `org_id` via `clerk_org_id` column on organizations. SHA-256 hashing for key storage, `timingSafeEqual` for verification.
 
 **Alternatives considered:**
+
 - Clerk-only API keys (`acceptsToken: 'api_key'`) — less control over prefix, rotation, revocation
 - Single `api_key_hash` on organizations — no rotation support, one key per org
 - bcrypt for key hashing — unnecessary for high-entropy secrets (192-bit), adds 100ms per request
@@ -153,6 +161,7 @@
 **Decision:** Drizzle ORM with `pgPolicy()` for inline RLS policy definitions. `drizzle-kit generate` emits RLS SQL automatically. `db.transaction()` + `SET LOCAL app.current_tenant` for tenant isolation (Drizzle guarantees connection affinity). `node-postgres` driver with direct Neon connection.
 
 **Alternatives considered:**
+
 - Prisma — no native RLS support; would require raw SQL migrations for policies
 - Raw SQL migrations — more control but no schema-as-code, harder to maintain
 - Neon HTTP driver — doesn't support multi-statement transactions needed for SET LOCAL
@@ -171,6 +180,7 @@
 **Decision:** Persist message + delivery_attempt rows to PostgreSQL within the tenant-scoped transaction BEFORE enqueueing BullMQ jobs. Queue failures are non-fatal — the message is safe in DB. BullMQ uses ioredis (TCP) to Upstash Redis with TLS. Queue and Worker are decoupled — T-013 only enqueues, T-014 adds the worker.
 
 **Alternatives considered:**
+
 - Enqueue first, persist later — risks data loss if worker processes before DB write
 - PostgreSQL-only queue (SKIP LOCKED) — simpler but less performant than BullMQ for high throughput
 
@@ -188,6 +198,7 @@
 **Decision:** MVP uses `event_count_month` column on organizations table, incremented atomically in the same PostgreSQL transaction as message insert. Custom quota middleware checks count against tier limit before ingestion. No Redis-backed burst limiting for MVP — Cloudflare Workers handle edge-level rate limiting.
 
 **Alternatives considered:**
+
 - Redis-backed per-second rate limiting (`hono-rate-limiter`) — adds complexity and another Redis dependency for a concern already handled at the edge
 - Token bucket algorithm — overkill for monthly counters
 
@@ -205,6 +216,7 @@
 **Decision:** BullMQ Worker using `adminDb` (BYPASSRLS) for cross-tenant processing. Standard Webhooks signing: `HMAC-SHA256(msg_{id}.{timestamp}.{body}, whsec_secret)` → `v1,{base64}`. Native `fetch` + `AbortSignal.timeout()` for HTTP delivery (Node 22+, no deps). Non-retriable codes (400/401/403/404/410) throw `UnrecoverableError`. Circuit breaker: `failureCount` incremented per failure, endpoint disabled at ≥10 consecutive failures, reset on success.
 
 **Alternatives considered:**
+
 - undici HTTP client — more control over connection pooling, but native fetch is sufficient for MVP
 - Transient "delivering" status — adds a DB write with no consumer until dashboard (T-017); deferred
 
@@ -222,6 +234,7 @@
 **Decision:** Fixed delay array indexed by `attemptsMade` with full jitter (`Math.floor(Math.random() * cap)`) via BullMQ's `settings.backoffStrategy`. BullMQ's built-in failed set serves as DLQ for MVP — `worker.on('failed')` detects exhaustion (`attemptsMade >= MAX_DELIVERY_ATTEMPTS`) and marks DB status as `exhausted`. Replay creates a fresh job with reset attempts (not `job.retry()` which preserves attempt count). `reEnableEndpoint()` resets `disabled`, `disabledReason`, and `failureCount`.
 
 **Alternatives considered:**
+
 - Separate `webhook-dlq` BullMQ queue — cleaner separation but adds Redis overhead and complexity for MVP
 - BullMQ built-in exponential backoff — doesn't match spec schedule, no full jitter
 - Pure exponential formula — approximates but doesn't match exact spec delays
@@ -240,6 +253,7 @@
 **Decision:** Custom zero-dependency implementation (~230 lines). JSONPath dot-notation subset ($.key, $.arr[0], $.obj['key']). Template interpolation ({{...}}). Built-in functions (formatDate, uppercase, lowercase, concat). Per-endpoint `transformRules` JSONB column. Applied in delivery worker before signing.
 
 **Alternatives considered:**
+
 - jsonpath-plus library — 150KB, security risk from filter expressions, still needs custom template code
 - jsonata — 200KB, non-standard syntax, overkill for field mapping
 
@@ -257,6 +271,7 @@
 **Decision:** Zero runtime dependencies. Native `fetch` + `AbortController` for HTTP. Typed error classes mapped from HTTP status codes. Client-side retry (3 attempts, exponential backoff with jitter) on 5xx/network errors. `verifyWebhook()` using WebCrypto API for universal compatibility (Node 18+, browsers, edge). Published as `@emithq/sdk` on npm (MIT license).
 
 **Alternatives considered:**
+
 - axios/undici — unnecessary dependency for a simple REST client
 - Node crypto.timingSafeEqual for verification — not available in browsers/edge runtimes
 
@@ -274,6 +289,7 @@
 **Decision:** Separate `packages/dashboard` Next.js 15 App Router app. Calls API server over HTTP (not direct DB access). Clerk-wrapped for auth. Client components for interactive pages (events, endpoints, DLQ), server component for overview stats.
 
 **Alternatives considered:**
+
 - Direct @emithq/core import from Server Components — tighter coupling, bypasses API as single entry point
 - Single app with dashboard + landing — different auth requirements (Clerk vs public)
 
@@ -291,6 +307,7 @@
 **Decision:** Separate `packages/landing` Next.js app with `output: 'export'` for static HTML generation. Deployed to Cloudflare Pages. No Clerk, no @emithq/core dependency. Plausible analytics (privacy-friendly, no cookies). Indigo/violet brand colors (#6366F1).
 
 **Alternatives considered:**
+
 - Part of dashboard app — would require conditional Clerk wrapping and public route exceptions
 - Astro — good fit for static sites but adds another framework to learn
 
@@ -308,7 +325,28 @@
 **Decision:** NotAnotherAiCo LLC is the legal entity for all products. EmitHQ is a product brand, not a separate company. npm org stays product-level (@emithq). Stripe for EmitHQ billing (SaaS subscriptions + usage metering). Payabli stays for NAAC ERP only (embedded payments — different payment flow).
 
 **Alternatives considered:**
+
 - Separate LLC per product — unnecessary overhead for a solo founder
 - Payabli for EmitHQ — built for embedded payments, no usage-based metering
 
 **Consequences:** Legal docs reference "NotAnotherAiCo LLC" as entity. naac.ai needs a company website showcasing both products (future work).
+
+---
+
+## DEC-019 | 2026-03-15 | Billing: Stripe Checkout + Flat Subscription + Webhook Lifecycle
+
+**Status:** Active
+**Linked to:** T-011
+
+**Context:** T-011 requires Stripe integration for subscription billing. Need to handle signup, plan changes, cancellation, payment failures, and usage tracking.
+
+**Decision:** Stripe Checkout Sessions for initial subscription (not custom Payment Element). One flat-rate price per tier per interval (6 total). Stripe Customer Portal for self-service plan changes. Webhook handler processes 5 event types for subscription lifecycle. `billingEvents` table with unique `stripe_event_id` for idempotent webhook processing. Auto-provision organizations on first Clerk login (no separate org creation flow). Paid tiers allow overage past included events (free tier hard-blocks). `invoice.paid` resets `event_count_month` (replaces standalone monthly cron).
+
+**Alternatives considered:**
+
+- Custom Payment Element forms — more code, less conversion, handles fewer payment methods
+- Metered billing from day 1 — adds complexity; defer overage billing via Stripe Meter until customers hit overages
+- Separate org creation endpoint — unnecessary when Clerk provides org data; auto-provisioning is simpler
+- Monthly cron for event count reset — `invoice.paid` is the actual billing period boundary; more accurate
+
+**Consequences:** Stripe products/prices created in sandbox (3 products × 2 intervals = 6 prices). Price IDs stored in 1Password. Org auto-provisioning means first Clerk login creates the org row. Dashboard billing UI deferred to follow-up ticket.

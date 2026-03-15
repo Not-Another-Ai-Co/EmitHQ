@@ -35,7 +35,24 @@ export const organizations = pgTable('organizations', {
   slug: text('slug').notNull().unique(),
   tier: text('tier').notNull().default('free'),
   eventCountMonth: integer('event_count_month').default(0),
+  stripeCustomerId: text('stripe_customer_id').unique(),
+  stripeSubscriptionId: text('stripe_subscription_id').unique(),
+  subscriptionStatus: text('subscription_status').notNull().default('free'),
+  currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+// ─── Billing Events ────────────────────────────────────────────────────────
+// Idempotent Stripe webhook processing — deduplicate by stripe_event_id
+export const billingEvents = pgTable('billing_events', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  orgId: uuid('org_id')
+    .notNull()
+    .references(() => organizations.id),
+  stripeEventId: text('stripe_event_id').notNull().unique(),
+  eventType: text('event_type').notNull(),
+  payload: jsonb('payload').notNull(),
+  processedAt: timestamp('processed_at', { withTimezone: true }).defaultNow(),
 });
 
 // ─── API Keys ───────────────────────────────────────────────────────────────

@@ -6,6 +6,7 @@ import { replayRoutes } from './routes/replay';
 import { endpointRoutes } from './routes/endpoints';
 import { transformPreviewRoutes } from './routes/transform-preview';
 import { dashboardRoutes } from './routes/dashboard';
+import { billingRoutes } from './routes/billing';
 
 const app = new Hono();
 
@@ -22,6 +23,7 @@ app.route('/api/v1/app', replayRoutes);
 app.route('/api/v1/app', endpointRoutes);
 app.route('/api/v1/transform', transformPreviewRoutes);
 app.route('/api/v1/app', dashboardRoutes);
+app.route('/api/v1/billing', billingRoutes);
 
 export { app };
 export type { AuthEnv } from './types';

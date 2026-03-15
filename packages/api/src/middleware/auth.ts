@@ -2,6 +2,7 @@ import { createMiddleware } from 'hono/factory';
 import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { eq, isNull, and, or, gt } from 'drizzle-orm';
 import { adminDb, apiKeys, organizations, hashApiKey, isEmithqApiKey } from '@emithq/core';
+import { createClerkClient } from '@clerk/backend';
 import type { AuthEnv } from '../types';
 
 /**
@@ -91,15 +92,45 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     );
   }
 
-  // Look up our internal org ID from Clerk's org ID
-  const [org] = await adminDb
+  // Look up our internal org ID from Clerk's org ID — auto-provision if missing
+  let [org] = await adminDb
     .select({ id: organizations.id })
     .from(organizations)
     .where(eq(organizations.clerkOrgId, auth.orgId))
     .limit(1);
 
   if (!org) {
-    return c.json({ error: { code: 'org_not_found', message: 'Organization not found' } }, 404);
+    // Auto-provision: fetch org name from Clerk, create our record
+    try {
+      const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+      const clerkOrg = await clerk.organizations.getOrganization({ organizationId: auth.orgId });
+      const slug = clerkOrg.slug || auth.orgId;
+
+      [org] = await adminDb
+        .insert(organizations)
+        .values({
+          clerkOrgId: auth.orgId,
+          name: clerkOrg.name,
+          slug,
+        })
+        .onConflictDoNothing({ target: organizations.clerkOrgId })
+        .returning({ id: organizations.id });
+
+      // Handle race condition: if onConflictDoNothing returned nothing, re-fetch
+      if (!org) {
+        [org] = await adminDb
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.clerkOrgId, auth.orgId))
+          .limit(1);
+      }
+    } catch {
+      return c.json({ error: { code: 'org_not_found', message: 'Organization not found' } }, 404);
+    }
+
+    if (!org) {
+      return c.json({ error: { code: 'org_not_found', message: 'Organization not found' } }, 404);
+    }
   }
 
   c.set('orgId', org.id);
