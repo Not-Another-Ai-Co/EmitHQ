@@ -36,7 +36,7 @@ Free tier: 100K events/mo (hard limit, no credit card). Starter: $49/mo for 500K
 **Links:**
 
 - GitHub: https://github.com/Not-Another-Ai-Co/EmitHQ
-- Docs: [docs URL]
-- Live demo: [demo URL or "sign up for free tier"]
+- Docs: https://emithq.com/docs?utm_source=hackernews&utm_medium=social&utm_content=show-hn
+- Try it: https://emithq.com?utm_source=hackernews&utm_medium=social&utm_content=show-hn
 
 I'm a solo developer building this. Happy to answer any questions about the architecture, pricing model, or why the world needs another webhook platform.
