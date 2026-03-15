@@ -354,3 +354,28 @@ _Build the webhook delivery engine — the core value proposition._
 - [ ] Prioritized iteration plan: next 5-10 tickets based on data, not assumptions
 - [ ] Updated pricing validation: is the pricing working or does it need adjustment
 - [ ] Artifact: `docs/research/iteration-1-findings.md`
+
+---
+
+### Phase 6: Quality & Infrastructure
+
+---
+
+### T-026: Integration Test Infrastructure
+
+**Phase:** 6
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-012
+
+**Description:** Replace contract-stub test pattern with real integration tests. Currently all route test files create inline Hono stubs instead of importing actual routes — tests verify stubs, not production code. Set up a test database and test the real middleware chain (auth → tenant → handler).
+
+**Acceptance criteria:**
+
+- [ ] Test database setup (Neon branch or local PG via Docker)
+- [ ] Test helper: seed org, create API key, set up tenant context
+- [ ] Route tests import real routes (billingRoutes, endpointRoutes, etc.) instead of inline stubs
+- [ ] Middleware chain tested end-to-end (auth → tenantScope → handler)
+- [ ] Stripe webhook signature verification tested with real constructEvent
+- [ ] CI runs integration tests against test database
+- [ ] Existing contract tests migrated or replaced for: billing, endpoints, messages, dashboard

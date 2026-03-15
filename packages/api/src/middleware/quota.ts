@@ -1,14 +1,7 @@
 import { createMiddleware } from 'hono/factory';
 import { eq } from 'drizzle-orm';
-import { adminDb, organizations } from '@emithq/core';
+import { adminDb, organizations, TIER_LIMITS } from '@emithq/core';
 import type { AuthEnv } from '../types';
-
-const TIER_LIMITS: Record<string, number> = {
-  free: 100_000,
-  starter: 500_000,
-  growth: 2_000_000,
-  scale: 10_000_000,
-};
 
 /**
  * Monthly quota enforcement middleware.

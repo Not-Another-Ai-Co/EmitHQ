@@ -46,9 +46,7 @@ export const organizations = pgTable('organizations', {
 // Idempotent Stripe webhook processing — deduplicate by stripe_event_id
 export const billingEvents = pgTable('billing_events', {
   id: uuid('id').primaryKey().defaultRandom(),
-  orgId: uuid('org_id')
-    .notNull()
-    .references(() => organizations.id),
+  orgId: uuid('org_id').references(() => organizations.id),
   stripeEventId: text('stripe_event_id').notNull().unique(),
   eventType: text('event_type').notNull(),
   payload: jsonb('payload').notNull(),

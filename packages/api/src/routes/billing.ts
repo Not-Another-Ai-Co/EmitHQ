@@ -64,8 +64,8 @@ billingRoutes.post('/checkout', requireAuth, requireRole('org:admin', 'org:owner
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { org_id: orgId, tier, interval },
     subscription_data: { metadata: { org_id: orgId } },
-    success_url: `${process.env.API_BASE_URL || 'http://localhost:4000'}/api/v1/billing/checkout-success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002'}/billing`,
+    success_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/billing`,
   };
 
   // Reuse existing Stripe customer if we have one
@@ -75,7 +75,13 @@ billingRoutes.post('/checkout', requireAuth, requireRole('org:admin', 'org:owner
     sessionParams.customer_email = undefined; // Clerk doesn't expose email here; Stripe will collect it
   }
 
-  const session = await stripe.checkout.sessions.create(sessionParams);
+  let session;
+  try {
+    session = await stripe.checkout.sessions.create(sessionParams);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Stripe checkout failed';
+    return c.json({ error: { code: 'payment_error', message } }, 502);
+  }
 
   return c.json({ data: { url: session.url } });
 });
@@ -145,10 +151,16 @@ billingRoutes.post('/portal', requireAuth, requireRole('org:admin', 'org:owner')
   }
 
   const stripe = getStripe();
-  const session = await stripe.billingPortal.sessions.create({
-    customer: org.stripeCustomerId,
-    return_url: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4002'}/billing`,
-  });
+  let session;
+  try {
+    session = await stripe.billingPortal.sessions.create({
+      customer: org.stripeCustomerId,
+      return_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/billing`,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Stripe portal failed';
+    return c.json({ error: { code: 'payment_error', message } }, 502);
+  }
 
   return c.json({ data: { url: session.url } });
 });
@@ -186,9 +198,9 @@ billingRoutes.post('/webhook', async (c) => {
   }
 
   // Idempotency check — skip if we've already processed this event
+  // orgId is nullable here; updated after processing when we know the org
   try {
     await adminDb.insert(billingEvents).values({
-      orgId: '00000000-0000-0000-0000-000000000000', // placeholder, updated below
       stripeEventId: event.id,
       eventType: event.type,
       payload: event.data.object as Record<string, unknown>,
