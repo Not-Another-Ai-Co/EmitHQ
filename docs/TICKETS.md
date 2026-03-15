@@ -289,7 +289,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-023: Show HN Launch & Content
+### T-023: Show HN Launch & Content [x]
 
 **Phase:** 4
 **Effort:** Medium
@@ -301,12 +301,12 @@ _Build the webhook delivery engine — the core value proposition._
 
 **Acceptance criteria:**
 
-- [ ] Show HN post draft — technically substantive, honest about what it is and isn't
-- [ ] 3 blog posts ready: (1) "Why we built this" origin story, (2) technical deep-dive on architecture, (3) comparison/positioning post
-- [ ] Open-source repo README: compelling, clear, with quickstart in <5 minutes
-- [ ] Twitter/X announcement thread
-- [ ] Dev.to cross-post of blog post #1
-- [ ] Launch day engagement plan (respond to every HN comment within 30 minutes)
+- [x] Show HN post draft — technically substantive, honest about what it is and isn't (content/show-hn-draft.md)
+- [x] 3 blog posts ready: (1) "Why we built this" origin story, (2) technical deep-dive on architecture, (3) comparison/positioning post (content/blog/)
+- [x] Open-source repo README: compelling, clear, with quickstart in <5 minutes (README.md — added architecture, features, contributing)
+- [x] Twitter/X announcement thread (content/twitter-launch-thread.md — 8-tweet thread)
+- [x] Dev.to cross-post of blog post #1 (content/devto-crosspost.md with front matter)
+- [x] Launch day engagement plan (content/launch-plan.md — timeline, response templates, post-launch checklist)
 
 ---
 
