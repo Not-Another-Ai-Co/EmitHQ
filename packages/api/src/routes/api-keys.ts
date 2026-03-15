@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { eq, isNull, and } from 'drizzle-orm';
-import { generateApiKey, apiKeys } from '@emithq/core';
+import { generateApiKey, apiKeys, trackEvent } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
 import { requireRole } from '../middleware/auth';
@@ -38,6 +38,8 @@ apiKeyRoutes.post('/', requireRole('org:admin', 'org:owner'), async (c) => {
       name: apiKeys.name,
       createdAt: apiKeys.createdAt,
     });
+
+  trackEvent('api_key.created', orgId);
 
   return c.json(
     {

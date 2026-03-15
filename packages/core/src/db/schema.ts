@@ -192,6 +192,7 @@ export const inboundSources = pgTable(
 
 // ─── Analytics Events ──────────────────────────────────────────────────────
 // Lightweight product analytics — tracks key user actions for funnel analysis
+// No RLS — written by adminDb (trackEvent helper), aggregated cross-tenant in /metrics/report
 export const analyticsEvents = pgTable(
   'analytics_events',
   {

@@ -9,6 +9,7 @@ import {
   buildWebhookHeaders,
   validateTransformRules,
   TransformValidationError,
+  trackEvent,
 } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
@@ -116,6 +117,8 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
       transformRules: validatedRules,
     })
     .returning();
+
+  trackEvent('endpoint.created', orgId, { url: body.url });
 
   return c.json(
     {
