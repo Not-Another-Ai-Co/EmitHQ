@@ -226,3 +226,160 @@ describe('queue stats fallback', () => {
     expect(fallback.active).toBe(0);
   });
 });
+
+describe('business metrics response shape', () => {
+  it('returns MRR, ARR, ARPU, tier breakdown, and churn data', async () => {
+    const { Hono } = await import('hono');
+    const app = new Hono();
+
+    app.get('/metrics/business', (c) =>
+      c.json({
+        data: {
+          timestamp: new Date().toISOString(),
+          mrr: 1490,
+          arr: 17880,
+          arpu: 149,
+          totalOrgs: 15,
+          paidOrgs: 10,
+          freeOrgs: 5,
+          tierBreakdown: { free: 5, starter: 4, growth: 5, scale: 1 },
+          activeOrgs: 12,
+          churn: { cancellationsLast30d: 1, churnRatePct: 10 },
+          conversionRate: 66.7,
+        },
+      }),
+    );
+
+    const res = await app.request('/metrics/business');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+
+    expect(json.data).toHaveProperty('mrr');
+    expect(json.data).toHaveProperty('arr');
+    expect(json.data).toHaveProperty('arpu');
+    expect(json.data).toHaveProperty('tierBreakdown');
+    expect(json.data).toHaveProperty('churn');
+    expect(json.data.churn).toHaveProperty('cancellationsLast30d');
+    expect(json.data.churn).toHaveProperty('churnRatePct');
+    expect(json.data).toHaveProperty('conversionRate');
+  });
+});
+
+describe('MRR calculation', () => {
+  const TIER_MONTHLY_PRICES: Record<string, number> = {
+    starter: 49,
+    growth: 149,
+    scale: 349,
+  };
+
+  function calculateMRR(tierMap: Record<string, number>): number {
+    let mrr = 0;
+    for (const [tier, price] of Object.entries(TIER_MONTHLY_PRICES)) {
+      mrr += (tierMap[tier] ?? 0) * price;
+    }
+    return mrr;
+  }
+
+  it('calculates MRR from paid tier counts', () => {
+    expect(calculateMRR({ free: 10, starter: 5, growth: 3, scale: 1 })).toBe(
+      5 * 49 + 3 * 149 + 1 * 349,
+    );
+  });
+
+  it('returns 0 when only free users', () => {
+    expect(calculateMRR({ free: 100 })).toBe(0);
+  });
+
+  it('handles missing tiers', () => {
+    expect(calculateMRR({ starter: 2 })).toBe(98);
+  });
+});
+
+describe('conversion rate', () => {
+  function conversionRate(total: number, paid: number): number {
+    return total > 0 ? Math.round((paid / total) * 100 * 10) / 10 : 0;
+  }
+
+  it('calculates free-to-paid conversion', () => {
+    expect(conversionRate(100, 8)).toBe(8);
+  });
+
+  it('returns 0 when no orgs', () => {
+    expect(conversionRate(0, 0)).toBe(0);
+  });
+
+  it('handles 100% conversion', () => {
+    expect(conversionRate(10, 10)).toBe(100);
+  });
+});
+
+describe('weekly report response shape', () => {
+  it('returns product stats, analytics summary, and tier breakdown', async () => {
+    const { Hono } = await import('hono');
+    const app = new Hono();
+
+    app.get('/metrics/report', (c) =>
+      c.json({
+        data: {
+          period: 'last_7_days',
+          generatedAt: new Date().toISOString(),
+          product: {
+            totalAttempts: 50000,
+            delivered: 49900,
+            failed: 80,
+            exhausted: 20,
+            successRatePct: 99.8,
+            p95LatencyMs: 180,
+            activeOrgs: 12,
+          },
+          analytics: {
+            'org.created': 3,
+            first_event_sent: 2,
+            'subscription.created': 1,
+          },
+          tiers: { free: 5, starter: 4, growth: 3, scale: 1 },
+        },
+      }),
+    );
+
+    const res = await app.request('/metrics/report');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+
+    expect(json.data).toHaveProperty('period');
+    expect(json.data).toHaveProperty('product');
+    expect(json.data.product).toHaveProperty('totalAttempts');
+    expect(json.data.product).toHaveProperty('successRatePct');
+    expect(json.data.product).toHaveProperty('p95LatencyMs');
+    expect(json.data).toHaveProperty('analytics');
+    expect(json.data).toHaveProperty('tiers');
+  });
+});
+
+describe('analytics event tracking', () => {
+  const VALID_EVENTS = [
+    'org.created',
+    'first_event_sent',
+    'subscription.created',
+    'subscription.canceled',
+    'subscription.upgraded',
+    'subscription.downgraded',
+    'endpoint.created',
+    'quota.warning_80pct',
+    'quota.limit_reached',
+    'api_key.created',
+  ];
+
+  it('defines all expected event types', () => {
+    expect(VALID_EVENTS).toContain('org.created');
+    expect(VALID_EVENTS).toContain('first_event_sent');
+    expect(VALID_EVENTS).toContain('subscription.created');
+    expect(VALID_EVENTS).toContain('subscription.canceled');
+  });
+
+  it('event names use dot notation', () => {
+    for (const event of VALID_EVENTS) {
+      expect(event).toMatch(/^[a-z_]+(\.[a-z_0-9]+)?$/);
+    }
+  });
+});

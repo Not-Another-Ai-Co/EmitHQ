@@ -314,7 +314,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-024: Analytics & Feedback Loop Implementation
+### T-024: Analytics & Feedback Loop Implementation [x]
 
 **Phase:** 5
 **Effort:** Medium
@@ -326,12 +326,12 @@ _Build the webhook delivery engine — the core value proposition._
 
 **Acceptance criteria:**
 
-- [ ] Product analytics tracking: key user actions instrumented
-- [ ] NPS survey triggered at day 7 and day 30
-- [ ] Churn exit survey on cancellation
-- [ ] Business metrics dashboard: MRR, churn, ARPU, active users
-- [ ] Weekly automated report (email to Julian): key metrics, trends, alerts
-- [ ] Feature request tracking system (public roadmap or simple backlog)
+- [x] Product analytics tracking: key user actions instrumented (analytics_events table + trackEvent helper, instrumented in auth/billing/messages)
+- [-] NPS survey triggered at day 7 and day 30 (DEFERRED: requires email service — Resend not set up yet)
+- [-] Churn exit survey on cancellation (DEFERRED: requires dashboard UI modal)
+- [x] Business metrics dashboard: MRR, churn, ARPU, active users (GET /metrics/business endpoint)
+- [x] Weekly automated report (email to Julian): key metrics, trends, alerts (GET /metrics/report endpoint — manual until email service configured)
+- [x] Feature request tracking system (public roadmap or simple backlog) (GitHub Discussions enabled)
 
 ---
 

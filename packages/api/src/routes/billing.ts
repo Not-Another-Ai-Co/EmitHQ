@@ -8,6 +8,7 @@ import {
   getPriceIds,
   tierFromPriceId,
   TIER_LIMITS,
+  trackEvent,
 } from '@emithq/core';
 import type { PaidTier, BillingInterval } from '@emithq/core';
 import { requireAuth, requireRole } from '../middleware/auth';
@@ -269,6 +270,8 @@ async function handleCheckoutComplete(session: Record<string, unknown>) {
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
     })
     .where(eq(organizations.id, orgId));
+
+  trackEvent('subscription.created', orgId, { tier: tier ?? 'starter' });
 }
 
 async function handleSubscriptionUpdated(subscription: Record<string, unknown>) {
@@ -351,6 +354,8 @@ async function handleSubscriptionDeleted(subscription: Record<string, unknown>) 
       currentPeriodEnd: null,
     })
     .where(eq(organizations.id, orgId));
+
+  trackEvent('subscription.canceled', orgId);
 }
 
 async function handleInvoicePaid(invoice: Record<string, unknown>) {

@@ -190,6 +190,20 @@ export const inboundSources = pgTable(
   (_t) => [tenantPolicy('inbound_sources')],
 );
 
+// ─── Analytics Events ──────────────────────────────────────────────────────
+// Lightweight product analytics — tracks key user actions for funnel analysis
+export const analyticsEvents = pgTable(
+  'analytics_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id').references(() => organizations.id),
+    eventName: text('event_name').notNull(),
+    properties: jsonb('properties'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index('idx_analytics_org_event').on(t.orgId, t.eventName, t.createdAt)],
+);
+
 // ─── Relations ──────────────────────────────────────────────────────────────
 export const organizationsRelations = relations(organizations, ({ many }) => ({
   applications: many(applications),

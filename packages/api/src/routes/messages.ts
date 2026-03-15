@@ -1,7 +1,13 @@
 import { Hono } from 'hono';
 import { eq, and, or, sql, isNull } from 'drizzle-orm';
-import { applications, messages, endpoints, deliveryAttempts } from '@emithq/core';
-import { enqueueDelivery } from '@emithq/core';
+import {
+  applications,
+  messages,
+  endpoints,
+  deliveryAttempts,
+  enqueueDelivery,
+  trackEvent,
+} from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
 import { quotaCheck } from '../middleware/quota';
@@ -204,9 +210,14 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
   }
 
   // --- Increment org event counter ---
-  await tx.execute(
-    sql`UPDATE organizations SET event_count_month = event_count_month + 1 WHERE id = ${orgId}`,
+  const [updated] = await tx.execute<{ event_count_month: number }>(
+    sql`UPDATE organizations SET event_count_month = event_count_month + 1 WHERE id = ${orgId} RETURNING event_count_month`,
   );
+
+  // Track first event milestone
+  if (updated && (updated as unknown as { event_count_month: number }).event_count_month === 1) {
+    trackEvent('first_event_sent', orgId);
+  }
 
   return c.json({ data: message }, 202);
 });

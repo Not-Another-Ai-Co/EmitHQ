@@ -1,7 +1,14 @@
 import { createMiddleware } from 'hono/factory';
 import { clerkMiddleware, getAuth } from '@hono/clerk-auth';
 import { eq, isNull, and, or, gt } from 'drizzle-orm';
-import { adminDb, apiKeys, organizations, hashApiKey, isEmithqApiKey } from '@emithq/core';
+import {
+  adminDb,
+  apiKeys,
+  organizations,
+  hashApiKey,
+  isEmithqApiKey,
+  trackEvent,
+} from '@emithq/core';
 import { createClerkClient } from '@clerk/backend';
 import type { AuthEnv } from '../types';
 
@@ -123,6 +130,8 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
           .from(organizations)
           .where(eq(organizations.clerkOrgId, auth.orgId))
           .limit(1);
+      } else {
+        trackEvent('org.created', org.id, { source: 'clerk_auto_provision' });
       }
     } catch {
       return c.json({ error: { code: 'org_not_found', message: 'Organization not found' } }, 404);

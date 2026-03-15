@@ -42,6 +42,10 @@ export {
 } from './transformation/transform';
 export type { TransformRule } from './transformation/transform';
 
+// Analytics
+export { trackEvent } from './analytics/track';
+export type { AnalyticsEventName } from './analytics/track';
+
 // Billing
 export { getStripe, getPriceIds, tierFromPriceId, TIER_LIMITS } from './billing/stripe';
 export type { BillingInterval, PaidTier, PriceIds } from './billing/stripe';
