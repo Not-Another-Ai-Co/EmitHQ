@@ -17,7 +17,7 @@
 
 **Resolution:** If worker crashed → Railway auto-restarts. If Redis down → check Upstash status page. If DB saturated → check `pool.waitingCount` in `/metrics`.
 
-## Alert: Queue Backlog (>10,000 waiting jobs)
+## Alert: Queue Backlog (>1,000 waiting jobs)
 
 **Severity:** P1
 **Source:** `/metrics` endpoint, Better Stack keyword monitor

@@ -23,7 +23,8 @@ metricsRoutes.use('*', async (c, next) => {
  */
 metricsRoutes.get('/', async (c) => {
   const window = c.req.query('window') || '1h';
-  const interval = window === '24h' ? '24 hours' : '1 hour';
+  const ALLOWED_INTERVALS: Record<string, string> = { '1h': '1 hour', '24h': '24 hours' };
+  const interval = ALLOWED_INTERVALS[window] ?? '1 hour';
 
   // Run SLO queries in parallel
   const [deliveryStats, latencyStats, queueStats] = await Promise.all([
@@ -137,7 +138,7 @@ metricsRoutes.get('/slo', async (c) => {
       COALESCE(PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY response_time_ms), 0)::text AS p95_ms
     FROM delivery_attempts
     WHERE attempted_at > NOW() - INTERVAL '1 hour'
-      AND response_time_ms IS NOT NULL OR status = 'delivered'
+      AND (response_time_ms IS NOT NULL OR status = 'delivered')
   `);
 
   const queueStats = await getQueueStats();
@@ -145,6 +146,7 @@ metricsRoutes.get('/slo', async (c) => {
   const successRate = parseFloat(stats?.success_rate ?? '100');
   const p95Ms = parseFloat(stats?.p95_ms ?? '0');
   const queueDepth = queueStats.waiting + queueStats.delayed;
+  const queueSLOPass = !queueStats.unavailable && queueDepth <= 1000;
 
   return c.json({
     data: {
@@ -169,21 +171,25 @@ metricsRoutes.get('/slo', async (c) => {
           target: 1000,
           current: queueDepth,
           unit: 'jobs',
-          pass: queueDepth <= 1000,
+          pass: queueSLOPass,
+          unavailable: queueStats.unavailable,
         },
       ],
-      allPassing: successRate >= 99.9 && p95Ms <= 500 && queueDepth <= 1000,
+      allPassing: successRate >= 99.9 && p95Ms <= 500 && queueSLOPass,
     },
   });
 });
 
-async function getQueueStats(): Promise<{
+interface QueueStats {
   waiting: number;
   active: number;
   failed: number;
   delayed: number;
   completed: number;
-}> {
+  unavailable: boolean;
+}
+
+async function getQueueStats(): Promise<QueueStats> {
   try {
     const queue = getDeliveryQueue();
     const counts = await queue.getJobCounts('waiting', 'active', 'failed', 'delayed', 'completed');
@@ -193,9 +199,10 @@ async function getQueueStats(): Promise<{
       failed: counts.failed ?? 0,
       delayed: counts.delayed ?? 0,
       completed: counts.completed ?? 0,
+      unavailable: false,
     };
   } catch {
-    return { waiting: 0, active: 0, failed: 0, delayed: 0, completed: 0 };
+    return { waiting: 0, active: 0, failed: 0, delayed: 0, completed: 0, unavailable: true };
   }
 }
 
