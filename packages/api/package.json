@@ -6,9 +6,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -16,6 +16,7 @@
     "@clerk/backend": "^3.2.0",
     "@emithq/core": "*",
     "@hono/clerk-auth": "^3.1.0",
+    "@hono/node-server": "^1.19.11",
     "hono": "^4.12.7"
   }
 }
