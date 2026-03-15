@@ -28,5 +28,6 @@ STRIPE_WEBHOOK_SECRET=op://EmitHQ/stripe/webhook-secret
 
 # App
 NODE_ENV=development
-PORT=3000
-API_BASE_URL=http://localhost:3000
+PORT=4000
+API_BASE_URL=http://100.82.36.13:4000
+NEXT_PUBLIC_API_URL=http://100.82.36.13:4000

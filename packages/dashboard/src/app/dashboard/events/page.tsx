@@ -28,7 +28,7 @@ interface MessageDetail {
   }>;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://100.82.36.13:4000';
 const APP_ID = 'default';
 
 export default function EventsPage() {
