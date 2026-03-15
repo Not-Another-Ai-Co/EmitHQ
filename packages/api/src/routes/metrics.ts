@@ -132,12 +132,9 @@ metricsRoutes.get('/', async (c) => {
  * Returns pass/fail for each SLO target.
  */
 metricsRoutes.get('/slo', async (c) => {
-  const [stats] = await adminDb.execute<{
+  const sloResult = await adminDb.execute<{
     success_rate: string;
     p95_ms: string;
-    queue_depth: string;
-    retry_rate: string;
-    dlq_rate: string;
   }>(sql`
     SELECT
       COALESCE(
@@ -152,6 +149,7 @@ metricsRoutes.get('/slo', async (c) => {
 
   const queueStats = await getQueueStats();
 
+  const stats = sloResult.rows[0];
   const successRate = parseFloat(stats?.success_rate ?? '100');
   const p95Ms = parseFloat(stats?.p95_ms ?? '0');
   const queueDepth = queueStats.waiting + queueStats.delayed;
@@ -251,11 +249,12 @@ metricsRoutes.get('/business', async (c) => {
   const arpu = paidOrgs > 0 ? Math.round(mrr / paidOrgs) : 0;
 
   // Active users (orgs with events in last 30 days)
-  const [activeResult] = await adminDb.execute<{ active_orgs: string }>(sql`
+  const activeQueryResult = await adminDb.execute<{ active_orgs: string }>(sql`
     SELECT COUNT(DISTINCT org_id)::text AS active_orgs
     FROM delivery_attempts
     WHERE created_at > NOW() - INTERVAL '30 days'
   `);
+  const activeResult = activeQueryResult.rows[0];
 
   // Recent cancellations (last 30 days)
   let recentCancellations = 0;
@@ -296,7 +295,7 @@ metricsRoutes.get('/business', async (c) => {
 
 metricsRoutes.get('/report', async (c) => {
   // Product metrics (last 7 days)
-  const [productStats] = await adminDb.execute<{
+  const productResult = await adminDb.execute<{
     total_attempts: string;
     delivered: string;
     failed: string;
@@ -319,6 +318,7 @@ metricsRoutes.get('/report', async (c) => {
     FROM delivery_attempts
     WHERE attempted_at > NOW() - INTERVAL '7 days'
   `);
+  const productStats = productResult.rows[0];
 
   // Analytics events summary (last 7 days)
   const eventCounts = await adminDb

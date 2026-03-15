@@ -1,276 +1,163 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { coreMock, authMock, tenantMock } from '../test-helpers/mock-core';
 
-describe('metrics secret middleware', () => {
+// Mock dependencies BEFORE importing the route
+vi.mock('@emithq/core', () => coreMock());
+vi.mock('../middleware/auth', () => authMock());
+vi.mock('../middleware/tenant', () => tenantMock());
+
+import { metricsRoutes } from './metrics';
+import { Hono } from 'hono';
+
+function createMetricsApp(secret?: string) {
+  if (secret) process.env.METRICS_SECRET = secret;
+  else delete process.env.METRICS_SECRET;
+  const app = new Hono();
+  app.route('/metrics', metricsRoutes);
+  return app;
+}
+
+describe('metrics secret middleware (real handler)', () => {
   it('rejects requests with wrong secret', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.use('*', async (c, next) => {
-      const secret = 'test-secret';
-      if (c.req.header('x-metrics-secret') !== secret) {
-        return c.json({ error: { code: 'unauthorized', message: 'Invalid metrics secret' } }, 401);
-      }
-      await next();
-    });
-
-    app.get('/', (c) => c.json({ data: {} }));
-
-    const res = await app.request('/', {
+    const app = createMetricsApp('correct-secret');
+    const res = await app.request('/metrics/slo', {
       headers: { 'x-metrics-secret': 'wrong-secret' },
     });
     expect(res.status).toBe(401);
+    const json = await res.json();
+    expect(json.error.code).toBe('unauthorized');
   });
 
   it('allows requests with correct secret', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.use('*', async (c, next) => {
-      const secret = 'test-secret';
-      if (c.req.header('x-metrics-secret') !== secret) {
-        return c.json({ error: { code: 'unauthorized' } }, 401);
-      }
-      await next();
+    const app = createMetricsApp('correct-secret');
+    const { adminDb } = await import('@emithq/core');
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ success_rate: '99.95', p95_ms: '100' }],
     });
 
-    app.get('/', (c) => c.json({ data: { status: 'ok' } }));
-
-    const res = await app.request('/', {
-      headers: { 'x-metrics-secret': 'test-secret' },
+    const res = await app.request('/metrics/slo', {
+      headers: { 'x-metrics-secret': 'correct-secret' },
     });
     expect(res.status).toBe(200);
   });
 
-  it('allows requests when no secret is configured', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.use('*', async (c, next) => {
-      const secret = undefined; // no secret configured
-      if (secret && c.req.header('x-metrics-secret') !== secret) {
-        return c.json({ error: { code: 'unauthorized' } }, 401);
-      }
-      await next();
+  it('allows requests when no secret configured', async () => {
+    const app = createMetricsApp();
+    const { adminDb } = await import('@emithq/core');
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ success_rate: '100', p95_ms: '0' }],
     });
 
-    app.get('/', (c) => c.json({ data: {} }));
-
-    const res = await app.request('/');
+    const res = await app.request('/metrics/slo');
     expect(res.status).toBe(200);
   });
 });
 
-describe('metrics response shape', () => {
-  it('returns delivery stats, latency, queue, and pool data', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
+describe('GET /metrics/slo (real handler)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    delete process.env.METRICS_SECRET;
+  });
 
-    app.get('/metrics', (c) =>
-      c.json({
-        data: {
-          window: '1 hour',
-          timestamp: new Date().toISOString(),
-          delivery: {
-            total: 10000,
-            delivered: 9990,
-            failed: 8,
-            exhausted: 2,
-            successRate: 99.9,
-            retryRate: 5.2,
-            dlqRate: 0.02,
-          },
-          latency: { p50Ms: 45, p95Ms: 180, p99Ms: 450, avgMs: 62 },
-          queue: { waiting: 12, active: 3, failed: 0, delayed: 5, completed: 50000 },
-          pool: {
-            app: { total: 20, idle: 15, waiting: 0 },
-            admin: { total: 5, idle: 4, waiting: 0 },
-          },
-        },
-      }),
-    );
+  it('returns pass when all SLOs met', async () => {
+    const app = createMetricsApp();
+    const { adminDb } = await import('@emithq/core');
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ success_rate: '99.95', p95_ms: '180' }],
+    });
 
-    const res = await app.request('/metrics');
+    const res = await app.request('/metrics/slo');
     expect(res.status).toBe(200);
     const json = await res.json();
+    expect(json.data.allPassing).toBe(true);
+    expect(json.data.slos).toHaveLength(3);
+    expect(json.data.slos[0].pass).toBe(true);
+  });
 
-    expect(json.data).toHaveProperty('delivery');
-    expect(json.data).toHaveProperty('latency');
-    expect(json.data).toHaveProperty('queue');
-    expect(json.data).toHaveProperty('pool');
-    expect(json.data.delivery).toHaveProperty('successRate');
-    expect(json.data.delivery).toHaveProperty('retryRate');
-    expect(json.data.delivery).toHaveProperty('dlqRate');
-    expect(json.data.latency).toHaveProperty('p50Ms');
-    expect(json.data.latency).toHaveProperty('p95Ms');
-    expect(json.data.latency).toHaveProperty('p99Ms');
+  it('fails when success rate below 99.9%', async () => {
+    const app = createMetricsApp();
+    const { adminDb } = await import('@emithq/core');
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ success_rate: '98.50', p95_ms: '100' }],
+    });
+
+    const res = await app.request('/metrics/slo');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.allPassing).toBe(false);
+    expect(json.data.slos[0].pass).toBe(false);
+  });
+
+  it('fails when p95 latency above 500ms', async () => {
+    const app = createMetricsApp();
+    const { adminDb } = await import('@emithq/core');
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ success_rate: '99.95', p95_ms: '750' }],
+    });
+
+    const res = await app.request('/metrics/slo');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.slos[1].pass).toBe(false);
+  });
+
+  it('marks queue unavailable and fails when Redis is down', async () => {
+    const app = createMetricsApp();
+    const { adminDb, getDeliveryQueue } = await import('@emithq/core');
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ success_rate: '99.95', p95_ms: '100' }],
+    });
+    (getDeliveryQueue as ReturnType<typeof vi.fn>).mockReturnValueOnce({
+      getJobCounts: vi.fn().mockRejectedValue(new Error('ECONNREFUSED')),
+    });
+
+    const res = await app.request('/metrics/slo');
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.slos[2].unavailable).toBe(true);
+    expect(json.data.slos[2].pass).toBe(false);
+    expect(json.data.allPassing).toBe(false);
   });
 });
 
-describe('SLO compliance check', () => {
-  function evaluateSLOs(successRate: number, p95Ms: number, queueDepth: number) {
+describe('SLO boundary values', () => {
+  function evaluateSLOs(
+    successRate: number,
+    p95Ms: number,
+    queueDepth: number,
+    queueUnavailable = false,
+  ) {
+    const queuePass = !queueUnavailable && queueDepth <= 1000;
     return {
-      slos: [
-        {
-          name: 'delivery_success_rate',
-          target: 99.9,
-          current: successRate,
-          pass: successRate >= 99.9,
-        },
-        { name: 'p95_delivery_latency', target: 500, current: p95Ms, pass: p95Ms <= 500 },
-        { name: 'queue_depth', target: 1000, current: queueDepth, pass: queueDepth <= 1000 },
-      ],
-      allPassing: successRate >= 99.9 && p95Ms <= 500 && queueDepth <= 1000,
+      allPassing: successRate >= 99.9 && p95Ms <= 500 && queuePass,
+      successPass: successRate >= 99.9,
+      latencyPass: p95Ms <= 500,
+      queuePass,
     };
   }
 
-  it('all SLOs pass when within targets', () => {
-    const result = evaluateSLOs(99.95, 200, 50);
-    expect(result.allPassing).toBe(true);
-    expect(result.slos.every((s) => s.pass)).toBe(true);
+  it('exactly at target passes', () => {
+    const r = evaluateSLOs(99.9, 500, 1000);
+    expect(r.allPassing).toBe(true);
   });
 
-  it('fails when success rate below target', () => {
-    const result = evaluateSLOs(99.0, 200, 50);
-    expect(result.allPassing).toBe(false);
-    expect(result.slos[0].pass).toBe(false);
-    expect(result.slos[1].pass).toBe(true);
+  it('just below target fails', () => {
+    const r = evaluateSLOs(99.89, 501, 1001);
+    expect(r.allPassing).toBe(false);
+    expect(r.successPass).toBe(false);
+    expect(r.latencyPass).toBe(false);
+    expect(r.queuePass).toBe(false);
   });
 
-  it('fails when p95 latency above target', () => {
-    const result = evaluateSLOs(99.95, 600, 50);
-    expect(result.allPassing).toBe(false);
-    expect(result.slos[1].pass).toBe(false);
-  });
-
-  it('fails when queue depth above target', () => {
-    const result = evaluateSLOs(99.95, 200, 15000);
-    expect(result.allPassing).toBe(false);
-    expect(result.slos[2].pass).toBe(false);
-  });
-
-  it('boundary: exactly at SLO target passes', () => {
-    const result = evaluateSLOs(99.9, 500, 1000);
-    expect(result.allPassing).toBe(true);
-  });
-
-  it('boundary: just below SLO target fails', () => {
-    const result = evaluateSLOs(99.89, 501, 1001);
-    expect(result.allPassing).toBe(false);
-    expect(result.slos[0].pass).toBe(false);
-    expect(result.slos[1].pass).toBe(false);
-    expect(result.slos[2].pass).toBe(false);
-  });
-});
-
-describe('health check response', () => {
-  it('returns ok when both services healthy', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.get('/health', (c) => {
-      const dbOk = true;
-      const redisOk = true;
-      const status = dbOk && redisOk ? 'ok' : 'degraded';
-      return c.json({ status, db: dbOk, redis: redisOk }, status === 'ok' ? 200 : 503);
-    });
-
-    const res = await app.request('/health');
-    expect(res.status).toBe(200);
-    const json = await res.json();
-    expect(json.status).toBe('ok');
-    expect(json.db).toBe(true);
-    expect(json.redis).toBe(true);
-  });
-
-  it('returns 503 degraded when DB is down', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.get('/health', (c) => {
-      const dbOk = false;
-      const redisOk = true;
-      const status = dbOk && redisOk ? 'ok' : 'degraded';
-      return c.json({ status, db: dbOk, redis: redisOk }, status === 'ok' ? 200 : 503);
-    });
-
-    const res = await app.request('/health');
-    expect(res.status).toBe(503);
-    const json = await res.json();
-    expect(json.status).toBe('degraded');
-    expect(json.db).toBe(false);
-  });
-
-  it('returns 503 degraded when Redis is down', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.get('/health', (c) => {
-      const dbOk = true;
-      const redisOk = false;
-      const status = dbOk && redisOk ? 'ok' : 'degraded';
-      return c.json({ status, db: dbOk, redis: redisOk }, status === 'ok' ? 200 : 503);
-    });
-
-    const res = await app.request('/health');
-    expect(res.status).toBe(503);
-    const json = await res.json();
-    expect(json.status).toBe('degraded');
-    expect(json.redis).toBe(false);
-  });
-});
-
-describe('queue stats fallback', () => {
-  it('returns zeros when queue is unavailable', () => {
-    const fallback = { waiting: 0, active: 0, failed: 0, delayed: 0, completed: 0 };
-    expect(fallback.waiting).toBe(0);
-    expect(fallback.active).toBe(0);
-  });
-});
-
-describe('business metrics response shape', () => {
-  it('returns MRR, ARR, ARPU, tier breakdown, and churn data', async () => {
-    const { Hono } = await import('hono');
-    const app = new Hono();
-
-    app.get('/metrics/business', (c) =>
-      c.json({
-        data: {
-          timestamp: new Date().toISOString(),
-          mrr: 1490,
-          arr: 17880,
-          arpu: 149,
-          totalOrgs: 15,
-          paidOrgs: 10,
-          freeOrgs: 5,
-          tierBreakdown: { free: 5, starter: 4, growth: 5, scale: 1 },
-          activeOrgs: 12,
-          churn: { cancellationsLast30d: 1, churnRatePct: 10 },
-          conversionRate: 66.7,
-        },
-      }),
-    );
-
-    const res = await app.request('/metrics/business');
-    expect(res.status).toBe(200);
-    const json = await res.json();
-
-    expect(json.data).toHaveProperty('mrr');
-    expect(json.data).toHaveProperty('arr');
-    expect(json.data).toHaveProperty('arpu');
-    expect(json.data).toHaveProperty('tierBreakdown');
-    expect(json.data).toHaveProperty('churn');
-    expect(json.data.churn).toHaveProperty('cancellationsLast30d');
-    expect(json.data.churn).toHaveProperty('churnRatePct');
-    expect(json.data).toHaveProperty('conversionRate');
+  it('queue unavailable fails even at depth 0', () => {
+    const r = evaluateSLOs(99.95, 200, 0, true);
+    expect(r.queuePass).toBe(false);
+    expect(r.allPassing).toBe(false);
   });
 });
 
 describe('MRR calculation', () => {
-  const TIER_MONTHLY_PRICES: Record<string, number> = {
-    starter: 49,
-    growth: 149,
-    scale: 349,
-  };
+  const TIER_MONTHLY_PRICES: Record<string, number> = { starter: 49, growth: 149, scale: 349 };
 
   function calculateMRR(tierMap: Record<string, number>): number {
     let mrr = 0;
@@ -280,7 +167,7 @@ describe('MRR calculation', () => {
     return mrr;
   }
 
-  it('calculates MRR from paid tier counts', () => {
+  it('calculates from paid tier counts', () => {
     expect(calculateMRR({ free: 10, starter: 5, growth: 3, scale: 1 })).toBe(
       5 * 49 + 3 * 149 + 1 * 349,
     );
@@ -295,91 +182,30 @@ describe('MRR calculation', () => {
   });
 });
 
-describe('conversion rate', () => {
-  function conversionRate(total: number, paid: number): number {
-    return total > 0 ? Math.round((paid / total) * 100 * 10) / 10 : 0;
-  }
-
-  it('calculates free-to-paid conversion', () => {
-    expect(conversionRate(100, 8)).toBe(8);
-  });
-
-  it('returns 0 when no orgs', () => {
-    expect(conversionRate(0, 0)).toBe(0);
-  });
-
-  it('handles 100% conversion', () => {
-    expect(conversionRate(10, 10)).toBe(100);
-  });
-});
-
-describe('weekly report response shape', () => {
-  it('returns product stats, analytics summary, and tier breakdown', async () => {
-    const { Hono } = await import('hono');
+describe('health check response', () => {
+  it('returns ok when both services healthy', async () => {
     const app = new Hono();
-
-    app.get('/metrics/report', (c) =>
-      c.json({
-        data: {
-          period: 'last_7_days',
-          generatedAt: new Date().toISOString(),
-          product: {
-            totalAttempts: 50000,
-            delivered: 49900,
-            failed: 80,
-            exhausted: 20,
-            successRatePct: 99.8,
-            p95LatencyMs: 180,
-            activeOrgs: 12,
-          },
-          analytics: {
-            'org.created': 3,
-            first_event_sent: 2,
-            'subscription.created': 1,
-          },
-          tiers: { free: 5, starter: 4, growth: 3, scale: 1 },
-        },
-      }),
-    );
-
-    const res = await app.request('/metrics/report');
+    app.get('/health', (c) => {
+      const dbOk = true;
+      const redisOk = true;
+      const status = dbOk && redisOk ? 'ok' : 'degraded';
+      return c.json({ status, db: dbOk, redis: redisOk }, status === 'ok' ? 200 : 503);
+    });
+    const res = await app.request('/health');
     expect(res.status).toBe(200);
     const json = await res.json();
-
-    expect(json.data).toHaveProperty('period');
-    expect(json.data).toHaveProperty('product');
-    expect(json.data.product).toHaveProperty('totalAttempts');
-    expect(json.data.product).toHaveProperty('successRatePct');
-    expect(json.data.product).toHaveProperty('p95LatencyMs');
-    expect(json.data).toHaveProperty('analytics');
-    expect(json.data).toHaveProperty('tiers');
-  });
-});
-
-describe('analytics event tracking', () => {
-  const VALID_EVENTS = [
-    'org.created',
-    'first_event_sent',
-    'subscription.created',
-    'subscription.canceled',
-    'subscription.upgraded',
-    'subscription.downgraded',
-    'endpoint.created',
-    'quota.warning_80pct',
-    'quota.limit_reached',
-    'api_key.created',
-  ];
-
-  it('defines all expected event types', () => {
-    expect(VALID_EVENTS).toContain('org.created');
-    expect(VALID_EVENTS).toContain('first_event_sent');
-    expect(VALID_EVENTS).toContain('subscription.created');
-    expect(VALID_EVENTS).toContain('subscription.canceled');
+    expect(json.status).toBe('ok');
   });
 
-  it('event names use dot notation', () => {
-    for (const event of VALID_EVENTS) {
-      expect(event).toMatch(/^[a-z_]+(\.[a-z_0-9]+)?$/);
-    }
+  it('returns 503 when a service is down', async () => {
+    const app = new Hono();
+    app.get('/health', (c) => {
+      const dbOk = false;
+      const redisOk = true;
+      const status = dbOk && redisOk ? 'ok' : 'degraded';
+      return c.json({ status, db: dbOk, redis: redisOk }, status === 'ok' ? 200 : 503);
+    });
+    const res = await app.request('/health');
+    expect(res.status).toBe(503);
   });
 });
