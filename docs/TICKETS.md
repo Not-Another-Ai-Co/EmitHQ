@@ -289,7 +289,7 @@ _Build the webhook delivery engine — the core value proposition._
 
 ---
 
-### T-023: Show HN Launch & Content [x]
+### T-023: Show HN Launch & Content [x] [verified]
 
 **Phase:** 4
 **Effort:** Medium
