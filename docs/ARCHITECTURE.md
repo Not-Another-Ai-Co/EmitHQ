@@ -115,6 +115,10 @@ Separate Next.js app at `packages/landing/`. Static export for CF Pages. No auth
 
 `@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints, replay, testEndpoint). Typed errors (AuthError, ValidationError, RateLimitError, etc.). Auto-retry on 5xx/network (3 attempts, exponential backoff). `verifyWebhook()` using WebCrypto API.
 
+## Monitoring & SLOs (T-022)
+
+`GET /health` probes DB (`SELECT 1`) and Redis (`PING`), returns 200 `ok` or 503 `degraded`. `GET /metrics` exposes cross-tenant SLO aggregates via `adminDb`: delivery success/retry/DLQ rates, p50/p95/p99 latency (PostgreSQL `percentile_cont`), BullMQ queue depth, DB pool stats. Protected by `METRICS_SECRET` header. `GET /metrics/slo` returns pass/fail against 3 targets: 99.9% delivery success, <500ms p95, <1000 queue depth. Sentry for error tracking. Better Stack for external uptime + status page. Incident runbook at `docs/RUNBOOK.md`.
+
 ## Key Decisions
 
 - See docs/DECISIONS.md for architectural decision records
