@@ -328,6 +328,48 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
+### T-042: Account Creation Rate Limiting & Abuse Prevention
+
+**Phase:** 10
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-027
+**Research:** none
+
+**Description:** Prevent multi-account abuse and automated signups that could exhaust free tier resources across many accounts.
+
+**Acceptance criteria:**
+
+- [ ] IP-based rate limit on Clerk signup (max 3 accounts per IP per day)
+- [ ] Flag accounts that hit 100K free tier limit within first 48 hours (likely bots/abuse)
+- [ ] Admin endpoint to disable an organization immediately (emergency kill switch)
+- [ ] Org disable cascades: stops accepting events, pauses delivery worker for that org
+
+---
+
+### T-043: Infrastructure Cost Monitoring & Emergency Controls
+
+**Phase:** 10
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-022, T-024
+**Research:** none
+
+**Description:** Real-time monitoring of infrastructure costs vs revenue. Detect when vendor free tier limits approach, flag cost/revenue imbalance, and provide emergency controls to throttle or disable high-cost users.
+
+**Acceptance criteria:**
+
+- [ ] `/metrics/costs` endpoint: estimated infra cost based on event volume (events × $1.34/1M), compared against MRR
+- [ ] Vendor ceiling alerts in `/metrics/slo`: Upstash Redis commands/day vs 10K limit, Neon compute hours vs 190/mo, Railway credit remaining
+- [ ] Per-org cost estimation: track each org's event count and estimated infra cost vs their tier revenue
+- [ ] Alert when any org's estimated cost exceeds 80% of their tier revenue (negative margin user)
+- [ ] Alert when any vendor metric exceeds 70% of free tier ceiling
+- [ ] Emergency throttle: reduce a specific org's rate limit to 1 evt/s without disabling
+- [ ] `/catchup` integration: Claude checks `/metrics/costs` and `/metrics/slo` every session, flags in Attention Needed
+- [ ] Runbook entry: "Vendor ceiling approaching" with upgrade steps for each service
+
+---
+
 ### T-041: Plausible Analytics Setup
 
 **Phase:** 10
