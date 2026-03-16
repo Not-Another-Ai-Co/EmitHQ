@@ -52,7 +52,7 @@ _Get the product live and verify end-to-end delivery works._
 - [x] Landing page deployed and accessible at production domain (https://emithq.com — Vercel, 200 OK)
 - [x] Dashboard deployed with Clerk auth working (https://app.emithq.com — Vercel, 307 to Clerk login)
 - [x] Production URLs updated in .env.tpl (production values documented, set in Railway/Vercel)
-- [ ] Clerk production instance configured (allowed origins include production domain) — using test keys, Julian to switch to production Clerk instance
+- [x] Clerk production instance configured (app.emithq.com, clerk.emithq.com, accounts.emithq.com — all DNS verified)
 - [-] Plausible analytics receiving data from landing page (DEFERRED: Julian to create Plausible account + add site)
 - [x] SSL/HTTPS working on all endpoints
 
@@ -307,7 +307,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
-### T-040: Clerk Production Keys & Plausible Analytics
+### T-040: Clerk Production Keys & Plausible Analytics [x]
 
 **Phase:** 10
 **Effort:** Low
@@ -319,8 +319,8 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 **Acceptance criteria:**
 
-- [ ] Clerk production instance created (dashboard.clerk.com)
-- [ ] Production keys (`sk_live_`, `pk_live_`) stored in 1Password, updated in Railway + Vercel env vars
-- [ ] Allowed origins configured for emithq.com, app.emithq.com
-- [ ] Plausible account created, emithq.com site added
-- [ ] Plausible script tag verified receiving pageviews
+- [x] Clerk production instance created (cloned from dev, app.emithq.com primary domain)
+- [x] Production keys (`sk_live_`, `pk_live_`) stored in 1Password, updated in Railway + Vercel env vars
+- [x] DNS configured: clerk.emithq.com, accounts.emithq.com, clkmail.emithq.com, DKIM records — all verified green
+- [-] Plausible account created, emithq.com site added (DEFERRED: Julian to create account when ready)
+- [-] Plausible script tag verified receiving pageviews (DEFERRED: depends on Plausible account)
