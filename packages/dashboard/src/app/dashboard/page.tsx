@@ -21,7 +21,7 @@ export default async function OverviewPage() {
     const res = await apiGet<Stats>(`/api/v1/app/${appId}/stats`, { token: token ?? undefined });
     stats = res.data;
   } catch {
-    // Auth or API unavailable — show placeholder
+    // API unavailable — show placeholder
   }
 
   return (
