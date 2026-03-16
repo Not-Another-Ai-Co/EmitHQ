@@ -37,7 +37,7 @@ _Get the product live and verify end-to-end delivery works._
 
 ---
 
-### T-028: Deploy Dashboard & Landing Page [x]
+### T-028: Deploy Dashboard & Landing Page [x] [audited]
 
 **Phase:** 7
 **Effort:** Low
@@ -58,7 +58,7 @@ _Get the product live and verify end-to-end delivery works._
 
 ---
 
-### T-029: Production Domain & DNS Setup [x]
+### T-029: Production Domain & DNS Setup [x] [audited]
 
 **Phase:** 7
 **Effort:** Low
@@ -84,7 +84,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-030: Marketplace Listings & Directory Submissions [x]
+### T-030: Marketplace Listings & Directory Submissions [x] [audited]
 
 **Phase:** 8
 **Effort:** Low
@@ -106,7 +106,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-031: BOFU Comparison Content [x]
+### T-031: BOFU Comparison Content [x] [audited]
 
 **Phase:** 8
 **Effort:** Medium
@@ -127,7 +127,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-032: Pricing Page Optimization [x]
+### T-032: Pricing Page Optimization [x] [audited]
 
 **Phase:** 8
 **Effort:** Low
@@ -308,7 +308,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
-### T-040: Clerk Production Keys & Plausible Analytics [x]
+### T-040: Clerk Production Keys & Plausible Analytics [x] [audited]
 
 **Phase:** 10
 **Effort:** Low

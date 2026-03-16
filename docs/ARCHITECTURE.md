@@ -136,6 +136,18 @@ Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker(
 
 **Secrets:** 1Password vault `EmitHQ` with `op://` references in `.env.tpl`. Railway env vars set manually from these references.
 
+**Production topology (T-028, T-029):**
+
+| Service         | Host         | URL                                   |
+| --------------- | ------------ | ------------------------------------- |
+| API server      | Railway      | https://api.emithq.com                |
+| Delivery worker | Railway      | (no HTTP)                             |
+| Landing page    | Vercel       | https://emithq.com                    |
+| Dashboard       | Vercel       | https://app.emithq.com                |
+| Auth            | Clerk        | clerk.emithq.com, accounts.emithq.com |
+| DNS             | Cloudflare   | emithq.com zone                       |
+| Uptime          | Better Stack | emithq.betteruptime.com               |
+
 ## Key Decisions
 
 - See docs/DECISIONS.md for architectural decision records
