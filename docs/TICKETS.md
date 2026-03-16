@@ -370,6 +370,75 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
+### T-044: Automated Social Media Posting
+
+**Phase:** 8
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-028
+**Research:** none
+
+**Description:** Set up automated posting to social platforms via APIs or MCP servers. Julian creates accounts, Claude publishes content. Covers build-in-public updates, launch announcements, and ongoing content distribution.
+
+**Acceptance criteria:**
+
+- [ ] Research available APIs/MCPs: Twitter/X API, Indie Hackers (scrape/API?), Dev.to API, LinkedIn API
+- [ ] Identify which platforms have usable APIs vs require manual posting
+- [ ] Set up API keys/tokens in 1Password for accessible platforms
+- [ ] Create a posting helper script or MCP integration that Claude can invoke
+- [ ] Draft first 5 build-in-public posts (progress updates, technical decisions, milestones)
+- [ ] Publish first post on each connected platform
+
+---
+
+### T-045: Production Smoke Test & Bug Hunt
+
+**Phase:** 8
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-027, T-028
+**Research:** none
+
+**Description:** Simulate a real user journey end-to-end in production. Create an org, generate API keys, configure endpoints, send webhooks, verify delivery, test retries, test DLQ, test the dashboard. Find and fix bugs before real users hit them.
+
+**Acceptance criteria:**
+
+- [ ] Create test org via Clerk signup on app.emithq.com (Julian to sign up, provide API key)
+- [ ] Create application and endpoint via API (pointing to a webhook receiver like webhook.site)
+- [ ] Send 10 test events via SDK and verify delivery (check webhook.site for received payloads)
+- [ ] Verify signature validation works (check webhook-id, webhook-timestamp, webhook-signature headers)
+- [ ] Send event to a dead endpoint — verify retry scheduling and eventual DLQ
+- [ ] Test endpoint disable/re-enable via API
+- [ ] Test replay from DLQ via API
+- [ ] Verify dashboard shows: event log, delivery attempts, endpoint health, stats
+- [ ] Test rate limiting — send events beyond free tier quota, verify 429 response
+- [ ] Test billing flow — Stripe checkout, subscription creation (test mode)
+- [ ] Document all bugs found → create fix tickets
+- [ ] Stress test: send 1,000 events in rapid succession, verify no data loss
+
+---
+
+### T-046: Cold Outreach Campaign
+
+**Phase:** 8
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-031, T-045
+**Research:** docs/research/gtm-execution.md
+
+**Description:** Identify and contact potential beta users. Target companies using Svix SDK on GitHub. Prepare personalized outreach emails. Track responses and conversions.
+
+**Acceptance criteria:**
+
+- [ ] GitHub code search: find 50+ repos importing @svix/svix — extract company/maintainer info
+- [ ] Categorize targets by company size, webhook usage patterns, potential fit
+- [ ] Draft 3 outreach email templates (cold intro, follow-up day 3, follow-up day 10)
+- [ ] Personalize top 20 emails with specific repo/company references
+- [ ] Track outreach in a simple spreadsheet or GitHub issue (sent, replied, trialed, converted)
+- [ ] Target: 20 emails/week for 4 weeks, 10-15% reply rate, 2-5% trial conversion
+
+---
+
 ### T-041: Plausible Analytics Setup
 
 **Phase:** 10
