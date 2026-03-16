@@ -96,7 +96,7 @@
 
 ## DEC-006 | 2026-03-13 | Entity: Nevada LLC
 
-**Status:** Active
+**Status:** Superseded by DEC-018
 **Linked to:** T-004
 
 **Context:** Solo bootstrapped SaaS, founder based in Nevada. Evaluated LLC vs C-Corp, Nevada vs Delaware.
