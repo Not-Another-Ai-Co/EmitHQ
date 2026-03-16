@@ -127,7 +127,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-032: Pricing Page Optimization
+### T-032: Pricing Page Optimization [x]
 
 **Phase:** 8
 **Effort:** Low
@@ -139,13 +139,13 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 **Acceptance criteria:**
 
-- [ ] Default to annual pricing toggle (show monthly as option)
-- [ ] Growth tier ($149/mo) highlighted as "Most popular"
-- [ ] Per-event cost breakdown visible in each tier (e.g., "$0.075 per 1K events")
-- [ ] Overage pricing published clearly in FAQ or tooltip
-- [ ] "What counts as an event?" FAQ answer visible on pricing page
-- [ ] "Start free" CTA (no credit card required) — clear call to action
-- [ ] SDK code snippet on pricing page showing 3-line integration
+- [x] Default to annual pricing toggle (client-side toggle, defaults to annual with "save 20%" label)
+- [x] Growth tier ($149/mo) highlighted as "Most popular" (accent border + floating badge)
+- [x] Per-event cost breakdown visible in each tier (e.g., "$0.08/1K events" for Growth)
+- [x] Overage pricing published in dedicated section ($0.30-$0.50/1K by tier)
+- [x] "What counts as an event?" FAQ answer visible on pricing page (+ "What happens when I hit my limit?")
+- [x] "Start free" CTA per tier (no credit card required)
+- [x] SDK code snippet on pricing page showing integration example
 
 ---
 
