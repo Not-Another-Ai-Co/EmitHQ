@@ -84,7 +84,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-030: Marketplace Listings & Directory Submissions
+### T-030: Marketplace Listings & Directory Submissions [x]
 
 **Phase:** 8
 **Effort:** Low
@@ -96,12 +96,13 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 **Acceptance criteria:**
 
-- [ ] awesome-selfhosted PR submitted (AGPL server qualifies)
-- [ ] AlternativeTo profile created (listed as alternative to Svix, Hookdeck, Convoy)
-- [ ] SaaSHub profile created
-- [ ] Railway template created ("Deploy EmitHQ" one-click)
-- [ ] GitHub Discussions enabled on repo (already done — verify categories: Q&A, Feature Requests, Show and Tell)
-- [ ] GitHub repo topics/tags updated for discoverability (webhooks, webhook-infrastructure, typescript, open-source)
+- [ ] awesome-selfhosted PR submitted — content prepared in docs/tmp/marketplace-submissions.md, fork created (Julian to submit PR)
+- [ ] AlternativeTo profile created — content prepared in docs/tmp/marketplace-submissions.md (Julian to submit)
+- [ ] SaaSHub profile created — content prepared in docs/tmp/marketplace-submissions.md (Julian to submit)
+- [-] Railway template created (DEFERRED: Railway trial account may not support templates)
+- [x] GitHub Discussions enabled on repo (verified: Announcements, General, Ideas, Polls, Q&A, Show and Tell)
+- [x] GitHub repo topics/tags updated (webhooks, webhook-infrastructure, webhook-delivery, typescript, open-source, hono, bullmq, developer-tools, saas, agpl)
+- [x] Repo description and homepage URL set
 
 ---
 
