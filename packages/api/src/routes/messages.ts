@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { eq, and, or, sql, isNull } from 'drizzle-orm';
 import {
+  adminDb,
   applications,
   messages,
   endpoints,
@@ -214,12 +215,14 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
   }
 
   // --- Increment org event counter ---
-  const [updated] = await tx.execute<{ event_count_month: number }>(
+  // Use adminDb — organizations table has no RLS, and tx is tenant-scoped
+  const result = await adminDb.execute<{ event_count_month: number }>(
     sql`UPDATE organizations SET event_count_month = event_count_month + 1 WHERE id = ${orgId} RETURNING event_count_month`,
   );
+  const updated = result.rows?.[0];
 
   // Track first event milestone
-  if (updated && (updated as unknown as { event_count_month: number }).event_count_month === 1) {
+  if (updated && updated.event_count_month === 1) {
     trackEvent('first_event_sent', orgId);
   }
 
