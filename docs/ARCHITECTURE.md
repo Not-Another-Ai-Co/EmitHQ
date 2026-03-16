@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-15
+> Last verified: 2026-03-16
 
 ## Overview
 
@@ -122,6 +122,19 @@ Separate Next.js app at `packages/landing/`. Static export for CF Pages. No auth
 ## Analytics & Feedback (T-024)
 
 `analytics_events` table for product analytics (no RLS — cross-tenant aggregation via adminDb). `trackEvent()` fire-and-forget helper tracks: `org.created`, `first_event_sent`, `subscription.created/canceled`, `endpoint.created`, `api_key.created`. `GET /metrics/business` returns MRR, ARR, ARPU, tier breakdown, churn from Stripe. `GET /metrics/report` returns 7-day summary of delivery stats + analytics events + tier distribution. GitHub Discussions for feature requests.
+
+## Deployment (T-027)
+
+**Runtime:** `tsx` (esbuild-based TypeScript runner) in production — avoids tsc compilation, path alias resolution, and workspace source export issues (DEC-021). Two Railway services from the same repo:
+
+- **API service:** `tsx src/server.ts` (Hono HTTP server, port from `PORT` env var)
+- **Worker service:** `tsx src/worker.ts` (BullMQ delivery worker, no HTTP, `restartPolicyType: ALWAYS`)
+
+Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker()` from `@emithq/core` with graceful SIGTERM/SIGINT shutdown (30s forced-exit fallback).
+
+**Database migrations:** Drizzle ORM with `drizzle-kit`. Migration files at `packages/core/src/db/migrations/`. Scripts: `npm run db:generate`, `npm run db:migrate`, `npm run db:push`. Run against Neon via `DATABASE_ADMIN_URL` (BYPASSRLS role).
+
+**Secrets:** 1Password vault `EmitHQ` with `op://` references in `.env.tpl`. Railway env vars set manually from these references.
 
 ## Key Decisions
 
