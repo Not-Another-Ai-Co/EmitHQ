@@ -17,7 +17,7 @@ export async function withTenant<T>(
   }
 
   return db.transaction(async (tx) => {
-    await tx.execute(sql`SET LOCAL app.current_tenant = ${orgId}`);
+    await tx.execute(sql.raw(`SET LOCAL app.current_tenant = '${orgId}'`));
     return callback(tx as unknown as typeof db);
   });
 }
