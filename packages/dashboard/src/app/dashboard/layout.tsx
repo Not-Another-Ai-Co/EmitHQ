@@ -5,8 +5,12 @@ import { Sidebar, MobileNav } from '@/components/nav';
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { userId } = await auth();
-  if (!userId) redirect('/sign-in');
+  try {
+    const { userId } = await auth();
+    if (!userId) redirect('/sign-in');
+  } catch {
+    redirect('/sign-in');
+  }
   return (
     <div className="min-h-screen">
       <Sidebar />
