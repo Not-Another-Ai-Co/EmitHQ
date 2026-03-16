@@ -12,16 +12,16 @@ interface Stats {
 }
 
 export default async function OverviewPage() {
-  const { getToken } = await auth();
   const appId = 'default'; // TODO: app selector once app CRUD exists
 
   let stats: Stats['data'] | null = null;
   try {
+    const { getToken } = await auth();
     const token = await getToken();
     const res = await apiGet<Stats>(`/api/v1/app/${appId}/stats`, { token: token ?? undefined });
     stats = res.data;
   } catch {
-    // API unavailable — show placeholder
+    // Auth or API unavailable — show placeholder
   }
 
   return (
