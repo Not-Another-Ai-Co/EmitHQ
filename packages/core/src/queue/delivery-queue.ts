@@ -39,6 +39,6 @@ export function getDeliveryQueue(): Queue<DeliveryJobData> {
 export async function enqueueDelivery(data: DeliveryJobData): Promise<void> {
   const q = getDeliveryQueue();
   await q.add('deliver', data, {
-    jobId: `delivery:${data.attemptId}`,
+    jobId: `delivery-${data.attemptId}`,
   });
 }

@@ -49,7 +49,7 @@ describe('enqueueDelivery', () => {
 
     const queue = getDeliveryQueue();
     expect(queue.add).toHaveBeenCalledWith('deliver', data, {
-      jobId: 'delivery:att-1',
+      jobId: 'delivery-att-1',
     });
   });
 
@@ -65,7 +65,7 @@ describe('enqueueDelivery', () => {
     expect(queue.add).toHaveBeenCalledWith(
       'deliver',
       expect.anything(),
-      expect.objectContaining({ jobId: 'delivery:unique-attempt-id' }),
+      expect.objectContaining({ jobId: 'delivery-unique-attempt-id' }),
     );
   });
 });
