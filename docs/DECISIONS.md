@@ -369,3 +369,22 @@
 - Datadog/New Relic — expensive; Better Stack + Sentry covers needs at $0/mo (free tiers)
 
 **Consequences:** Better Stack and Sentry accounts need to be created and API tokens stored in 1Password. `/metrics` endpoint must not be public (secret-protected). SLO queries may become slow at >100M delivery_attempts — add materialized views or time-series if needed post-launch.
+
+---
+
+## DEC-021 | 2026-03-16 | Production Runtime: tsx Instead of tsc + node
+
+**Status:** Active
+**Linked to:** T-027
+
+**Context:** The monorepo uses `@emithq/core` as a workspace package with `main: "src/index.ts"` pointing to TypeScript source. The root tsconfig uses `moduleResolution: "bundler"` with path aliases. After `tsc` compilation, `@emithq/core` imports in emitted JS cannot resolve at runtime — Node.js cannot execute `.ts` files or resolve compile-time-only path aliases without a bundler or additional tooling.
+
+**Decision:** Use `tsx` (esbuild-based TypeScript runner) for production instead of `tsc` + `node`. The API server runs `tsx src/server.ts` and the delivery worker runs `tsx src/worker.ts`. No compilation step needed. `tsx` is already a devDependency used for `npm run dev`.
+
+**Alternatives considered:**
+
+- `tsc` + bundler (tsup/esbuild) — adds build complexity, another dependency to maintain
+- Fix `@emithq/core` to compile and export JS — requires maintaining two build configs, breaks the simple workspace-as-source pattern
+- `tsc-alias` for runtime path resolution — brittle, adds another tool to the chain
+
+**Consequences:** Slightly slower cold start (~200ms for tsx transpilation vs pre-compiled). Negligible for a Railway service that stays running. `tsx` must be in `packages/api` production `dependencies` (not just root devDependencies). If performance becomes an issue at scale, migrate to a bundler step.

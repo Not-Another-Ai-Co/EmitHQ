@@ -10,12 +10,18 @@
   "scripts": {
     "dev": "npm run dev --workspace=packages/api",
     "build": "npm run build --workspaces",
+    "start": "npm run start --workspace=packages/api",
+    "start:worker": "npm run start:worker --workspace=packages/api",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint packages/",
     "format": "prettier --write packages/",
     "format:check": "prettier --check packages/",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "devDependencies": {
     "@types/ioredis": "^4.28.10",
