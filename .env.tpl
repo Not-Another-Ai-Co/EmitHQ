@@ -20,6 +20,7 @@ QSTASH_NEXT_SIGNING_KEY=op://EmitHQ/qstash/next-signing-key
 
 # Auth (Clerk)
 CLERK_SECRET_KEY=op://EmitHQ/clerk/secret-key
+CLERK_PUBLISHABLE_KEY=op://EmitHQ/clerk/publishable-key
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=op://EmitHQ/clerk/publishable-key
 
 # Payments (Stripe)
