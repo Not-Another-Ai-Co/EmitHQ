@@ -216,3 +216,110 @@ _Execute the launch week and begin sustained acquisition._
 - [ ] Monthly changelog template (product-led SEO signal)
 - [ ] Zapier integration scoped and added to roadmap (month 2 target)
 - [ ] Build-in-public cadence established: 2-4 posts/week on X, weekly Indie Hackers update
+
+---
+
+### Phase 10: Post-Launch Infrastructure
+
+_Deferred items from earlier phases. Not blocking launch — pick up as needed based on user feedback and growth._
+
+---
+
+### T-036: Email Service & Lifecycle Emails
+
+**Phase:** 10
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-028
+**Research:** none
+
+**Description:** Set up Resend for transactional and lifecycle emails. Enables NPS surveys, churn exit surveys, weekly metric reports to Julian, and welcome/onboarding emails.
+
+**Acceptance criteria:**
+
+- [ ] Resend account created, API key in 1Password, domain verified
+- [ ] Welcome email on signup (triggered by `org.created` analytics event)
+- [ ] NPS survey email at day 7 and day 30 (deferred from T-024)
+- [ ] Churn exit survey on subscription cancellation (deferred from T-024)
+- [ ] Weekly metrics report emailed to Julian (deferred from T-024 — currently manual via GET /metrics/report)
+
+---
+
+### T-037: Stripe Overage Metering & Upgrade Prompts
+
+**Phase:** 10
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-011
+**Research:** docs/research/pricing-model.md
+
+**Description:** Wire up Stripe Billing Meter for overage charges and add upgrade prompts in the dashboard when users approach tier limits. Deferred from T-011.
+
+**Acceptance criteria:**
+
+- [ ] Stripe Billing Meter configured for per-event overage ($0.50/0.40/0.30 per 1K events by tier)
+- [ ] event_count_month reported to Stripe at billing period boundaries
+- [ ] Dashboard shows usage bar with current event count vs tier limit
+- [ ] Upgrade prompt shown at 80% and 100% of tier limit
+- [ ] Downgrade blocked if current usage exceeds target tier limit
+
+---
+
+### T-038: CI Integration Tests
+
+**Phase:** 10
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-026
+**Research:** none
+
+**Description:** Wire up the deferred integration test infrastructure from T-026. Run real middleware chain tests against a test database in CI.
+
+**Acceptance criteria:**
+
+- [ ] CI runs integration tests against Docker PostgreSQL (GitHub Actions service container)
+- [ ] Middleware chain tested end-to-end: auth → tenantScope → handler (deferred from T-026)
+- [ ] Stripe webhook signature verification tested with Stripe test key in CI (deferred from T-026)
+- [ ] Stripe test key stored as GitHub Actions secret
+
+---
+
+### T-039: Cloudflare Workers Edge Layer (Inbound Webhooks)
+
+**Phase:** 10
+**Effort:** High
+**Complexity:** Complex
+**Depends on:** T-027
+**Research:** docs/research/technical-architecture.md
+
+**Description:** Build the Cloudflare Workers edge layer for inbound webhook reception. Currently EmitHQ is outbound-only. This adds receiving webhooks from Stripe/GitHub/Shopify with provider-specific signature verification, instant 200 response, and QStash relay to origin.
+
+**Acceptance criteria:**
+
+- [ ] Wrangler project configured with deployment to Cloudflare Workers
+- [ ] Inbound webhook endpoint: POST /webhooks/inbound/{source_id}
+- [ ] Provider-specific signature verification (Stripe, GitHub, Shopify, Slack, Standard Webhooks)
+- [ ] Return 200 immediately (<50ms), forward to origin via QStash
+- [ ] Rate limiting at edge via Upstash Redis REST
+- [ ] Inbound events persisted to inbound_sources table on origin
+- [ ] Tests: signature verification per provider, rate limiting, QStash forwarding
+
+---
+
+### T-040: Clerk Production Keys & Plausible Analytics
+
+**Phase:** 10
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-028
+**Research:** none
+
+**Description:** Switch Clerk from test to production keys and set up Plausible analytics. Low-effort but needed before public launch.
+
+**Acceptance criteria:**
+
+- [ ] Clerk production instance created (dashboard.clerk.com)
+- [ ] Production keys (`sk_live_`, `pk_live_`) stored in 1Password, updated in Railway + Vercel env vars
+- [ ] Allowed origins configured for emithq.com, app.emithq.com
+- [ ] Plausible account created, emithq.com site added
+- [ ] Plausible script tag verified receiving pageviews
