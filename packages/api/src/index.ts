@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { clerk } from './middleware/auth';
 import { apiKeyRoutes } from './routes/api-keys';
 import { messageRoutes } from './routes/messages';
@@ -12,6 +13,25 @@ import { adminDb, createRedisConnection } from '@emithq/core';
 import { sql } from 'drizzle-orm';
 
 const app = new Hono();
+
+// CORS — allow dashboard and landing page origins
+app.use(
+  '*',
+  cors({
+    origin: [
+      'https://emithq.com',
+      'https://www.emithq.com',
+      'https://app.emithq.com',
+      'http://100.82.36.13:4002', // local dev (Tailscale)
+      'http://100.82.36.13:4003',
+      'http://localhost:4002',
+      'http://localhost:4003',
+    ],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400,
+  }),
+);
 
 // Health check (no auth) — probes DB and Redis connectivity
 app.get('/health', async (c) => {

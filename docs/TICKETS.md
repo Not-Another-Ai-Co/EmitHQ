@@ -37,7 +37,7 @@ _Get the product live and verify end-to-end delivery works._
 
 ---
 
-### T-028: Deploy Dashboard & Landing Page
+### T-028: Deploy Dashboard & Landing Page [x]
 
 **Phase:** 7
 **Effort:** Low
@@ -49,16 +49,16 @@ _Get the product live and verify end-to-end delivery works._
 
 **Acceptance criteria:**
 
-- [ ] Landing page deployed and accessible at production domain
-- [ ] Dashboard deployed with Clerk auth working (signup → login → dashboard)
-- [ ] Production URLs updated in .env.tpl (API_BASE_URL, DASHBOARD_URL, NEXT_PUBLIC_API_URL)
-- [ ] Clerk production instance configured (allowed origins include production domain)
-- [ ] Plausible analytics receiving data from landing page
-- [ ] SSL/HTTPS working on all endpoints
+- [x] Landing page deployed and accessible at production domain (https://emithq.com — Vercel, 200 OK)
+- [x] Dashboard deployed with Clerk auth working (https://app.emithq.com — Vercel, 307 to Clerk login)
+- [x] Production URLs updated in .env.tpl (production values documented, set in Railway/Vercel)
+- [ ] Clerk production instance configured (allowed origins include production domain) — using test keys, Julian to switch to production Clerk instance
+- [-] Plausible analytics receiving data from landing page (DEFERRED: Julian to create Plausible account + add site)
+- [x] SSL/HTTPS working on all endpoints
 
 ---
 
-### T-029: Production Domain & DNS Setup
+### T-029: Production Domain & DNS Setup [x]
 
 **Phase:** 7
 **Effort:** Low
@@ -70,11 +70,11 @@ _Get the product live and verify end-to-end delivery works._
 
 **Acceptance criteria:**
 
-- [ ] Domain registered and DNS configured (emithq.com or chosen domain)
-- [ ] API accessible at api.emithq.com (or similar subdomain)
-- [ ] Dashboard at app.emithq.com
-- [ ] Landing page at emithq.com (root domain)
-- [ ] CORS configured for production origins in API server
+- [x] Domain registered and DNS configured (emithq.com on Cloudflare)
+- [x] API accessible at api.emithq.com (Railway, CNAME + TXT verification)
+- [x] Dashboard at app.emithq.com (Vercel, CNAME to vercel-dns.com)
+- [x] Landing page at emithq.com (Vercel, A record to 76.76.21.21)
+- [ ] CORS configured for production origins in API server — needs code change to allow emithq.com origins
 
 ---
 
