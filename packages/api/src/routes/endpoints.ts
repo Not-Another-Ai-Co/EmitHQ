@@ -41,13 +41,18 @@ function maskSecret(secret: string): string {
   return secret.slice(0, 10) + '...';
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Resolve an application by UUID or uid within the tenant scope. */
 async function resolveApp(tx: unknown, appId: string) {
   const typedTx = tx as typeof import('@emithq/core').db;
+  const condition = UUID_RE.test(appId)
+    ? or(eq(applications.id, appId), eq(applications.uid, appId))
+    : eq(applications.uid, appId);
   const [app] = await typedTx
     .select({ id: applications.id })
     .from(applications)
-    .where(or(eq(applications.id, appId), eq(applications.uid, appId)))
+    .where(condition)
     .limit(1);
   return app ?? null;
 }

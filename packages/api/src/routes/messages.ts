@@ -114,10 +114,14 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
   }
 
   // --- Resolve application ---
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const appCondition = UUID_RE.test(appId)
+    ? or(eq(applications.id, appId), eq(applications.uid, appId))
+    : eq(applications.uid, appId);
   const [app] = await tx
     .select({ id: applications.id })
     .from(applications)
-    .where(or(eq(applications.id, appId), eq(applications.uid, appId)))
+    .where(appCondition)
     .limit(1);
 
   if (!app) {

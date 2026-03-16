@@ -19,13 +19,18 @@ function parseLimit(raw: string | undefined): number {
   );
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Resolve an application by UUID or uid within tenant scope. */
 async function resolveApp(tx: unknown, appId: string) {
   const typedTx = tx as typeof import('@emithq/core').db;
+  const condition = UUID_RE.test(appId)
+    ? or(eq(applications.id, appId), eq(applications.uid, appId))
+    : eq(applications.uid, appId);
   const [app] = await typedTx
     .select({ id: applications.id })
     .from(applications)
-    .where(or(eq(applications.id, appId), eq(applications.uid, appId)))
+    .where(condition)
     .limit(1);
   return app ?? null;
 }
