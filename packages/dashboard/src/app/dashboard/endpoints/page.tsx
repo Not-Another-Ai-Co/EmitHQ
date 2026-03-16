@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useApiFetch } from '@/lib/use-api';
 import { StatusBadge } from '@/components/status-badge';
 
 interface EndpointHealth {
@@ -18,10 +19,10 @@ interface EndpointHealth {
   lastDelivery: string | null;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://100.82.36.13:4000';
 const APP_ID = 'default';
 
 export default function EndpointsPage() {
+  const apiFetch = useApiFetch();
   const [endpoints, setEndpoints] = useState<EndpointHealth[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -29,9 +30,7 @@ export default function EndpointsPage() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/v1/app/${APP_ID}/endpoint-health`, {
-          credentials: 'include',
-        });
+        const res = await apiFetch(`/api/v1/app/${APP_ID}/endpoint-health`);
         if (!res.ok) throw new Error(`API error ${res.status}`);
         const json = await res.json();
         setEndpoints(json.data);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useApiFetch } from '@/lib/use-api';
 import { StatusBadge } from '@/components/status-badge';
 
 interface DlqEntry {
@@ -15,10 +16,10 @@ interface DlqEntry {
   createdAt: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://100.82.36.13:4000';
 const APP_ID = 'default';
 
 export default function DlqPage() {
+  const apiFetch = useApiFetch();
   const [entries, setEntries] = useState<DlqEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -33,9 +34,7 @@ export default function DlqPage() {
         const params = new URLSearchParams();
         if (!reset && cursor) params.set('cursor', cursor);
 
-        const res = await fetch(`${API_BASE}/api/v1/app/${APP_ID}/dlq?${params.toString()}`, {
-          credentials: 'include',
-        });
+        const res = await apiFetch(`/api/v1/app/${APP_ID}/dlq?${params.toString()}`);
         if (!res.ok) throw new Error(`API error ${res.status}`);
         const json = await res.json();
 
@@ -62,9 +61,9 @@ export default function DlqPage() {
   const replay = async (entry: DlqEntry) => {
     setReplaying((prev) => new Set(prev).add(entry.id));
     try {
-      const res = await fetch(
-        `${API_BASE}/api/v1/app/${APP_ID}/msg/${entry.messageId}/attempt/${entry.id}/retry`,
-        { method: 'POST', credentials: 'include' },
+      const res = await apiFetch(
+        `/api/v1/app/${APP_ID}/msg/${entry.messageId}/attempt/${entry.id}/retry`,
+        { method: 'POST' },
       );
       if (!res.ok) throw new Error(`Replay failed: ${res.status}`);
       // Remove from list on success

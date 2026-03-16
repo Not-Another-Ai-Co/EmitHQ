@@ -22,7 +22,10 @@ export function Sidebar() {
       </div>
       <ul className="space-y-1">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname?.startsWith(item.href + '/');
+          const active =
+            item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname === item.href || pathname?.startsWith(item.href + '/');
           return (
             <li key={item.href}>
               <Link
@@ -51,7 +54,10 @@ export function MobileNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--color-border)] bg-[var(--color-surface)] md:hidden">
       <ul className="flex justify-around py-2">
         {NAV_ITEMS.map((item) => {
-          const active = pathname === item.href || pathname?.startsWith(item.href + '/');
+          const active =
+            item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname === item.href || pathname?.startsWith(item.href + '/');
           return (
             <li key={item.href}>
               <Link

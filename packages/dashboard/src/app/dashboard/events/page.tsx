@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useApiFetch } from '@/lib/use-api';
 import { StatusBadge } from '@/components/status-badge';
 
 interface Message {
@@ -28,10 +29,10 @@ interface MessageDetail {
   }>;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://100.82.36.13:4000';
 const APP_ID = 'default';
 
 export default function EventsPage() {
+  const apiFetch = useApiFetch();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selected, setSelected] = useState<MessageDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,9 +50,7 @@ export default function EventsPage() {
         if (eventTypeFilter) params.set('eventType', eventTypeFilter);
         if (!reset && cursor) params.set('cursor', cursor);
 
-        const res = await fetch(`${API_BASE}/api/v1/app/${APP_ID}/msg?${params.toString()}`, {
-          credentials: 'include',
-        });
+        const res = await apiFetch(`/api/v1/app/${APP_ID}/msg?${params.toString()}`);
         if (!res.ok) throw new Error(`API error ${res.status}`);
         const json = await res.json();
 
@@ -68,7 +67,7 @@ export default function EventsPage() {
         setLoading(false);
       }
     },
-    [cursor, eventTypeFilter],
+    [cursor, eventTypeFilter, apiFetch],
   );
 
   useEffect(() => {
@@ -77,9 +76,7 @@ export default function EventsPage() {
 
   const loadDetail = async (msgId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/app/${APP_ID}/msg/${msgId}`, {
-        credentials: 'include',
-      });
+      const res = await apiFetch(`/api/v1/app/${APP_ID}/msg/${msgId}`);
       if (!res.ok) throw new Error(`API error ${res.status}`);
       const json = await res.json();
       setSelected(json.data);
