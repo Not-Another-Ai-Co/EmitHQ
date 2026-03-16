@@ -322,5 +322,24 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 - [x] Clerk production instance created (cloned from dev, app.emithq.com primary domain)
 - [x] Production keys (`sk_live_`, `pk_live_`) stored in 1Password, updated in Railway + Vercel env vars
 - [x] DNS configured: clerk.emithq.com, accounts.emithq.com, clkmail.emithq.com, DKIM records — all verified green
-- [-] Plausible account created, emithq.com site added (DEFERRED: Julian to create account when ready)
-- [-] Plausible script tag verified receiving pageviews (DEFERRED: depends on Plausible account)
+- [-] Plausible analytics (MOVED to T-041)
+- [-] Plausible script tag verification (MOVED to T-041)
+
+---
+
+### T-041: Plausible Analytics Setup
+
+**Phase:** 10
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-028
+**Research:** none
+
+**Description:** Set up Plausible analytics for tracking landing page traffic, referral sources, and page conversions. Self-host (free, Docker) or use hosted plan ($9/mo). Landing page already has the Plausible script tag.
+
+**Acceptance criteria:**
+
+- [ ] Plausible account created (self-hosted or hosted)
+- [ ] emithq.com site added
+- [ ] Script tag verified receiving pageviews
+- [ ] Referral sources visible (for measuring Show HN / content impact)
