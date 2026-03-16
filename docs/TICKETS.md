@@ -74,7 +74,7 @@ _Get the product live and verify end-to-end delivery works._
 - [x] API accessible at api.emithq.com (Railway, CNAME + TXT verification)
 - [x] Dashboard at app.emithq.com (Vercel, CNAME to vercel-dns.com)
 - [x] Landing page at emithq.com (Vercel, A record to 76.76.21.21)
-- [ ] CORS configured for production origins in API server — needs code change to allow emithq.com origins
+- [x] CORS configured for production origins in API server (emithq.com, www.emithq.com, app.emithq.com — done in 6c75c66)
 
 ---
 
@@ -149,7 +149,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-033: Show HN Post Revision & Launch Prep
+### T-033: Show HN Post Revision & Launch Prep [x] [verified]
 
 **Phase:** 8
 **Effort:** Low
@@ -161,12 +161,12 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 **Acceptance criteria:**
 
-- [ ] Show HN draft updated with concrete beta metrics (users, events processed)
-- [ ] Build-vs-buy objection addressed in post body (list what DIY misses)
-- [ ] Security surface addressed (per-endpoint secrets, timingSafeEqual, Standard Webhooks)
-- [ ] Comment response templates prepared for: "built this in a weekend", "why not Svix", GDPR, pricing concerns
-- [ ] Launch timing confirmed (Sunday 11:00-16:00 UTC)
-- [ ] Product Hunt launch prepared as day-2 follow-up
+- [x] Show HN draft updated with concrete beta metrics (users, events processed) — `docs/show-hn-draft.md` with [PLACEHOLDER] slots for post-beta metrics
+- [x] Build-vs-buy objection addressed in post body (list what DIY misses) — 10-item list in draft
+- [x] Security surface addressed (per-endpoint secrets, timingSafeEqual, Standard Webhooks) — dedicated section in draft
+- [x] Comment response templates prepared for: "built this in a weekend", "why not Svix", GDPR, pricing concerns — `docs/show-hn-playbook.md` with 8 templates
+- [x] Launch timing confirmed (Sunday 11:00-16:00 UTC) — confirmed in playbook
+- [x] Product Hunt launch prepared as day-2 follow-up — listing content, assets checklist, and engagement plan in playbook
 
 ---
 
