@@ -106,7 +106,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-031: BOFU Comparison Content
+### T-031: BOFU Comparison Content [x]
 
 **Phase:** 8
 **Effort:** Medium
@@ -118,12 +118,12 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 **Acceptance criteria:**
 
-- [ ] "Webhooks as a Service Comparison 2026" page (EmitHQ vs Svix vs Hookdeck vs Convoy vs Outpost — feature matrix, pricing, pros/cons)
-- [ ] "EmitHQ vs Svix" dedicated page (pricing gap narrative, feature comparison, migration guide)
-- [ ] "EmitHQ vs Hookdeck" dedicated page
-- [ ] "Build vs Buy: Webhook Infrastructure in 2026" page (cost analysis of DIY vs managed)
-- [ ] All pages have proper SEO meta tags targeting identified keywords from content-distribution-strategy.md
-- [ ] Pages linked from landing page navigation and sitemap
+- [x] "Webhooks as a Service Comparison 2026" page (expanded /compare with full matrix + deep-dive links)
+- [x] "EmitHQ vs Svix" dedicated page (/compare/svix — pricing gap, 14-row feature comparison, when-to-choose)
+- [x] "EmitHQ vs Hookdeck" dedicated page (/compare/hookdeck — throughput trap, 14-row comparison)
+- [x] "Build vs Buy: Webhook Infrastructure in 2026" page (/compare/build-vs-buy — 12 components, cost analysis, $15-40K DIY vs $49/mo)
+- [x] All pages have SEO meta tags (title, description, OG, canonical URLs targeting comparison keywords)
+- [x] Pages linked from compare hub and sitemap.xml
 
 ---
 
@@ -263,6 +263,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 - [ ] Dashboard shows usage bar with current event count vs tier limit
 - [ ] Upgrade prompt shown at 80% and 100% of tier limit
 - [ ] Downgrade blocked if current usage exceeds target tier limit
+- [ ] Switch Stripe from test to live mode: create live products/prices, update 1Password keys (`sk_live_`, webhook secret), update Railway env vars, update Stripe webhook endpoint URL
 
 ---
 

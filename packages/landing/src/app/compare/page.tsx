@@ -1,9 +1,16 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Compare — EmitHQ vs Svix vs Hookdeck',
+  title: 'Webhooks as a Service Comparison 2026 — EmitHQ vs Svix vs Hookdeck vs Convoy',
   description:
-    'See how EmitHQ compares to Svix, Hookdeck, and Convoy on pricing, features, and licensing.',
+    'Compare webhook infrastructure platforms: EmitHQ, Svix, Hookdeck, Convoy, and Outpost. Pricing, features, licensing, and the $49-$490 gap.',
+  openGraph: {
+    title: 'Webhooks as a Service Comparison 2026',
+    description: 'The complete webhook platform comparison — pricing, features, and trade-offs.',
+    url: 'https://emithq.com/compare',
+  },
+  alternates: { canonical: 'https://emithq.com/compare' },
 };
 
 const COMPETITORS = [
@@ -138,37 +145,44 @@ export default function ComparePage() {
           </table>
         </div>
 
-        {/* Build vs Buy */}
-        <div className="mt-20">
-          <h2 className="mb-8 text-center text-2xl font-bold">vs Building Your Own</h2>
-          <div className="mx-auto max-w-3xl rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-8">
-            <div className="grid gap-8 sm:grid-cols-2">
-              <div>
-                <h3 className="mb-4 font-semibold text-[var(--color-text-muted)]">
-                  Building in-house
-                </h3>
-                <ul className="space-y-2 text-sm text-[var(--color-text-muted)]">
-                  <li>2-4 weeks of engineering time</li>
-                  <li>Retry logic, DLQ, monitoring from scratch</li>
-                  <li>Ongoing maintenance burden</li>
-                  <li>Signature verification you have to get right</li>
-                  <li>No multi-tenant isolation built-in</li>
-                  <li>Hidden cost: on-call for webhook failures</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="mb-4 font-semibold text-[var(--color-accent)]">Using EmitHQ</h3>
-                <ul className="space-y-2 text-sm">
-                  <li>5-minute SDK integration</li>
-                  <li>Configurable retries + DLQ + dashboard included</li>
-                  <li>We handle uptime and scaling</li>
-                  <li>Standard Webhooks signing built-in</li>
-                  <li>RLS multi-tenancy from day one</li>
-                  <li>Open-source: self-host if you outgrow us</li>
-                </ul>
-              </div>
-            </div>
-          </div>
+        {/* Deep-dive links */}
+        <div className="mt-16 grid gap-6 sm:grid-cols-3">
+          <Link
+            href="/compare/svix"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 hover:border-[var(--color-accent)]/50"
+          >
+            <h3 className="font-semibold">EmitHQ vs Svix</h3>
+            <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+              The $0&nbsp;&rarr;&nbsp;$490 pricing gap explained. Feature-by-feature breakdown.
+            </p>
+            <span className="mt-3 inline-block text-sm text-[var(--color-accent)]">
+              Read comparison &rarr;
+            </span>
+          </Link>
+          <Link
+            href="/compare/hookdeck"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 hover:border-[var(--color-accent)]/50"
+          >
+            <h3 className="font-semibold">EmitHQ vs Hookdeck</h3>
+            <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+              The throughput trap and hidden metered costs. Inbound vs both directions.
+            </p>
+            <span className="mt-3 inline-block text-sm text-[var(--color-accent)]">
+              Read comparison &rarr;
+            </span>
+          </Link>
+          <Link
+            href="/compare/build-vs-buy"
+            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 hover:border-[var(--color-accent)]/50"
+          >
+            <h3 className="font-semibold">Build vs Buy</h3>
+            <p className="mt-2 text-sm text-[var(--color-text-muted)]">
+              The true cost of building webhook infrastructure in-house. Component-by-component.
+            </p>
+            <span className="mt-3 inline-block text-sm text-[var(--color-accent)]">
+              Read analysis &rarr;
+            </span>
+          </Link>
         </div>
       </div>
     </div>
