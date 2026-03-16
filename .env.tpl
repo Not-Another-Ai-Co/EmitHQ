@@ -36,9 +36,15 @@ STRIPE_PRICE_SCALE_ANNUAL=op://EmitHQ/stripe/price-scale-annual
 SENTRY_DSN=op://EmitHQ/sentry/dsn
 METRICS_SECRET=op://EmitHQ/metrics/secret
 
-# App
+# App (local dev — Tailscale IP)
 NODE_ENV=development
 PORT=4000
 API_BASE_URL=http://100.82.36.13:4000
 NEXT_PUBLIC_API_URL=http://100.82.36.13:4000
 DASHBOARD_URL=http://100.82.36.13:4002
+
+# App (production — set these in Railway/Vercel, not here)
+# NODE_ENV=production
+# API_BASE_URL=https://api.emithq.com
+# NEXT_PUBLIC_API_URL=https://api.emithq.com
+# DASHBOARD_URL=https://app.emithq.com
