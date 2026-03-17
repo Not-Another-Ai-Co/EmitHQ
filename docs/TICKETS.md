@@ -292,7 +292,7 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 ---
 
-### T-051: Getting Started / Onboarding Flow [x]
+### T-051: Getting Started / Onboarding Flow [x] [verified with notes] [audited]
 
 **Phase:** 8a
 **Effort:** Medium
