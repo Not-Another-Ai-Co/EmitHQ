@@ -110,7 +110,7 @@ Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Cler
 
 ## Landing & Docs Site (T-020)
 
-Separate Next.js app at `packages/landing/`. Static export for CF Pages. No auth, no DB. Pages: landing (hero, pricing gap, features, code snippet), pricing (4-tier table + FAQ), compare (vs Svix/Hookdeck/Convoy + build-vs-buy), docs (getting started, API reference, SDK guide). Plausible analytics. SEO (meta, OG, sitemap, robots.txt).
+Separate Next.js app at `packages/landing/`. Static export for Vercel. No auth, no DB. Pages: landing (hero, pricing gap, features, code snippet), pricing (4-tier table + FAQ), compare (vs Svix/Hookdeck/Convoy + build-vs-buy), docs (getting started, API reference, SDK guide). Umami analytics (self-hosted, proxied via Vercel rewrites). SEO (meta, OG, sitemap, robots.txt).
 
 ## TypeScript SDK (T-019)
 

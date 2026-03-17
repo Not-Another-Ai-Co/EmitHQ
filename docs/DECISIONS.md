@@ -443,3 +443,41 @@
 - Cookie-based auth (`credentials: 'include'`) — API expects Bearer tokens, not cookies; CORS issues
 
 **Consequences:** All dashboard client components must use `useApiFetch()` from `@/lib/use-api.ts`, not raw `fetch`. New env vars required on both Vercel (`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL`) and Railway (`CLERK_PUBLISHABLE_KEY`).
+
+---
+
+## DEC-025 | 2026-03-17 | Analytics: Self-Hosted Umami Instead of Plausible Cloud
+
+**Status:** Active
+**Linked to:** T-041
+
+**Context:** T-041 originally planned Plausible Cloud ($9/mo Starter, no API; $19/mo Business for API). Julian requested a free alternative. Evaluated Cloudflare Web Analytics (free, no custom events/API), Umami (free, self-hosted, MIT, custom events + API), and PostHog (free tier, heavy).
+
+**Decision:** Self-hosted Umami v3 on the miniPC via Docker Compose. Own Postgres container (isolated from Neon). Port 3100 (avoids NAAC_ERP conflict on 3000). Script and collection endpoint renamed (`TRACKER_SCRIPT_NAME=u`, `COLLECT_API_ENDPOINT=/api/u`) to bypass ad blocker lists. Vercel rewrites proxy the script through emithq.com (`/t/u.js`) as belt-and-suspenders. Public exposure via `analytics.emithq.com` (Cloudflare Tunnel or Caddy — Julian's choice).
+
+**Alternatives considered:**
+
+- Plausible Cloud ($9-19/mo) — costs money; API only on Business tier ($19/mo)
+- Plausible self-hosted — AGPL, requires ClickHouse (heavy), same effort as Umami for more complexity
+- Cloudflare Web Analytics — free but no custom events, no API
+- PostHog — free tier exists but 90KB script, overkill for landing page analytics
+
+**Consequences:** Umami adds ~300MB RAM to miniPC Docker footprint. API access (JWT-based) available immediately for `/catchup` integration and T-025 data analysis. Requires Julian to expose the service publicly (Cloudflare Tunnel recommended) and create a 1Password item for `UMAMI_APP_SECRET`.
+
+---
+
+## DEC-026 | 2026-03-17 | Landing Page Analytics Exempt from Unit Test Requirement
+
+**Status:** Active
+**Linked to:** T-041
+
+**Context:** `/verify` scored Test Quality at 0.0 (auto-FAIL) because the landing package has zero test files. The test reviewer identified 10 theoretical gaps including race conditions, silent failures, and prop mutation. Julian accepted with known issues.
+
+**Decision:** The landing page analytics wrapper (`trackEvent()`, `CtaLink`) is exempt from unit test requirements. Client-side fire-and-forget analytics is designed to silently fail — testing it means mocking `window.umami` and asserting the mock was called, which tests the mock, not real behavior. Real validation was performed manually: Umami endpoint returns 200, script loads, collection endpoint responds.
+
+**Alternatives considered:**
+
+- Add vitest + jsdom + React Testing Library to landing package — adds dependency maintenance cost exceeding test value for a 3-line passthrough function
+- Defer to T-038 (CI Integration Tests) — T-038 covers API/core tests, not landing page analytics
+
+**Consequences:** Landing page remains untested. If analytics breaks, it will be detected by absence of data in Umami dashboard, not by CI. This is an accepted tradeoff for a static marketing site.

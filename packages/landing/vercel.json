@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/t/u.js",
+      "destination": "https://analytics.emithq.com/u"
+    },
+    {
+      "source": "/t/api/u",
+      "destination": "https://analytics.emithq.com/api/u"
+    }
+  ]
+}

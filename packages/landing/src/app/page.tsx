@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CtaLink } from '@/components/cta-link';
 
 export default function HomePage() {
   return (
@@ -18,12 +19,13 @@ export default function HomePage() {
             <strong className="text-[var(--color-text)]">$49/mo</strong> &mdash; not $490.
           </p>
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <a
+            <CtaLink
               href="https://app.emithq.com"
+              location="hero"
               className="rounded-xl bg-[var(--color-accent)] px-8 py-3 text-lg font-semibold text-white transition-colors hover:bg-[var(--color-accent-hover)]"
             >
               Start Free &mdash; No Credit Card
-            </a>
+            </CtaLink>
             <a
               href="https://github.com/Not-Another-Ai-Co/EmitHQ"
               className="rounded-xl border border-[var(--color-border)] px-8 py-3 text-lg font-semibold text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-text-muted)] hover:text-[var(--color-text)]"
@@ -145,12 +147,13 @@ export default function HomePage() {
           <p className="mt-4 text-[var(--color-text-muted)]">
             100,000 events/month free. No credit card required.
           </p>
-          <a
+          <CtaLink
             href="https://app.emithq.com"
+            location="bottom-cta"
             className="mt-8 inline-block rounded-xl bg-[var(--color-accent)] px-8 py-3 text-lg font-semibold text-white transition-colors hover:bg-[var(--color-accent-hover)]"
           >
             Get Started
-          </a>
+          </CtaLink>
         </div>
       </section>
     </>

@@ -37,6 +37,9 @@ STRIPE_PRICE_SCALE_ANNUAL=op://EmitHQ/stripe/price-scale-annual
 SENTRY_DSN=op://EmitHQ/sentry/dsn
 METRICS_SECRET=op://EmitHQ/metrics/secret
 
+# Analytics (Umami — self-hosted)
+UMAMI_APP_SECRET=op://EmitHQ/umami/app-secret
+
 # App (local dev — Tailscale IP)
 NODE_ENV=development
 PORT=4000

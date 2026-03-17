@@ -472,7 +472,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
-### T-041: Plausible Analytics Setup
+### T-041: Analytics Setup (Umami Self-Hosted) [x] [verified]
 
 **Phase:** 10
 **Effort:** Low
@@ -480,11 +480,16 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 **Depends on:** T-028
 **Research:** none
 
-**Description:** Set up Plausible analytics for tracking landing page traffic, referral sources, and page conversions. Self-host (free, Docker) or use hosted plan ($9/mo). Landing page already has the Plausible script tag.
+**Description:** Set up self-hosted Umami analytics for tracking landing page traffic, referral sources, and page conversions. Free, open-source (MIT), with custom events and API access. Replaces original Plausible plan ($9/mo) with $0/mo self-hosted solution.
 
 **Acceptance criteria:**
 
-- [ ] Plausible account created (self-hosted or hosted)
-- [ ] emithq.com site added
-- [ ] Script tag verified receiving pageviews
-- [ ] Referral sources visible (for measuring Show HN / content impact)
+- [x] Umami Docker service added to docker-compose.yml (port 3100, own Postgres, renamed script/endpoint for ad-blocker bypass)
+- [x] UMAMI_APP_SECRET added to .env.tpl (op://EmitHQ/umami/app-secret)
+- [x] Script tag updated in layout.tsx — proxied via Vercel rewrites (`/t/u.js` → `analytics.emithq.com/u.js`)
+- [x] trackEvent() TypeScript wrapper at `src/lib/analytics.ts` — Umami-native, type-safe, gracefully degrades
+- [x] Custom events wired: Signup CTA Clicked (hero, bottom-cta, pricing × 4 tiers), Pricing Toggle (annual/monthly)
+- [ ] Julian: create 1Password item `umami` in EmitHQ vault with `app-secret` field (random 32+ char string)
+- [ ] Julian: expose Umami publicly at analytics.emithq.com (Cloudflare Tunnel or Caddy + DNS A record)
+- [ ] Julian: start Umami (`op run --env-file=.env.tpl -- docker compose up -d umami umami-db`), create site in dashboard, copy website-id into layout.tsx script tag
+- [ ] Referral sources visible once Umami is running and receiving pageviews

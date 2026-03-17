@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { trackEvent } from '@/lib/analytics';
 
 const TIERS = [
   {
@@ -118,7 +119,10 @@ export default function PricingPage() {
           {/* Annual/Monthly toggle */}
           <div className="mt-8 inline-flex items-center gap-3 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-1">
             <button
-              onClick={() => setIsAnnual(true)}
+              onClick={() => {
+                setIsAnnual(true);
+                trackEvent('Pricing Toggle', { billing: 'annual' });
+              }}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 isAnnual
                   ? 'bg-[var(--color-accent)] text-white'
@@ -128,7 +132,10 @@ export default function PricingPage() {
               Annual <span className="text-xs opacity-75">save 20%</span>
             </button>
             <button
-              onClick={() => setIsAnnual(false)}
+              onClick={() => {
+                setIsAnnual(false);
+                trackEvent('Pricing Toggle', { billing: 'monthly' });
+              }}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 !isAnnual
                   ? 'bg-[var(--color-accent)] text-white'
@@ -199,6 +206,12 @@ export default function PricingPage() {
 
                 <Link
                   href={tier.href}
+                  onClick={() =>
+                    trackEvent('Signup CTA Clicked', {
+                      tier: tier.name.toLowerCase(),
+                      location: 'pricing',
+                    })
+                  }
                   className={`mt-6 block rounded-xl py-2.5 text-center text-sm font-semibold transition-colors ${
                     tier.popular
                       ? 'bg-[var(--color-accent)] text-white hover:bg-[var(--color-accent-hover)]'

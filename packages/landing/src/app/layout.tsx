@@ -44,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
-        <script defer data-domain="emithq.com" src="https://plausible.io/js/script.js" />
+        <script defer src="/t/u.js" data-website-id="6664f0da-fcc1-4bea-a940-26ff3e089a45" />
       </head>
       <body className="min-h-screen antialiased">
         <Header />
