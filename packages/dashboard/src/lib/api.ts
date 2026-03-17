@@ -2,7 +2,7 @@
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://100.82.36.13:4000';
 
-export interface FetchOptions {
+interface FetchOptions {
   token?: string;
   params?: Record<string, string>;
 }
@@ -27,34 +27,6 @@ export async function apiGet<T>(path: string, opts: FetchOptions = {}): Promise<
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body?.error?.message ?? `API error ${res.status}`);
-  }
-
-  return res.json();
-}
-
-export async function apiPost<T>(
-  path: string,
-  body?: unknown,
-  opts: FetchOptions = {},
-): Promise<T> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  };
-  if (opts.token) {
-    headers.Authorization = `Bearer ${opts.token}`;
-  }
-
-  const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers,
-    body: body ? JSON.stringify(body) : undefined,
-    cache: 'no-store',
-  });
-
-  if (!res.ok) {
-    const respBody = await res.json().catch(() => ({}));
-    throw new Error(respBody?.error?.message ?? `API error ${res.status}`);
   }
 
   return res.json();

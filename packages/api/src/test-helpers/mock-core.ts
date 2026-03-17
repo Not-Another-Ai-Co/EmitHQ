@@ -165,9 +165,7 @@ export function coreMock() {
 
     // Signing
     generateSigningSecret: vi.fn().mockReturnValue('whsec_testSecret123'),
-    signWebhook: vi.fn().mockReturnValue('v1,test_signature'),
     buildWebhookHeaders: vi.fn().mockReturnValue({}),
-    verifyWebhook: vi.fn().mockReturnValue(true),
     deliverWebhook: vi
       .fn()
       .mockResolvedValue({ success: true, statusCode: 200, responseTimeMs: 42 }),
@@ -175,9 +173,6 @@ export function coreMock() {
     // Transformation
     validateTransformRules: vi.fn().mockReturnValue([]),
     TransformValidationError: class TransformValidationError extends Error {},
-    applyTransformation: vi.fn((payload: unknown) => payload),
-    extractJsonPath: vi.fn(),
-    renderTemplate: vi.fn(),
     previewTransformation: vi.fn(),
 
     // Billing
@@ -201,18 +196,11 @@ export function coreMock() {
     trackEvent: vi.fn(),
 
     // Queue utilities
-    computeBackoffDelay: vi.fn().mockReturnValue(5000),
-    webhookBackoffStrategy: vi.fn().mockReturnValue(5000),
-    RETRY_DELAYS_MS: [0, 5000, 30000],
-    MAX_DELIVERY_ATTEMPTS: 8,
     replayDelivery: vi.fn(),
     replayMessage: vi.fn(),
-    reEnableEndpoint: vi.fn(),
 
     // Workers
-    processDeliveryJob: vi.fn(),
     startDeliveryWorker: vi.fn(),
-    handleExhaustedDelivery: vi.fn(),
 
     // Version
     VERSION: '0.1.0',
@@ -233,12 +221,5 @@ export function authMock() {
 export function tenantMock() {
   return {
     tenantScope: vi.fn(async (_c: unknown, next: () => Promise<void>) => next()),
-  };
-}
-
-/** Mock for ../middleware/quota — passes through without real quota check */
-export function quotaMock() {
-  return {
-    quotaCheck: vi.fn(async (_c: unknown, next: () => Promise<void>) => next()),
   };
 }

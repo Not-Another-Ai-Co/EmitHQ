@@ -14,28 +14,14 @@ export type { GeneratedKey } from './auth/api-key';
 // Queue
 export { getDeliveryQueue, enqueueDelivery } from './queue/delivery-queue';
 export { createRedisConnection } from './queue/redis';
-export {
-  computeBackoffDelay,
-  webhookBackoffStrategy,
-  RETRY_DELAYS_MS,
-  MAX_DELIVERY_ATTEMPTS,
-} from './queue/backoff';
-export { replayDelivery, replayMessage, reEnableEndpoint } from './queue/replay';
+export { replayDelivery, replayMessage } from './queue/replay';
 export type { DeliveryJobData } from './queue/delivery-queue';
 
 // Signing
-export {
-  signWebhook,
-  buildWebhookHeaders,
-  verifyWebhook,
-  generateSigningSecret,
-} from './signing/webhook-signer';
+export { buildWebhookHeaders, generateSigningSecret } from './signing/webhook-signer';
 
 // Transformation
 export {
-  extractJsonPath,
-  renderTemplate,
-  applyTransformation,
   previewTransformation,
   validateTransformRules,
   TransformValidationError,
@@ -51,10 +37,5 @@ export { getStripe, getPriceIds, tierFromPriceId, TIER_LIMITS } from './billing/
 export type { BillingInterval, PaidTier, PriceIds } from './billing/stripe';
 
 // Workers
-export {
-  deliverWebhook,
-  processDeliveryJob,
-  startDeliveryWorker,
-  handleExhaustedDelivery,
-} from './workers/delivery-worker';
+export { deliverWebhook, startDeliveryWorker } from './workers/delivery-worker';
 export type { DeliveryResult } from './workers/delivery-worker';

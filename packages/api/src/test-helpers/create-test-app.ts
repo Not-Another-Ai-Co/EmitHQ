@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import type { AuthEnv } from '../types';
 
-export interface TestAuthContext {
+interface TestAuthContext {
   orgId?: string;
   userId?: string | null;
   authType?: 'api_key' | 'clerk_session';

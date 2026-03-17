@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    "packages/core": {},
+    "packages/api": {
+      "ignoreDependencies": ["stripe", "drizzle-orm"]
+    },
+    "packages/dashboard": {
+      "ignoreDependencies": ["postcss", "postcss-load-config"]
+    },
+    "packages/landing": {
+      "ignoreDependencies": ["postcss", "postcss-load-config"]
+    }
+  },
+  "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**"],
+  "ignoreDependencies": ["tsx", "@eslint/js", "@vitest/coverage-v8"]
+}
