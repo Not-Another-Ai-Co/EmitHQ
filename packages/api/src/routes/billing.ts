@@ -65,8 +65,8 @@ billingRoutes.post('/checkout', requireAuth, requireRole('org:admin', 'org:owner
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { org_id: orgId, tier, interval },
     subscription_data: { metadata: { org_id: orgId } },
-    success_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/billing`,
+    success_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/billing`,
   };
 
   // Reuse existing Stripe customer if we have one
@@ -156,7 +156,7 @@ billingRoutes.post('/portal', requireAuth, requireRole('org:admin', 'org:owner')
   try {
     session = await stripe.billingPortal.sessions.create({
       customer: org.stripeCustomerId,
-      return_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/billing`,
+      return_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/billing`,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Stripe portal failed';

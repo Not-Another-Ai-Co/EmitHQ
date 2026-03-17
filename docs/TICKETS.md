@@ -271,7 +271,7 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 ---
 
-### T-050: Billing & Usage Page
+### T-050: Billing & Usage Page [x]
 
 **Phase:** 8a
 **Effort:** Medium
@@ -283,12 +283,12 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 **Acceptance criteria:**
 
-- [ ] Billing page at `/dashboard/billing`
-- [ ] Current tier card: name, price, included events, feature list
-- [ ] Usage bar: events this month vs tier limit, percentage, color (green/yellow/red)
-- [ ] Upgrade buttons per tier → opens Stripe Checkout session
-- [ ] "Manage Subscription" button → opens Stripe Customer Portal
-- [ ] Free tier: "Upgrade to unlock..." messaging
+- [x] Billing page at `/dashboard/billing`
+- [x] Current tier card: name, price, included events, feature list
+- [x] Usage bar: events this month vs tier limit, percentage, color (green/yellow/red)
+- [x] Upgrade buttons per tier → opens Stripe Checkout session
+- [x] "Manage Subscription" button → opens Stripe Customer Portal
+- [x] Free tier: "Upgrade to unlock..." messaging
 
 ---
 
