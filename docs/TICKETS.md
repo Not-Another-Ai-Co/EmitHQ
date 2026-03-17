@@ -391,7 +391,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
-### T-045: Production Smoke Test & Bug Hunt [x]
+### T-045: Production Smoke Test & Bug Hunt [x] [verified]
 
 **Phase:** 8
 **Effort:** Medium
