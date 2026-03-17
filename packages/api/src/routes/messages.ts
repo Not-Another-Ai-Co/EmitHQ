@@ -130,44 +130,46 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
   }
 
   // --- Persist message (BEFORE queueing) ---
-  let message;
-  try {
-    const [inserted] = await tx
-      .insert(messages)
-      .values({
-        appId: app.id,
-        orgId,
-        eventId: body.eventId ?? null,
-        eventType: body.eventType.trim(),
-        payload: body.payload ?? {},
-      })
-      .returning({
+  // Use onConflictDoNothing to avoid transaction-aborting unique violations.
+  // PostgreSQL aborts the entire transaction on constraint errors, making
+  // catch-and-select impossible within the same tx.
+  const [inserted] = await tx
+    .insert(messages)
+    .values({
+      appId: app.id,
+      orgId,
+      eventId: body.eventId ?? null,
+      eventType: body.eventType.trim(),
+      payload: body.payload ?? {},
+    })
+    .onConflictDoNothing()
+    .returning({
+      id: messages.id,
+      eventType: messages.eventType,
+      eventId: messages.eventId,
+      createdAt: messages.createdAt,
+    });
+
+  // If insert returned nothing, this is a duplicate eventId — return existing
+  if (!inserted) {
+    const [existing] = await tx
+      .select({
         id: messages.id,
         eventType: messages.eventType,
         eventId: messages.eventId,
         createdAt: messages.createdAt,
-      });
-    message = inserted;
-  } catch (err: unknown) {
-    // Check for unique constraint violation (idempotency: same appId + eventId)
-    if (isUniqueViolation(err)) {
-      const [existing] = await tx
-        .select({
-          id: messages.id,
-          eventType: messages.eventType,
-          eventId: messages.eventId,
-          createdAt: messages.createdAt,
-        })
-        .from(messages)
-        .where(and(eq(messages.appId, app.id), eq(messages.eventId, body.eventId!)))
-        .limit(1);
+      })
+      .from(messages)
+      .where(and(eq(messages.appId, app.id), eq(messages.eventId, body.eventId!)))
+      .limit(1);
 
-      if (existing) {
-        return c.json({ data: existing }, 200);
-      }
+    if (existing) {
+      return c.json({ data: existing }, 200);
     }
-    throw err;
+    // Race condition: conflict but can't find row — shouldn't happen
+    return c.json({ error: { code: 'conflict', message: 'Duplicate eventId' } }, 409);
   }
+  const message = inserted;
 
   // --- Fan-out: find active endpoints matching event type ---
   const activeEndpoints = await tx
@@ -228,16 +230,3 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
 
   return c.json({ data: message }, 202);
 });
-
-/**
- * Check if a database error is a unique constraint violation.
- * PostgreSQL error code 23505 = unique_violation.
- */
-function isUniqueViolation(err: unknown): boolean {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    (err as { code: string }).code === '23505'
-  );
-}

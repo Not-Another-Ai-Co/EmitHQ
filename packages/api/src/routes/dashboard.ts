@@ -198,17 +198,15 @@ dashboardRoutes.get('/:appId/stats', async (c) => {
   }
 
   const typedTx = tx as typeof import('@emithq/core').db;
-  const todayStart = new Date();
-  todayStart.setUTCHours(0, 0, 0, 0);
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-  // Events today
+  // Events in last 24 hours (timezone-agnostic rolling window)
   const [eventCount] = await typedTx
     .select({ count: sql<number>`count(*)::int` })
     .from(messages)
-    .where(and(eq(messages.appId, app.id), gte(messages.createdAt, todayStart)));
+    .where(and(eq(messages.appId, app.id), gte(messages.createdAt, oneDayAgo)));
 
   // Delivery success rate (last 24h)
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
   const [deliveryStats] = await typedTx
     .select({
       total: sql<number>`count(*)::int`,

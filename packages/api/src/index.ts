@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { clerk } from './middleware/auth';
 import { apiKeyRoutes } from './routes/api-keys';
+import { applicationRoutes } from './routes/applications';
 import { messageRoutes } from './routes/messages';
 import { replayRoutes } from './routes/replay';
 import { endpointRoutes } from './routes/endpoints';
@@ -67,6 +68,7 @@ app.use('*', clerk);
 
 // API routes
 app.route('/api/v1/auth/keys', apiKeyRoutes);
+app.route('/api/v1/app', applicationRoutes);
 app.route('/api/v1/app', messageRoutes);
 app.route('/api/v1/app', replayRoutes);
 app.route('/api/v1/app', endpointRoutes);
