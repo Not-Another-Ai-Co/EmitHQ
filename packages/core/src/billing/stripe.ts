@@ -51,3 +51,10 @@ export const TIER_LIMITS: Record<string, number> = {
   growth: 2_000_000,
   scale: 10_000_000,
 };
+
+// Tier prices in USD (used in quota 429 responses and signup hints)
+export const TIER_PRICES: Record<string, number> = {
+  starter: 49,
+  growth: 149,
+  scale: 349,
+};

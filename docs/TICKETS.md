@@ -492,7 +492,7 @@ _Validate the complete signup-to-delivery flow before inviting beta users. Gates
 
 ---
 
-### T-061: Enable MFA in Clerk + Test Enrollment Flow [x]
+### T-061: Enable MFA in Clerk + Test Enrollment Flow [x] [verified with notes]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -538,7 +538,7 @@ _Make EmitHQ fully operable by LLM agents. No browser required from signup to fi
 
 ---
 
-### T-063: API-Only Signup Endpoint + Quota Headers
+### T-063: API-Only Signup Endpoint + Quota Headers [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium

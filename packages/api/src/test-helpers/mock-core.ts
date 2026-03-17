@@ -191,6 +191,7 @@ export function coreMock() {
     getPriceIds: vi.fn().mockReturnValue({ monthly: 'price_test_m', annual: 'price_test_a' }),
     tierFromPriceId: vi.fn().mockReturnValue('starter'),
     TIER_LIMITS: { free: 100_000, starter: 500_000, growth: 2_000_000, scale: 10_000_000 },
+    TIER_PRICES: { starter: 49, growth: 149, scale: 349 },
 
     // Analytics
     trackEvent: vi.fn(),

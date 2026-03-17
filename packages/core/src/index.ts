@@ -33,7 +33,13 @@ export { trackEvent } from './analytics/track';
 export type { AnalyticsEventName } from './analytics/track';
 
 // Billing
-export { getStripe, getPriceIds, tierFromPriceId, TIER_LIMITS } from './billing/stripe';
+export {
+  getStripe,
+  getPriceIds,
+  tierFromPriceId,
+  TIER_LIMITS,
+  TIER_PRICES,
+} from './billing/stripe';
 export type { BillingInterval, PaidTier, PriceIds } from './billing/stripe';
 
 // Workers

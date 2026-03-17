@@ -481,3 +481,22 @@
 - Defer to T-038 (CI Integration Tests) — T-038 covers API/core tests, not landing page analytics
 
 **Consequences:** Landing page remains untested. If analytics breaks, it will be detected by absence of data in Umami dashboard, not by CI. This is an accepted tradeoff for a static marketing site.
+
+---
+
+## DEC-027 | 2026-03-18 | API-Only Signup via Clerk Backend API + Quota Headers
+
+**Status:** Active
+**Linked to:** T-063
+
+**Context:** EmitHQ needs to be fully LLM-automatable — an AI agent should create an account and start sending webhooks without a browser. The existing Clerk-hosted signup requires browser interaction.
+
+**Decision:** New `POST /api/v1/signup` endpoint uses Clerk Backend API (`createUser` + `createOrganization` with `createdBy` for auto-admin). Returns `{ orgId, apiKey }` in one response. In-memory rate limiting (3/IP/day) — Redis upgrade deferred to T-065. Machine-readable `X-EmitHQ-Quota-*` headers on all authenticated responses. Enriched 429 with structured `quota` + `action` objects including upgrade tiers. CORS `exposeHeaders` added for browser clients.
+
+**Alternatives considered:**
+
+- API-key-first with no Clerk user — simpler but creates orphan accounts with no email for recovery, billing, or communication
+- Redis-backed rate limiting from day one — overkill for a 3/IP/day limit on a single Railway instance
+- Global quota middleware fetching org data — accepted the extra DB query per authenticated request for simplicity; optimize with caching if needed post-launch
+
+**Consequences:** Signup creates both a Clerk user and an EmitHQ org in one call. If EmitHQ DB insert fails after Clerk user creation, the Clerk user is orphaned but recoverable via dashboard login (auto-provision catches it). In-memory rate limiter resets on deploy — acceptable abuse window. `TIER_PRICES` constant added to `@emithq/core` for 429 response bodies.

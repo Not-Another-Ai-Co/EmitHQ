@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { clerk } from './middleware/auth';
+import { quotaHeaders } from './middleware/quota';
+import { signupRoutes } from './routes/signup';
 import { apiKeyRoutes } from './routes/api-keys';
 import { applicationRoutes } from './routes/applications';
 import { messageRoutes } from './routes/messages';
@@ -30,6 +32,15 @@ app.use(
     ],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: [
+      'X-EmitHQ-Quota-Limit',
+      'X-EmitHQ-Quota-Used',
+      'X-EmitHQ-Quota-Remaining',
+      'X-EmitHQ-Quota-Reset',
+      'X-EmitHQ-Tier',
+      'X-EmitHQ-Quota-Warning',
+      'X-EmitHQ-Upgrade-URL',
+    ],
     credentials: true,
     maxAge: 86400,
   }),
@@ -63,8 +74,14 @@ app.get('/health', async (c) => {
 // Metrics endpoint (secret-protected, before Clerk middleware)
 app.route('/metrics', metricsRoutes);
 
+// Public signup endpoint (before Clerk middleware — no auth required)
+app.route('/api/v1/signup', signupRoutes);
+
 // Mount Clerk middleware globally for session token support
 app.use('*', clerk);
+
+// Quota headers on all authenticated API responses
+app.use('/api/v1/*', quotaHeaders);
 
 // API routes
 app.route('/api/v1/auth/keys', apiKeyRoutes);
