@@ -1,6 +1,6 @@
 # Decisions — EmitHQ
 
-> Last verified: 2026-03-16
+> Last verified: 2026-03-17
 
 ## DEC-001 | 2026-03-13 | Product Category: Webhook Infrastructure Platform
 
@@ -388,3 +388,58 @@
 - `tsc-alias` for runtime path resolution — brittle, adds another tool to the chain
 
 **Consequences:** Slightly slower cold start (~200ms for tsx transpilation vs pre-compiled). Negligible for a Railway service that stays running. `tsx` must be in `packages/api` production `dependencies` (not just root devDependencies). If performance becomes an issue at scale, migrate to a bundler step.
+
+---
+
+## DEC-022 | 2026-03-17 | SET LOCAL Uses sql.raw() with UUID Pre-Validation
+
+**Status:** Active
+**Linked to:** T-045
+
+**Context:** PostgreSQL `SET LOCAL` doesn't support parameterized values (`$1`). Drizzle's `sql` template tag parameterizes by default, causing syntax errors on every tenant-scoped query in production.
+
+**Decision:** Use `sql.raw()` for the SET LOCAL statement after strict UUID regex validation (`/^[0-9a-f]{8}-...$/i`). The validation throws before interpolation if the input isn't a valid UUID.
+
+**Alternatives considered:**
+
+- Parameterized query — PostgreSQL rejects `SET LOCAL ... = $1`
+- Raw string without validation — SQL injection risk
+
+**Consequences:** Every `withTenant()` call depends on the UUID regex. If the regex is removed or weakened, injection becomes possible. This is documented as a security-critical code path.
+
+---
+
+## DEC-023 | 2026-03-17 | Idempotency via onConflictDoNothing Instead of Catch
+
+**Status:** Active
+**Linked to:** T-045
+
+**Context:** The original idempotency handler caught unique constraint violations (23505) and re-selected the existing row. PostgreSQL aborts the entire transaction on constraint errors, making the subsequent SELECT fail.
+
+**Decision:** Use Drizzle's `onConflictDoNothing()` to silently skip duplicate inserts without aborting the transaction. If the insert returns nothing, re-select the existing message by `(appId, eventId)` and return 200.
+
+**Alternatives considered:**
+
+- Catch-and-select within same transaction — fails because PostgreSQL aborts tx on constraint error
+- Use a savepoint — adds complexity for a simple idempotency check
+- Check-then-insert — race condition between check and insert
+
+**Consequences:** Duplicate events return 200 with the original message data. No re-delivery occurs. The `onConflictDoNothing` target is the `UNIQUE(app_id, event_id)` constraint.
+
+---
+
+## DEC-024 | 2026-03-17 | Dashboard Auth: Server Component Guard + Clerk Middleware
+
+**Status:** Active
+**Linked to:** T-045
+
+**Context:** The dashboard at app.emithq.com had no auth protection — middleware wasn't detected by Next.js (wrong file location), and Clerk env vars were missing from both Vercel and Railway.
+
+**Decision:** Three-layer auth: (1) `clerkMiddleware()` with `auth.protect()` at `src/middleware.ts` (Next.js requires this path with `src/` directory), (2) server-side `auth()` check in the dashboard layout with try/catch fallback to `/sign-in`, (3) client-side `useApiFetch()` hook that gets Clerk JWT via `useAuth().getToken()` and sends as Bearer header. Required env vars: `CLERK_SECRET_KEY` + `CLERK_PUBLISHABLE_KEY` on Railway, `CLERK_SECRET_KEY` + sign-in URL vars on Vercel.
+
+**Alternatives considered:**
+
+- Middleware only — failed silently when placed in wrong directory; layout guard adds defense-in-depth
+- Cookie-based auth (`credentials: 'include'`) — API expects Bearer tokens, not cookies; CORS issues
+
+**Consequences:** All dashboard client components must use `useApiFetch()` from `@/lib/use-api.ts`, not raw `fetch`. New env vars required on both Vercel (`CLERK_SECRET_KEY`, `NEXT_PUBLIC_CLERK_SIGN_IN_URL`, `NEXT_PUBLIC_CLERK_SIGN_UP_URL`) and Railway (`CLERK_PUBLISHABLE_KEY`).

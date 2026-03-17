@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-16
+> Last verified: 2026-03-17
 
 ## Overview
 
@@ -83,17 +83,18 @@ Two database roles:
 
 Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
 
-## API Surface (25 endpoints)
+## API Surface (28 endpoints)
 
-| Group     | Endpoints                                                  | Auth                                      |
-| --------- | ---------------------------------------------------------- | ----------------------------------------- |
-| Auth/Keys | POST/GET/DELETE `/api/v1/auth/keys`                        | Clerk session                             |
-| Messages  | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`           | API key                                   |
-| Endpoints | CRUD `/api/v1/app/:appId/endpoint`, test delivery          | API key                                   |
-| Replay    | POST retry (message-level, attempt-level)                  | API key                                   |
-| Dashboard | GET stats, msg list, DLQ, endpoint-health                  | API key                                   |
-| Transform | POST `/api/v1/transform/preview`                           | API key                                   |
-| Billing   | POST checkout, GET subscription, POST portal, POST webhook | Clerk session (webhook: Stripe signature) |
+| Group        | Endpoints                                                  | Auth                                      |
+| ------------ | ---------------------------------------------------------- | ----------------------------------------- |
+| Auth/Keys    | POST/GET/DELETE `/api/v1/auth/keys`                        | Clerk session                             |
+| Applications | POST/GET `/api/v1/app`, GET `/api/v1/app/:appId`           | API key or Clerk session                  |
+| Messages     | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`           | API key                                   |
+| Endpoints    | CRUD `/api/v1/app/:appId/endpoint`, test delivery          | API key                                   |
+| Replay       | POST retry (message-level, attempt-level)                  | API key                                   |
+| Dashboard    | GET stats, msg list, DLQ, endpoint-health                  | API key                                   |
+| Transform    | POST `/api/v1/transform/preview`                           | API key                                   |
+| Billing      | POST checkout, GET subscription, POST portal, POST webhook | Clerk session (webhook: Stripe signature) |
 
 ## Billing (T-011)
 
@@ -103,9 +104,9 @@ Stripe Checkout Sessions for subscription signup (Starter $49/Growth $149/Scale 
 
 Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFORE signing. Zero-dependency engine: JSONPath dot-notation subset, `{{...}}` template interpolation, built-in functions (formatDate, uppercase, lowercase, concat). Passthrough when rules are null/empty.
 
-## Dashboard (T-017)
+## Dashboard (T-017, T-045)
 
-Next.js 15 App Router at `packages/dashboard/`. Clerk-wrapped, port 4002. Server Components + client components for interactivity. Calls API over HTTP. Pages: Overview (stats), Events (filterable log + detail panel), Endpoints (health cards), DLQ (replay buttons). Mobile responsive with sidebar + bottom nav.
+Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Clerk middleware at `src/middleware.ts` with `auth.protect()`, server-side `auth()` guard in dashboard layout, client-side `useApiFetch()` hook for Bearer token auth. Server Components for Overview (stats via `getToken()`), client components for Events, Endpoints, DLQ (via `useApiFetch()`). Pages: Overview (24h rolling stats), Events (filterable log + detail panel), Endpoints (health cards with circuit breaker status), DLQ (replay buttons). Sign-in/sign-up pages use Clerk's built-in components. Mobile responsive with sidebar + bottom nav.
 
 ## Landing & Docs Site (T-020)
 

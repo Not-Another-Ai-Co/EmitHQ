@@ -1,6 +1,6 @@
 # Tickets — Webhook Infrastructure SaaS
 
-> Last verified: 2026-03-16
+> Last verified: 2026-03-17
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality gates | `[x] [verified] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
@@ -149,7 +149,7 @@ _Get real users before the public launch. Validate pricing. Build initial tracti
 
 ---
 
-### T-033: Show HN Post Revision & Launch Prep [x] [verified]
+### T-033: Show HN Post Revision & Launch Prep [x] [verified] [audited]
 
 **Phase:** 8
 **Effort:** Low
@@ -391,7 +391,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
-### T-045: Production Smoke Test & Bug Hunt [x] [verified]
+### T-045: Production Smoke Test & Bug Hunt [x] [verified] [audited]
 
 **Phase:** 8
 **Effort:** Medium
