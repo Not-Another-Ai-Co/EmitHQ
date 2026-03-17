@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { AppSwitcher } from '@/components/app-switcher';
 
 const NAV_ITEMS = [
@@ -19,6 +19,11 @@ function NavLinks() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const appParam = searchParams.get('app');
+  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
+
+  useEffect(() => {
+    setOnboardingDismissed(localStorage.getItem('emithq_onboarding_dismissed') === 'true');
+  }, []);
 
   function hrefWithApp(base: string): string {
     if (!appParam) return base;
@@ -27,6 +32,21 @@ function NavLinks() {
 
   return (
     <ul className="space-y-1">
+      {!onboardingDismissed && (
+        <li>
+          <Link
+            href="/dashboard/getting-started"
+            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+              pathname === '/dashboard/getting-started'
+                ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+            }`}
+          >
+            <span>🚀</span>
+            Getting Started
+          </Link>
+        </li>
+      )}
       {NAV_ITEMS.map((item) => {
         const active =
           item.href === '/dashboard'

@@ -292,7 +292,7 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 ---
 
-### T-051: Getting Started / Onboarding Flow
+### T-051: Getting Started / Onboarding Flow [x]
 
 **Phase:** 8a
 **Effort:** Medium
@@ -304,12 +304,12 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 **Acceptance criteria:**
 
-- [ ] Getting started page at `/dashboard/getting-started` (or modal on first visit)
-- [ ] Step-by-step checklist: (1) Create application, (2) Generate API key, (3) Create endpoint, (4) Send test event
-- [ ] Each step shows status (done/pending) and links to the relevant page
-- [ ] Code snippet for sending first event via SDK (copy-pasteable)
-- [ ] Dismissable — doesn't show again after completion or manual dismiss
-- [ ] Linked from sidebar nav (e.g., "Getting Started" with progress indicator)
+- [x] Getting started page at `/dashboard/getting-started`
+- [x] Step-by-step checklist: (1) Create application, (2) Generate API key, (3) Create endpoint, (4) Send test event
+- [x] Each step shows status (done/pending) and links to the relevant page
+- [x] Code snippet for sending first event via SDK (copy-pasteable with copy button)
+- [x] Dismissable — localStorage persistence, doesn't show again after dismiss
+- [x] Linked from sidebar nav (conditionally visible, hidden after dismiss)
 
 ---
 
