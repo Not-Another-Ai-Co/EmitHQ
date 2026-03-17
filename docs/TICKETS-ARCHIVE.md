@@ -109,3 +109,41 @@ _Test DB setup, mock-core helpers, billing/metrics tests rewritten with real rou
 ### T-027: Fix Deployment Blockers & Deploy API to Railway [x] [verified with notes] [audited]
 
 _Worker entry point, tsx production runtime (DEC-021), Drizzle migrations, npm scripts. Railway manual setup remaining._
+
+### T-028: Deploy Dashboard & Landing Page [x] [audited]
+
+### T-029: Production Domain & DNS Setup [x] [audited]
+
+_Dashboard + landing on Vercel, API on Railway, DNS on Cloudflare. Decisions: DEC-024._
+
+---
+
+## Phase 8: Pre-Launch Warm-up (completed tickets)
+
+### T-030: Marketplace Listings & Directory Submissions [x] [audited]
+
+### T-031: BOFU Comparison Content [x] [audited]
+
+### T-032: Pricing Page Optimization [x] [audited]
+
+### T-033: Show HN Post Revision & Launch Prep [x] [verified] [audited]
+
+### T-040: Clerk Production Keys & Plausible Analytics [x] [audited]
+
+### T-041: Analytics Setup (Umami Self-Hosted) [x] [verified] [audited]
+
+### T-045: Production Smoke Test & Bug Hunt [x] [verified] [audited]
+
+_Comparison pages, pricing optimization, Show HN prep, Clerk production keys, Umami analytics (DEC-025, DEC-026), smoke test (17 bugs found/fixed, DEC-022-024). 258 tests._
+
+---
+
+## Phase 8a: Dashboard Self-Service (completed tickets)
+
+### T-047: App Switcher & Application Management [x] [verified] [audited]
+
+### T-048: Endpoint Management UI (Full CRUD) [x] [verified] [audited]
+
+### T-049: API Key Management UI [x] [verified] [audited]
+
+_Dashboard self-service: app switcher via URL params, endpoint CRUD with signing secret modal, API key management with one-time display. Reusable Modal component._

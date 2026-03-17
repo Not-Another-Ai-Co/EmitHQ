@@ -1,6 +1,6 @@
 # Decisions — EmitHQ
 
-> Last verified: 2026-03-17
+> Last verified: 2026-03-18
 
 ## DEC-001 | 2026-03-13 | Product Category: Webhook Infrastructure Platform
 

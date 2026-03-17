@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-17
+> Last verified: 2026-03-18
 
 ## Overview
 
@@ -104,9 +104,22 @@ Stripe Checkout Sessions for subscription signup (Starter $49/Growth $149/Scale 
 
 Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFORE signing. Zero-dependency engine: JSONPath dot-notation subset, `{{...}}` template interpolation, built-in functions (formatDate, uppercase, lowercase, concat). Passthrough when rules are null/empty.
 
-## Dashboard (T-017, T-045)
+## Dashboard (T-017, T-045, T-047, T-048, T-049)
 
-Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Clerk middleware at `src/middleware.ts` with `auth.protect()`, server-side `auth()` guard in dashboard layout, client-side `useApiFetch()` hook for Bearer token auth. Server Components for Overview (stats via `getToken()`), client components for Events, Endpoints, DLQ (via `useApiFetch()`). Pages: Overview (24h rolling stats), Events (filterable log + detail panel), Endpoints (health cards with circuit breaker status), DLQ (replay buttons). Sign-in/sign-up pages use Clerk's built-in components. Mobile responsive with sidebar + bottom nav.
+Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Clerk middleware at `src/middleware.ts` with `auth.protect()`, server-side `auth()` guard in dashboard layout, client-side `useApiFetch()` hook for Bearer token auth.
+
+**App selection:** URL search param `?app=<uid>` propagated across all pages via `useApp()` hook (client) and `searchParams` (server). App switcher dropdown in sidebar. Applications management page with create form.
+
+**Pages:**
+
+- Overview (24h rolling stats, server component)
+- Events (filterable log + detail panel)
+- Endpoints (full CRUD: create with signing secret modal, edit inline, delete with confirmation, disable/enable toggle, test delivery button, health metrics overlay)
+- DLQ (dead-letter queue with replay)
+- Applications (list, create with name + uid)
+- Settings (API key management: generate with one-time display modal, list, revoke with confirmation, last-key protection)
+
+**Shared components:** `Modal` (overlay with Escape/backdrop close), `AppSwitcher`, `StatusBadge`, `StatCard`. No UI library — all custom with CSS variables.
 
 ## Landing & Docs Site (T-020)
 
@@ -147,6 +160,7 @@ Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker(
 | Dashboard       | Vercel       | https://app.emithq.com                |
 | Auth            | Clerk        | clerk.emithq.com, accounts.emithq.com |
 | DNS             | Cloudflare   | emithq.com zone                       |
+| Analytics       | Umami (self) | https://analytics.emithq.com          |
 | Uptime          | Better Stack | emithq.betteruptime.com               |
 
 ## Key Decisions

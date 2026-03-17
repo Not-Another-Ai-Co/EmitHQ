@@ -39,6 +39,11 @@ See @docs/research/technical-architecture.md for full details.
 packages/
   core/     — Delivery engine, retry logic, signing, queue workers
   api/      — REST API server (Hono)
-  dashboard/ — Web dashboard (Next.js or similar)
+  dashboard/ — Web dashboard (Next.js 15, Clerk auth)
+  landing/  — Marketing site (Next.js static export, Vercel)
   sdk/      — TypeScript SDK (published to npm)
 ```
+
+## Portfolio Integration
+
+EmitHQ is one of Julian's projects under NotAnotherAiCo LLC. Other projects: NAAC_ERP (property management), FE (company website), Index (MCP indexing). Each has its own 1Password vault, documentation system, and CI pipeline. Port registry and session management rules in `~/.claude/CLAUDE.md`.
