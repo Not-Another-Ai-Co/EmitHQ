@@ -10,3 +10,6 @@ dist/
 coverage/
 *.tsbuildinfo
 docs/tmp/
+.next/
+out/
+next-env.d.ts
