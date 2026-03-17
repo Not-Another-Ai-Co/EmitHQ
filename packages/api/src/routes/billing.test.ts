@@ -44,10 +44,18 @@ describe('billing routes (real handlers)', () => {
     it('accepts valid tier and returns checkout URL', async () => {
       // Mock org lookup — org exists, no active subscription
       const { adminDb } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([
         { id: 'test-org', subscriptionStatus: 'free', stripeCustomerId: null },
       ]);
 
@@ -61,10 +69,18 @@ describe('billing routes (real handlers)', () => {
 
     it('rejects when active subscription exists', async () => {
       const { adminDb } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([
         { id: 'test-org', subscriptionStatus: 'active', stripeCustomerId: 'cus_123' },
       ]);
 
@@ -78,10 +94,18 @@ describe('billing routes (real handlers)', () => {
 
     it('defaults interval to monthly when not specified', async () => {
       const { adminDb, getStripe } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([
         { id: 'test-org', subscriptionStatus: 'free', stripeCustomerId: null },
       ]);
 
@@ -99,10 +123,18 @@ describe('billing routes (real handlers)', () => {
   describe('GET /subscription', () => {
     it('returns usage data for existing org', async () => {
       const { adminDb } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([
         {
           tier: 'starter',
           eventCountMonth: 150000,
@@ -124,10 +156,18 @@ describe('billing routes (real handlers)', () => {
 
     it('returns 404 for missing org', async () => {
       const { adminDb } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([]);
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([]);
 
       const res = await app.request('/api/v1/billing/subscription');
       expect(res.status).toBe(404);
@@ -137,12 +177,18 @@ describe('billing routes (real handlers)', () => {
   describe('POST /portal', () => {
     it('returns 412 when no Stripe customer exists', async () => {
       const { adminDb } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        { stripeCustomerId: null },
-      ]);
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([{ stripeCustomerId: null }]);
 
       const res = await app.request(jsonRequest('/api/v1/billing/portal', { method: 'POST' }));
       expect(res.status).toBe(412);
@@ -152,12 +198,18 @@ describe('billing routes (real handlers)', () => {
 
     it('returns portal URL when customer exists', async () => {
       const { adminDb } = await import('@emithq/core');
-      (adminDb.select as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.from as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.where as ReturnType<typeof vi.fn>).mockReturnThis();
-      (adminDb.limit as ReturnType<typeof vi.fn>).mockResolvedValueOnce([
-        { stripeCustomerId: 'cus_123' },
-      ]);
+      (
+        (adminDb as unknown as Record<string, unknown>).select as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).from as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).where as ReturnType<typeof vi.fn>
+      ).mockReturnThis();
+      (
+        (adminDb as unknown as Record<string, unknown>).limit as ReturnType<typeof vi.fn>
+      ).mockResolvedValueOnce([{ stripeCustomerId: 'cus_123' }]);
 
       const res = await app.request(jsonRequest('/api/v1/billing/portal', { method: 'POST' }));
       expect(res.status).toBe(200);

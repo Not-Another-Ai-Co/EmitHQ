@@ -239,7 +239,8 @@ export function startDeliveryWorker(): Worker<DeliveryJobData> {
       await processDeliveryJob(job.data, job.attemptsMade);
     },
     {
-      connection: createRedisConnection(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      connection: createRedisConnection() as any,
       concurrency: 5,
       settings: {
         backoffStrategy: webhookBackoffStrategy,

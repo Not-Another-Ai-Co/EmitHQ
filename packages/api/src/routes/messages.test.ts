@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { Hono } from 'hono';
+import type { AuthEnv } from '../types';
 
 // Mock @emithq/core
 vi.mock('@emithq/core', () => {
@@ -71,7 +72,7 @@ vi.mock('@hono/clerk-auth', () => ({
 
 // Helper to create a test app with pre-set auth context
 function createTestApp() {
-  const app = new Hono();
+  const app = new Hono<AuthEnv>();
 
   // Simulate auth + tenant middleware
   app.use('*', async (c, next) => {
@@ -81,7 +82,8 @@ function createTestApp() {
 
     // Create a mock transaction
     const mockTx = createMockTx();
-    c.set('tx', mockTx);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    c.set('tx', mockTx as any);
     await next();
   });
 
@@ -130,7 +132,7 @@ describe('POST /api/v1/app/:appId/msg', () => {
 
     // Import and mount the route handler directly (skip auth middleware)
     const { Hono: H } = await import('hono');
-    const testApp = new H();
+    const testApp = new H<AuthEnv>();
 
     // Simulate the full middleware chain with mocks
     testApp.use('*', async (c, next) => {
@@ -164,7 +166,8 @@ describe('POST /api/v1/app/:appId/msg', () => {
         };
       });
 
-      c.set('tx', mockTx);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      c.set('tx', mockTx as any);
       await next();
     });
 

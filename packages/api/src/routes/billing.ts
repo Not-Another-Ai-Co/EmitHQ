@@ -60,7 +60,8 @@ billingRoutes.post('/checkout', requireAuth, requireRole('org:admin', 'org:owner
   const priceIds = getPriceIds(tier);
   const priceId = priceIds[interval];
 
-  const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sessionParams: Record<string, any> = {
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { org_id: orgId, tier, interval },
@@ -72,8 +73,6 @@ billingRoutes.post('/checkout', requireAuth, requireRole('org:admin', 'org:owner
   // Reuse existing Stripe customer if we have one
   if (org.stripeCustomerId) {
     sessionParams.customer = org.stripeCustomerId;
-  } else {
-    sessionParams.customer_email = undefined; // Clerk doesn't expose email here; Stripe will collect it
   }
 
   let session;
@@ -204,7 +203,7 @@ billingRoutes.post('/webhook', async (c) => {
     await adminDb.insert(billingEvents).values({
       stripeEventId: event.id,
       eventType: event.type,
-      payload: event.data.object as Record<string, unknown>,
+      payload: event.data.object as unknown as Record<string, unknown>,
     });
   } catch (err: unknown) {
     // Unique constraint violation = already processed
@@ -214,21 +213,22 @@ billingRoutes.post('/webhook', async (c) => {
     throw err;
   }
 
+  const obj = event.data.object as unknown as Record<string, unknown>;
   switch (event.type) {
     case 'checkout.session.completed':
-      await handleCheckoutComplete(event.data.object);
+      await handleCheckoutComplete(obj);
       break;
     case 'customer.subscription.updated':
-      await handleSubscriptionUpdated(event.data.object);
+      await handleSubscriptionUpdated(obj);
       break;
     case 'customer.subscription.deleted':
-      await handleSubscriptionDeleted(event.data.object);
+      await handleSubscriptionDeleted(obj);
       break;
     case 'invoice.paid':
-      await handleInvoicePaid(event.data.object);
+      await handleInvoicePaid(obj);
       break;
     case 'invoice.payment_failed':
-      await handlePaymentFailed(event.data.object);
+      await handlePaymentFailed(obj);
       break;
   }
 
@@ -267,7 +267,9 @@ async function handleCheckoutComplete(session: Record<string, unknown>) {
       stripeSubscriptionId: subscriptionId,
       subscriptionStatus: 'active',
       tier: tier ?? 'starter',
-      currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+      currentPeriodEnd: new Date(
+        (subscription as unknown as { current_period_end: number }).current_period_end * 1000,
+      ),
     })
     .where(eq(organizations.id, orgId));
 

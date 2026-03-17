@@ -44,13 +44,14 @@ vi.mock('@hono/clerk-auth', () => ({
 import { requireAuth, requireRole } from './auth';
 import { getAuth } from '@hono/clerk-auth';
 import { adminDb } from '@emithq/core';
+import type { AuthEnv } from '../types';
 
 describe('requireAuth middleware', () => {
-  let app: Hono;
+  let app: Hono<AuthEnv>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    app = new Hono();
+    app = new Hono<AuthEnv>();
     app.use('*', requireAuth);
     app.get('/test', (c) =>
       c.json({
@@ -82,14 +83,14 @@ describe('requireAuth middleware', () => {
         }),
       }),
     });
-    (adminDb as Record<string, unknown>).select = mockSelect;
+    (adminDb as unknown as Record<string, unknown>).select = mockSelect;
 
     const mockUpdate = vi.fn().mockReturnValue({
       set: vi.fn().mockReturnValue({
         where: vi.fn().mockResolvedValue(undefined),
       }),
     });
-    (adminDb as Record<string, unknown>).update = mockUpdate;
+    (adminDb as unknown as Record<string, unknown>).update = mockUpdate;
 
     const res = await app.request('/test', {
       headers: { Authorization: 'Bearer emhq_validkey123456789012345678' },
@@ -109,7 +110,7 @@ describe('requireAuth middleware', () => {
         }),
       }),
     });
-    (adminDb as Record<string, unknown>).select = mockSelect;
+    (adminDb as unknown as Record<string, unknown>).select = mockSelect;
 
     const res = await app.request('/test', {
       headers: { Authorization: 'Bearer emhq_invalidkey' },
@@ -129,7 +130,7 @@ describe('requireAuth middleware', () => {
         }),
       }),
     });
-    (adminDb as Record<string, unknown>).select = mockSelect;
+    (adminDb as unknown as Record<string, unknown>).select = mockSelect;
 
     const res = await app.request('/test', {
       headers: { Authorization: 'Bearer emhq_revokedkey12345678901234567' },
@@ -149,7 +150,7 @@ describe('requireAuth middleware', () => {
         }),
       }),
     });
-    (adminDb as Record<string, unknown>).select = mockSelect;
+    (adminDb as unknown as Record<string, unknown>).select = mockSelect;
 
     const res = await app.request('/test', {
       headers: { Authorization: 'Bearer emhq_expiredkey12345678901234567' },
@@ -164,7 +165,7 @@ describe('requireAuth middleware', () => {
     vi.mocked(getAuth).mockReturnValue({
       userId: 'user-1',
       orgId: null,
-    } as ReturnType<typeof getAuth>);
+    } as unknown as ReturnType<typeof getAuth>);
 
     const res = await app.request('/test', {
       headers: { Authorization: 'Bearer sess_token_123' },
@@ -176,7 +177,7 @@ describe('requireAuth middleware', () => {
   });
 
   it('rejects Clerk session without userId', async () => {
-    vi.mocked(getAuth).mockReturnValue(null as ReturnType<typeof getAuth>);
+    vi.mocked(getAuth).mockReturnValue(null as unknown as ReturnType<typeof getAuth>);
 
     const res = await app.request('/test', {
       headers: { Authorization: 'Bearer sess_token_123' },
@@ -188,7 +189,7 @@ describe('requireAuth middleware', () => {
 
 describe('requireRole middleware', () => {
   it('allows API key auth regardless of role', async () => {
-    const app = new Hono();
+    const app = new Hono<AuthEnv>();
 
     // Simulate API key auth already done
     app.use('*', async (c, next) => {
@@ -206,9 +207,9 @@ describe('requireRole middleware', () => {
   it('rejects Clerk session with wrong role', async () => {
     vi.mocked(getAuth).mockReturnValue({
       orgRole: 'org:member',
-    } as ReturnType<typeof getAuth>);
+    } as unknown as ReturnType<typeof getAuth>);
 
-    const app = new Hono();
+    const app = new Hono<AuthEnv>();
     app.use('*', async (c, next) => {
       c.set('authType', 'clerk_session');
       c.set('orgId', 'org-123');
@@ -226,9 +227,9 @@ describe('requireRole middleware', () => {
   it('allows Clerk session with matching role', async () => {
     vi.mocked(getAuth).mockReturnValue({
       orgRole: 'org:admin',
-    } as ReturnType<typeof getAuth>);
+    } as unknown as ReturnType<typeof getAuth>);
 
-    const app = new Hono();
+    const app = new Hono<AuthEnv>();
     app.use('*', async (c, next) => {
       c.set('authType', 'clerk_session');
       c.set('orgId', 'org-123');

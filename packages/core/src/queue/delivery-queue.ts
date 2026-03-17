@@ -19,7 +19,8 @@ let queue: Queue<DeliveryJobData> | null = null;
 export function getDeliveryQueue(): Queue<DeliveryJobData> {
   if (!queue) {
     queue = new Queue<DeliveryJobData>('webhook-delivery', {
-      connection: createRedisConnection(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      connection: createRedisConnection() as any,
       defaultJobOptions: {
         attempts: MAX_DELIVERY_ATTEMPTS,
         backoff: { type: 'custom' },

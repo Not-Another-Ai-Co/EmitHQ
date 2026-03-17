@@ -27,7 +27,10 @@ transformPreviewRoutes.post('/preview', async (c) => {
   }
 
   try {
-    const result = previewTransformation(body.payload, body.rules);
+    const result = previewTransformation(
+      body.payload,
+      body.rules as import('@emithq/core').TransformRule[],
+    );
     return c.json({ data: result });
   } catch (err) {
     if (err instanceof TransformValidationError) {

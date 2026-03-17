@@ -202,6 +202,7 @@ endpointRoutes.get('/:appId/endpoint', async (c) => {
           disabled: endpoints.disabled,
           failureCount: endpoints.failureCount,
           rateLimit: endpoints.rateLimit,
+          transformRules: endpoints.transformRules,
           createdAt: endpoints.createdAt,
         })
         .from(endpoints)
