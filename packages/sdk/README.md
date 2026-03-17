@@ -74,11 +74,15 @@ When receiving webhooks from EmitHQ, verify the signature:
 import { verifyWebhook } from '@emithq/sdk';
 
 // In your webhook handler (Express, Hono, etc.)
-const isValid = await verifyWebhook(rawBody, {
-  'webhook-id': req.headers['webhook-id'],
-  'webhook-timestamp': req.headers['webhook-timestamp'],
-  'webhook-signature': req.headers['webhook-signature'],
-}, 'whsec_your_endpoint_secret');
+const isValid = await verifyWebhook(
+  rawBody,
+  {
+    'webhook-id': req.headers['webhook-id'],
+    'webhook-timestamp': req.headers['webhook-timestamp'],
+    'webhook-signature': req.headers['webhook-signature'],
+  },
+  'whsec_your_endpoint_secret',
+);
 ```
 
 `verifyWebhook` throws if the signature is invalid, the timestamp is too old (>5 minutes), or headers are missing. Uses WebCrypto API — works in Node.js 18+, browsers, and edge runtimes.
@@ -111,8 +115,8 @@ The SDK automatically retries on transient failures (5xx, network errors) with e
 
 ```typescript
 const emithq = new EmitHQ('emhq_key', {
-  maxRetries: 3,    // default: 3
-  timeout: 30000,   // default: 30s
+  maxRetries: 3, // default: 3
+  timeout: 30000, // default: 30s
   baseUrl: 'https://api.emithq.com', // default
 });
 ```

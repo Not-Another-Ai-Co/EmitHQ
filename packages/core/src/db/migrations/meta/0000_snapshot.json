@@ -75,12 +75,8 @@
           "name": "analytics_events_org_id_organizations_id_fk",
           "tableFrom": "analytics_events",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -184,12 +180,8 @@
           "name": "api_keys_org_id_organizations_id_fk",
           "tableFrom": "api_keys",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -199,9 +191,7 @@
         "api_keys_key_hash_unique": {
           "name": "api_keys_key_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "key_hash"
-          ]
+          "columns": ["key_hash"]
         }
       },
       "policies": {},
@@ -273,12 +263,8 @@
           "name": "applications_org_id_organizations_id_fk",
           "tableFrom": "applications",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -290,9 +276,7 @@
           "name": "applications_tenant_isolation",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "app_user"
-          ],
+          "to": ["app_user"],
           "using": "org_id = current_setting('app.current_tenant')::uuid",
           "withCheck": "org_id = current_setting('app.current_tenant')::uuid"
         }
@@ -349,12 +333,8 @@
           "name": "billing_events_org_id_organizations_id_fk",
           "tableFrom": "billing_events",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -364,9 +344,7 @@
         "billing_events_stripe_event_id_unique": {
           "name": "billing_events_stripe_event_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "stripe_event_id"
-          ]
+          "columns": ["stripe_event_id"]
         }
       },
       "policies": {},
@@ -509,12 +487,8 @@
           "name": "delivery_attempts_message_id_messages_id_fk",
           "tableFrom": "delivery_attempts",
           "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -522,12 +496,8 @@
           "name": "delivery_attempts_endpoint_id_endpoints_id_fk",
           "tableFrom": "delivery_attempts",
           "tableTo": "endpoints",
-          "columnsFrom": [
-            "endpoint_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["endpoint_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -539,9 +509,7 @@
           "name": "delivery_attempts_tenant_isolation",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "app_user"
-          ],
+          "to": ["app_user"],
           "using": "org_id = current_setting('app.current_tenant')::uuid",
           "withCheck": "org_id = current_setting('app.current_tenant')::uuid"
         }
@@ -665,12 +633,8 @@
           "name": "endpoints_app_id_applications_id_fk",
           "tableFrom": "endpoints",
           "tableTo": "applications",
-          "columnsFrom": [
-            "app_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["app_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -682,9 +646,7 @@
           "name": "endpoints_tenant_isolation",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "app_user"
-          ],
+          "to": ["app_user"],
           "using": "org_id = current_setting('app.current_tenant')::uuid",
           "withCheck": "org_id = current_setting('app.current_tenant')::uuid"
         }
@@ -747,12 +709,8 @@
           "name": "inbound_sources_org_id_organizations_id_fk",
           "tableFrom": "inbound_sources",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -762,9 +720,7 @@
         "inbound_sources_endpoint_path_unique": {
           "name": "inbound_sources_endpoint_path_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "endpoint_path"
-          ]
+          "columns": ["endpoint_path"]
         }
       },
       "policies": {
@@ -772,9 +728,7 @@
           "name": "inbound_sources_tenant_isolation",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "app_user"
-          ],
+          "to": ["app_user"],
           "using": "org_id = current_setting('app.current_tenant')::uuid",
           "withCheck": "org_id = current_setting('app.current_tenant')::uuid"
         }
@@ -880,12 +834,8 @@
           "name": "messages_app_id_applications_id_fk",
           "tableFrom": "messages",
           "tableTo": "applications",
-          "columnsFrom": [
-            "app_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["app_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -897,9 +847,7 @@
           "name": "messages_tenant_isolation",
           "as": "RESTRICTIVE",
           "for": "ALL",
-          "to": [
-            "app_user"
-          ],
+          "to": ["app_user"],
           "using": "org_id = current_setting('app.current_tenant')::uuid",
           "withCheck": "org_id = current_setting('app.current_tenant')::uuid"
         }
@@ -990,30 +938,22 @@
         "organizations_clerk_org_id_unique": {
           "name": "organizations_clerk_org_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "clerk_org_id"
-          ]
+          "columns": ["clerk_org_id"]
         },
         "organizations_slug_unique": {
           "name": "organizations_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         },
         "organizations_stripe_customer_id_unique": {
           "name": "organizations_stripe_customer_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "stripe_customer_id"
-          ]
+          "columns": ["stripe_customer_id"]
         },
         "organizations_stripe_subscription_id_unique": {
           "name": "organizations_stripe_subscription_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "stripe_subscription_id"
-          ]
+          "columns": ["stripe_subscription_id"]
         }
       },
       "policies": {},
