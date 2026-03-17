@@ -432,13 +432,22 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 12. Dashboard client pages used cookies instead of Bearer tokens → 401 on Events/Endpoints/DLQ
 13. Nav sidebar highlight stuck on Overview for all routes
 
+14. Events Today used UTC midnight boundary — wrong for non-UTC users
+15. Idempotency handler crashed inside aborted PostgreSQL transaction
+16. No app CRUD API endpoint
+17. favicon.ico missing on dashboard
+
+**Resolved post-smoke-test:**
+
+- Ghost pending attempts re-enqueued (1024 recovered, 9 skipped — disabled endpoint)
+- Idempotency handler rewritten with onConflictDoNothing
+- App CRUD routes added (POST/GET /api/v1/app)
+- Events counter changed to 24h rolling window
+- SVG favicon added
+
 **Known issues remaining:**
 
-- Idempotency handler broken inside transactions (PostgreSQL aborts tx on unique violation, subsequent select fails)
-- No app CRUD API endpoint (dashboard hardcodes uid='default', app created via direct DB)
-- Some delivery attempts from pre-fix period stuck in 'pending' (never enqueued, need recovery sweep)
-- Success rate metric inflated by ghost attempts from pre-fix period
-- favicon.ico missing on dashboard (404)
+- Success rate metric still reflects pre-fix ghost attempts (will self-correct as new deliveries accumulate) (404)
 
 ---
 
