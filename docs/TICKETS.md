@@ -1,6 +1,6 @@
 # Tickets — Webhook Infrastructure SaaS
 
-> Last verified: 2026-03-18
+> Last verified: 2026-03-17
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality gates | `[x] [verified] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
@@ -210,30 +210,6 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 - [ ] Emergency throttle: reduce a specific org's rate limit to 1 evt/s without disabling
 - [ ] `/catchup` integration: Claude checks `/metrics/costs` and `/metrics/slo` every session, flags in Attention Needed
 - [ ] Runbook entry: "Vendor ceiling approaching" with upgrade steps for each service
-
----
-
-### T-059: Code Efficiency Tooling (Knip + jscpd) [x]
-
-**Phase:** 10
-**Effort:** Low
-**Complexity:** Simple
-**Depends on:** none
-**Research:** docs/research/code-efficiency-tooling.md
-
-**Description:** Add dead code detection (Knip) and copy-paste duplication detection (jscpd) to the monorepo. Knip covers unused exports, files, and dependencies across all 5 workspaces. jscpd catches duplicated code blocks. Both run in CI as informational first, then blocking once baseline is clean. Prune unused `@emithq/core` barrel exports (YAGNI — re-export when consumers need them).
-
-**Acceptance criteria:**
-
-- [x] `knip` installed as root devDependency
-- [x] `knip.json` at monorepo root with workspace config (core, api, dashboard, landing; SDK excluded — published package, all exports intentional)
-- [x] `jscpd` installed as root devDependency
-- [x] `.jscpd.json` at monorepo root (`threshold: 5`, `minLines: 10`, `minTokens: 50`, ignore `node_modules`, `.next`, `out`, `dist`)
-- [x] Initial Knip audit run — pruned 12 dead barrel exports from core, removed unused `export` keywords, removed dead code (`quotaMock`, `apiPost`, `Sentry` re-export)
-- [x] Initial jscpd audit run — 3.03% duplication (under 5% threshold), all structural landing page duplication
-- [x] `npm run knip` and `npm run duplication` scripts in root `package.json`
-- [x] Both added to CI workflow as informational steps (`|| true`)
-- [x] `/verify` updated to include Knip + jscpd config-aware gates
 
 ---
 

@@ -147,3 +147,11 @@ _Comparison pages, pricing optimization, Show HN prep, Clerk production keys, Um
 ### T-049: API Key Management UI [x] [verified] [audited]
 
 _Dashboard self-service: app switcher via URL params, endpoint CRUD with signing secret modal, API key management with one-time display. Reusable Modal component._
+
+---
+
+## Phase 10: Post-Launch Infrastructure (completed tickets)
+
+### T-059: Code Efficiency Tooling (Knip + jscpd) [x] [verified] [audited]
+
+_Knip dead code detection + jscpd duplication checking. Pruned 12 dead barrel exports from @emithq/core. Both tools blocking in CI. Research: `docs/research/code-efficiency-tooling.md`._
