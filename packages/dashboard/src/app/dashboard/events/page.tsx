@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useApiFetch } from '@/lib/use-api';
+import { useApp } from '@/lib/use-app';
 import { StatusBadge } from '@/components/status-badge';
 
 interface Message {
@@ -29,9 +30,8 @@ interface MessageDetail {
   }>;
 }
 
-const APP_ID = 'default';
-
 export default function EventsPage() {
+  const APP_ID = useApp();
   const apiFetch = useApiFetch();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selected, setSelected] = useState<MessageDetail | null>(null);
@@ -67,12 +67,12 @@ export default function EventsPage() {
         setLoading(false);
       }
     },
-    [cursor, eventTypeFilter, apiFetch],
+    [cursor, eventTypeFilter, apiFetch, APP_ID],
   );
 
   useEffect(() => {
     fetchMessages(true);
-  }, [eventTypeFilter]);
+  }, [eventTypeFilter, APP_ID]);
 
   const loadDetail = async (msgId: string) => {
     try {

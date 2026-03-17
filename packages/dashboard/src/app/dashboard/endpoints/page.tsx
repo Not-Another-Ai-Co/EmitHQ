@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useApiFetch } from '@/lib/use-api';
+import { useApp } from '@/lib/use-app';
 import { StatusBadge } from '@/components/status-badge';
 
 interface EndpointHealth {
@@ -19,9 +20,8 @@ interface EndpointHealth {
   lastDelivery: string | null;
 }
 
-const APP_ID = 'default';
-
 export default function EndpointsPage() {
+  const APP_ID = useApp();
   const apiFetch = useApiFetch();
   const [endpoints, setEndpoints] = useState<EndpointHealth[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export default function EndpointsPage() {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [apiFetch, APP_ID]);
 
   return (
     <div>

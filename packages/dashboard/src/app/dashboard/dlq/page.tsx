@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useApiFetch } from '@/lib/use-api';
+import { useApp } from '@/lib/use-app';
 import { StatusBadge } from '@/components/status-badge';
 
 interface DlqEntry {
@@ -16,9 +17,8 @@ interface DlqEntry {
   createdAt: string;
 }
 
-const APP_ID = 'default';
-
 export default function DlqPage() {
+  const APP_ID = useApp();
   const apiFetch = useApiFetch();
   const [entries, setEntries] = useState<DlqEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,12 +51,12 @@ export default function DlqPage() {
         setLoading(false);
       }
     },
-    [cursor],
+    [cursor, apiFetch, APP_ID],
   );
 
   useEffect(() => {
     fetchDlq(true);
-  }, []);
+  }, [APP_ID]);
 
   const replay = async (entry: DlqEntry) => {
     setReplaying((prev) => new Set(prev).add(entry.id));

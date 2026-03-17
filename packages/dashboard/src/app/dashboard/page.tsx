@@ -11,14 +11,21 @@ interface Stats {
   };
 }
 
-export default async function OverviewPage() {
-  const appId = 'default'; // TODO: app selector once app CRUD exists
+export default async function OverviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const appId = (typeof params.app === 'string' ? params.app : null) ?? 'default';
 
   let stats: Stats['data'] | null = null;
   try {
     const { getToken } = await auth();
     const token = await getToken();
-    const res = await apiGet<Stats>(`/api/v1/app/${appId}/stats`, { token: token ?? undefined });
+    const res = await apiGet<Stats>(`/api/v1/app/${encodeURIComponent(appId)}/stats`, {
+      token: token ?? undefined,
+    });
     stats = res.data;
   } catch {
     // API unavailable — show placeholder

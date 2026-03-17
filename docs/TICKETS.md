@@ -181,7 +181,7 @@ _Execute the launch week and begin sustained acquisition._
 **Phase:** 9
 **Effort:** Medium
 **Complexity:** Simple
-**Depends on:** T-033
+**Depends on:** T-033, T-058
 **Research:** docs/research/gtm-execution.md
 
 **Description:** Execute the launch week sequence. This is primarily Julian's work — posting, engaging, responding. Claude supports with content prep and monitoring.
@@ -469,6 +469,286 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 - [ ] Personalize top 20 emails with specific repo/company references
 - [ ] Track outreach in a simple spreadsheet or GitHub issue (sent, replied, trialed, converted)
 - [ ] Target: 20 emails/week for 4 weeks, 10-15% reply rate, 2-5% trial conversion
+
+---
+
+---
+
+## Pre-Launch Warm-up — 2026-03-17
+
+_Research says the path is Deploy → Warm-up (2-4 weeks) → Show HN. Every successful bootstrapped dev tool (PostHog, Plausible, Resend, Cal.com) had real users before going public. Minimum bar: 10+ real users, >0 paying customers, one concrete metric. These tickets fill the gap between T-045 (smoke test) and T-034 (Show HN)._
+
+### Phase 8a: Dashboard Self-Service (Show HN Blocker)
+
+_The dashboard is read-only — users can't create endpoints, manage API keys, or see billing. API-first beta users (T-055) can work with curl/SDK, but Show HN visitors expect a polished self-service flow._
+
+---
+
+### T-047: App Switcher & Application Management [x] [verified]
+
+**Phase:** 8a
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-045
+**Research:** none
+
+**Description:** All dashboard pages hardcode `appId = 'default'`. Users with multiple applications can't switch between them. Add an application management page and a shared app context so all pages use the selected app. API endpoints already exist (POST/GET /api/v1/app).
+
+**Acceptance criteria:**
+
+- [x] Applications page at `/dashboard/applications` — list apps with name, created date, uid; cards with active indicator
+- [x] "New Application" button → inline form with name + uid fields → calls POST /api/v1/app
+- [x] App switcher component in sidebar — dropdown showing current app, navigate on selection
+- [x] All 4 existing pages (Overview, Events, Endpoints, DLQ) use selected app via `?app=` URL param instead of hardcoded 'default'
+- [x] App param preserved across page navigation (nav links carry `?app=` param)
+- [x] Empty state when no apps exist — prompt to create first app
+
+---
+
+### T-048: Endpoint Management UI (Full CRUD)
+
+**Phase:** 8a
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-047
+**Research:** none
+
+**Description:** The endpoints page is read-only (health metrics only). Users can't create, edit, delete, or test endpoints from the dashboard — they must use curl. Add full CRUD UI. API endpoints already exist (POST/GET/PUT/DELETE /api/v1/app/:appId/endpoint). Show signing secret on creation (one-time display). Add test endpoint button.
+
+**Acceptance criteria:**
+
+- [ ] "Create Endpoint" button → form: URL (required), description, event type filter, rate limit
+- [ ] On creation success: modal showing signing secret with copy button ("Copy this — you won't see it again")
+- [ ] Endpoint list: cards with URL, health status, failure count, disabled badge
+- [ ] Per-endpoint actions: edit (URL, description, filters), disable/enable toggle, delete (soft)
+- [ ] "Test" button per endpoint → calls POST /:appId/endpoint/:epId/test → shows result
+- [ ] Form validation: HTTPS URL required, description max 256 chars
+
+---
+
+### T-049: API Key Management UI
+
+**Phase:** 8a
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-045
+**Research:** none
+
+**Description:** No dashboard UI for API key management. Users can only get keys at signup. Add a settings page to create, list, and revoke API keys. API endpoints already exist (POST/GET/DELETE /api/v1/auth/keys).
+
+**Acceptance criteria:**
+
+- [ ] Settings page at `/dashboard/settings` with API Keys section
+- [ ] "Generate New Key" button → name field → calls POST /api/v1/auth/keys
+- [ ] On creation: modal showing full key with copy button ("Copy this — you won't see it again")
+- [ ] Key list: name, created date, last-used date (if available), prefix (emhq\_...xxxx)
+- [ ] Revoke button per key with confirmation dialog
+- [ ] At least 1 key must remain active (prevent revoking last key)
+
+---
+
+### T-050: Billing & Usage Page
+
+**Phase:** 8a
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-045
+**Research:** none
+
+**Description:** No visibility into current plan, usage, or upgrade path. Add a billing page showing tier, usage bar, and Stripe portal/checkout links. API endpoints already exist (GET /api/v1/billing/subscription, POST /api/v1/billing/checkout, POST /api/v1/billing/portal).
+
+**Acceptance criteria:**
+
+- [ ] Billing page at `/dashboard/billing`
+- [ ] Current tier card: name, price, included events, feature list
+- [ ] Usage bar: events this month vs tier limit, percentage, color (green/yellow/red)
+- [ ] Upgrade buttons per tier → opens Stripe Checkout session
+- [ ] "Manage Subscription" button → opens Stripe Customer Portal
+- [ ] Free tier: "Upgrade to unlock..." messaging
+
+---
+
+### T-051: Getting Started / Onboarding Flow
+
+**Phase:** 8a
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-047, T-049
+**Research:** none
+
+**Description:** New users land on a blank Overview page with no guidance. Add a getting started experience that walks through: create app → get API key → create endpoint → send first event. Show on first login, dismissable, accessible from sidebar.
+
+**Acceptance criteria:**
+
+- [ ] Getting started page at `/dashboard/getting-started` (or modal on first visit)
+- [ ] Step-by-step checklist: (1) Create application, (2) Generate API key, (3) Create endpoint, (4) Send test event
+- [ ] Each step shows status (done/pending) and links to the relevant page
+- [ ] Code snippet for sending first event via SDK (copy-pasteable)
+- [ ] Dismissable — doesn't show again after completion or manual dismiss
+- [ ] Linked from sidebar nav (e.g., "Getting Started" with progress indicator)
+
+---
+
+### Phase 8b: Beta Acquisition & Validation
+
+_Get real users on the platform and validate pricing before the public launch._
+
+---
+
+### T-052: Cold Outreach — First 10 Beta Users
+
+**Phase:** 8b
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-046, T-051
+**Research:** docs/research/gtm-execution.md, docs/research/customer-discovery.md
+
+**Description:** Execute T-046's outreach plan to get 10+ real beta users on EmitHQ. T-046 prepares the target list and templates; this ticket is about sending emails and converting replies to signups. Focus on companies importing @svix/svix on GitHub — they already need webhook infrastructure and are paying $490/mo or building DIY. Offer free access during beta (no payment required). Goal: 10 active orgs sending real webhooks.
+
+**Acceptance criteria:**
+
+- [ ] First batch of 20 personalized emails sent (from T-046's target list)
+- [ ] Follow-up cadence running: Day 0 → Day 3 → Day 10
+- [ ] 10+ orgs signed up and created API keys
+- [ ] At least 3 orgs have sent real webhook events (not test data)
+- [ ] Track in GitHub issue: sent count, reply count, signup count, active count
+- [ ] Identify top 5 most engaged users for pricing interviews (T-053)
+
+---
+
+### T-053: Pricing Validation Interviews
+
+**Phase:** 8b
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-052
+**Research:** docs/research/pricing-model.md, docs/research/gtm-execution.md
+
+**Description:** Run 5 structured pricing validation interviews with beta users. Research recommends staged questioning: packaging → pricing model → price points. Validate that the $49 entry price sits within the acceptable range. Identify whether 3 tiers (Free/Growth/Scale) converts better than 4. Document failure categories (too expensive, wrong model, bad fencing).
+
+**Acceptance criteria:**
+
+- [ ] Interview script prepared (staged: packaging → model → price points)
+- [ ] 5 interviews completed with beta users or warm leads
+- [ ] For each interview: record willingness-to-pay range, pricing model preference, tier structure feedback
+- [ ] Synthesize: is $49 in the acceptable range? Should free tier be 50K or 100K? 3 tiers vs 4?
+- [ ] Decision: confirm or adjust pricing before Show HN (add DEC entry if changed)
+- [ ] Artifact: `docs/research/pricing-validation-results.md`
+
+---
+
+### T-054: Collect Beta Metrics & Testimonials
+
+**Phase:** 8b
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-052
+**Research:** docs/research/gtm-execution.md
+
+**Description:** Collect real usage metrics and testimonials from beta users. These fill the [PLACEHOLDER] slots in the Show HN draft (T-033) and provide social proof for launch. The Show HN post needs concrete numbers ("processed X webhooks for Y companies in beta") to neutralize the "is anyone using this?" objection.
+
+**Acceptance criteria:**
+
+- [ ] Query production metrics: total events processed, delivery success rate, active orgs, active endpoints
+- [ ] Get 2-3 testimonial quotes from beta users (email ask or interview follow-up)
+- [ ] Update `docs/show-hn-draft.md` — replace [PLACEHOLDER] slots with real numbers
+- [ ] Screenshot or metric for Show HN: "X events delivered with Y% success rate in beta"
+- [ ] At least 1 beta user willing to comment on the HN thread (ask directly)
+
+---
+
+### Phase 8c: Pre-Launch Content & Presence
+
+_Publish content and establish community presence before the public launch spike._
+
+---
+
+### T-055: Origin Story Blog Post
+
+**Phase:** 8c
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-028
+**Research:** docs/research/content-distribution-strategy.md
+
+**Description:** Publish "Why We Built EmitHQ: The $49-$490 Webhook Pricing Gap" on the landing site. This is content piece #1 from the research content calendar. It's the dev.to cross-post source for T-034 Day 3 and establishes the narrative before Show HN. Should feel personal (Julian's voice), reference real pricing research, and position EmitHQ as the underdog filling an obvious gap.
+
+**Acceptance criteria:**
+
+- [ ] Blog post written: origin story, pricing gap discovery, what EmitHQ does differently
+- [ ] Published on emithq.com/blog/why-we-built-emithq (new /blog route on landing site)
+- [ ] SEO meta tags: title, description, OG image targeting "webhook service" and "webhook platform"
+- [ ] Linked from landing page footer and header nav
+- [ ] Cross-postable format (clean markdown) for Dev.to on launch Day 3
+
+---
+
+### T-056: Technical Deep-Dive Blog Post
+
+**Phase:** 8c
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-028
+**Research:** docs/research/content-distribution-strategy.md
+
+**Description:** Publish "Webhook Delivery Architecture: How We Achieve 99.99% Reliability" on the landing site. Content piece #2 — establishes technical credibility with the HN audience. Covers: persist-before-enqueue, BullMQ retry with jitter, circuit breakers, Standard Webhooks signing, RLS multi-tenancy. Include architecture diagram and code snippets.
+
+**Acceptance criteria:**
+
+- [ ] Blog post written: architecture overview, delivery flow, retry strategy, signing, circuit breaker
+- [ ] Published on emithq.com/blog/webhook-delivery-architecture
+- [ ] Includes architecture diagram (text or SVG, not external image)
+- [ ] Code snippets showing signing implementation and retry logic
+- [ ] SEO meta tags targeting "webhook delivery reliability" and "webhook retry logic"
+
+---
+
+### T-057: Build-in-Public Launch Cadence
+
+**Phase:** 8c
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-052
+**Research:** docs/research/gtm-execution.md
+
+**Description:** Start the build-in-public cadence on X and Indie Hackers. Research recommends 2-4 posts/week starting during warm-up, not after Show HN. Posts should share technical decisions, beta milestones, and pricing learnings. This builds an audience that organically upvotes Show HN.
+
+**Acceptance criteria:**
+
+- [ ] X account created for EmitHQ (or Julian's personal account designated)
+- [ ] Draft first 5 build-in-public posts: beta milestone, technical decision, pricing insight, competitor gap, "what I learned" reflection
+- [ ] Post 2-4x/week for 2+ weeks before Show HN
+- [ ] Engage with 5+ developers/day in webhook/infra threads (reply, not self-promote)
+- [ ] Indie Hackers product page created with first update
+
+---
+
+### Phase 8d: Show HN Readiness Gate
+
+---
+
+### T-058: Show HN Readiness Gate
+
+**Phase:** 8d
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056
+**Research:** docs/research/gtm-execution.md
+
+**Description:** Verify all Show HN prerequisites are met before executing T-034. This is a checklist ticket, not implementation work. If any gate fails, defer T-034 until it's resolved.
+
+**Acceptance criteria:**
+
+- [ ] Dashboard self-service complete: app management, endpoint CRUD, API keys, billing, onboarding (T-047–T-051)
+- [ ] 10+ real orgs on the platform (from T-052)
+- [ ] At least 1 paying customer or confirmed willingness-to-pay (from T-053)
+- [ ] Show HN draft has real metrics, not [PLACEHOLDER] (from T-054)
+- [ ] 2+ testimonials collected (from T-054)
+- [ ] Origin story blog live (from T-055)
+- [ ] Technical deep-dive blog live (from T-056)
+- [ ] 2+ weeks of build-in-public posts (from T-057)
+- [ ] T-030 marketplace submissions completed (Julian's manual items)
+- [ ] All production services healthy (API, worker, dashboard, Umami)
 
 ---
 
