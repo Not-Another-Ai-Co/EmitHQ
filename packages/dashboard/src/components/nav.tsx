@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/endpoints', label: 'Endpoints', icon: '🔗' },
   { href: '/dashboard/dlq', label: 'Dead Letter Queue', icon: '⚠' },
   { href: '/dashboard/applications', label: 'Applications', icon: '📦' },
+  { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
 ];
 
 function NavLinks() {

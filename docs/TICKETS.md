@@ -526,7 +526,7 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 ---
 
-### T-049: API Key Management UI
+### T-049: API Key Management UI [x] [verified]
 
 **Phase:** 8a
 **Effort:** Low
