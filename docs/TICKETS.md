@@ -271,7 +271,7 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 ---
 
-### T-050: Billing & Usage Page [x]
+### T-050: Billing & Usage Page [x] [verified with notes] [audited]
 
 **Phase:** 8a
 **Effort:** Medium
