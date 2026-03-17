@@ -171,7 +171,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 
 ---
 
-### T-042: Account Creation Rate Limiting & Abuse Prevention
+### T-042: Account Creation Rate Limiting & Abuse Prevention [-] (consolidated into T-063 + T-065)
 
 **Phase:** 10
 **Effort:** Low
@@ -179,14 +179,7 @@ _Deferred items from earlier phases. Not blocking launch — pick up as needed b
 **Depends on:** T-027
 **Research:** none
 
-**Description:** Prevent multi-account abuse and automated signups that could exhaust free tier resources across many accounts.
-
-**Acceptance criteria:**
-
-- [ ] IP-based rate limit on Clerk signup (max 3 accounts per IP per day)
-- [ ] Flag accounts that hit 100K free tier limit within first 48 hours (likely bots/abuse)
-- [ ] Admin endpoint to disable an organization immediately (emergency kill switch)
-- [ ] Org disable cascades: stops accepting events, pauses delivery worker for that org
+**Description:** ~~Prevent multi-account abuse and automated signups.~~ Consolidated: signup rate limiting (3/IP/day) moved to T-063, remaining abuse prevention (card-on-file, velocity detection, admin kill switch) moved to T-065.
 
 ---
 
@@ -451,12 +444,217 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
+## E2E New User Journey Testing — 2026-03-18
+
+_Validate the complete signup-to-delivery flow before inviting beta users. Gates on Phase 8a (dashboard self-service)._
+
+---
+
+### T-060: Playwright E2E Setup + Happy-Path Journey Tests
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** High
+**Complexity:** Complex
+**Depends on:** T-064
+**Research:** docs/research/e2e-new-user-journey-testing.md, docs/research/llm-automatable-onboarding.md
+
+**Description:** Set up Playwright with `@clerk/testing` in the dashboard package and write E2E tests covering both the browser-based and LLM-automated user journeys. Tests the full flow end-to-end: signup (both Clerk UI and API-only), dashboard interactions, app/endpoint/key management, event sending, and delivery verification. Uses real Clerk dev instance and a local HTTP server fixture as the webhook endpoint. Run locally, not in CI (CI deferred to T-038).
+
+**Acceptance criteria:**
+
+- [ ] `@playwright/test` and `@clerk/testing` installed in `packages/dashboard`
+- [ ] Playwright config with Clerk `globalSetup` and base URL pointing to local dashboard
+- [ ] Test user credentials stored in `.env.tpl` with `op://` references (`E2E_CLERK_USER_EMAIL`, `E2E_CLERK_USER_PASSWORD`)
+- [ ] Local HTTP server test fixture that accepts POST and records received payloads
+- [ ] E2E test: browser-based new-user journey (all 8 steps):
+  - Clerk sign-in via `@clerk/testing` helpers
+  - Verify redirect to `/dashboard`
+  - Create application on `/dashboard/applications`
+  - Generate API key on `/dashboard/settings`, capture from modal
+  - Create endpoint on `/dashboard/endpoints` using local test server URL
+  - Send event via `POST /api/v1/app/:appId/msg` with captured API key
+  - Verify event appears on `/dashboard/events` with delivery attempt
+  - Verify `/dashboard/getting-started` shows all 4 steps completed
+- [ ] E2E test: LLM-automated journey (API-only, no browser):
+  - `POST /api/v1/signup` → capture `orgId` and `apiKey`
+  - Create app via API with captured key
+  - Create endpoint via API (local test server URL)
+  - Send event via API
+  - Verify delivery via API (poll for delivery attempt status)
+  - Verify quota headers present on all responses (`X-EmitHQ-Quota-*`)
+  - Verify 429 response includes structured upgrade info when quota exceeded
+- [ ] E2E test: account management flows:
+  - Profile update (name, email) via Clerk user profile UI
+  - Password reset flow (request reset → verify email link works)
+  - Org settings / member management (if Clerk org UI is exposed)
+- [ ] Test passes locally against dev environment (API + worker + dashboard running)
+- [ ] Test documented in CONVENTIONS.md (how to run, prerequisites)
+
+---
+
+### T-061: Enable MFA in Clerk + Test Enrollment Flow [x]
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-051
+**Research:** docs/research/e2e-new-user-journey-testing.md
+
+**Description:** Upgrade Clerk configuration to enable MFA (TOTP and/or SMS). Test the enrollment and login-with-MFA flows manually. MFA is table stakes for a security-focused infrastructure product — webhook platforms handle sensitive data and API keys. E2E automated test for MFA added in T-060.
+
+**Acceptance criteria:**
+
+- [ ] MFA enabled in Clerk dashboard (TOTP at minimum, SMS optional) — **Julian manual step**
+- [ ] MFA enrollment flow works: user can enable MFA from profile settings — **Julian manual step**
+- [ ] Login with MFA works: user prompted for TOTP code after password — **Julian manual step**
+- [x] Dashboard profile page added at `/dashboard/profile` with Clerk `<UserProfile />` (includes MFA enrollment UI)
+- [x] Profile nav item added to sidebar
+- [ ] Manual verification documented — **after Julian enables TOTP in Clerk dashboard**
+- [x] Landing page security section updated to mention MFA support (homepage, privacy, DPA)
+
+---
+
+### T-062: Research — Fully LLM-Automatable Onboarding & API Access [x] [verified]
+
+**Phase:** 8a
+**Effort:** Medium
+**Complexity:** Complex
+**Depends on:** T-051
+**Research:** docs/research/llm-automatable-onboarding.md
+
+**Description:** Research how to make EmitHQ the first webhook platform where an LLM agent can autonomously create an account, get credentials, wire up webhooks, and operate the product — zero browser interaction. Research complete — see artifact for full findings.
+
+**Open questions (to resolve during implementation):**
+
+1. **Card-on-file mandatory from day one?** Rec: Yes for production. Strongest anti-abuse signal that doesn't block LLM automation. Stripe SetupIntent is $0. Optional 7-day/10K-event no-card trial for quick evaluation only if conversion data shows card requirement is blocking signups.
+2. **API key scoping — MVP or defer?** Rec: Defer scoping to T-066 (post-launch). Ship unscoped keys first like everyone else, add scoping as a differentiator in the first iteration cycle. 93% of agent projects use unscoped keys — we're not behind without it.
+3. **MCP server before Show HN?** Rec: Post-launch (T-067). High HN signal but significant scope. Mention it as "coming soon" on landing page — the API-only signup is the real differentiator for launch.
+
+---
+
+## LLM-Automatable Onboarding — 2026-03-18
+
+_Make EmitHQ fully operable by LLM agents. No browser required from signup to first webhook delivery. Based on T-062 research._
+
+---
+
+### T-063: API-Only Signup Endpoint + Quota Headers
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-062
+**Research:** docs/research/llm-automatable-onboarding.md
+
+**Description:** Build `POST /api/v1/signup` — a single endpoint that creates a Clerk user + org via Backend API, auto-provisions the EmitHQ org, generates the first API key, and returns everything in one response. Also add machine-readable quota headers to all API responses so LLM agents always know where they stand on usage limits. Enrich 429 responses with structured upgrade information.
+
+**Acceptance criteria:**
+
+- [ ] `POST /api/v1/signup` endpoint: input `{ email, password, orgName? }`, returns `{ orgId, apiKey, userId }`
+- [ ] Creates Clerk user via Backend API (`createUser`, email auto-verified)
+- [ ] Creates Clerk org via Backend API (`createOrganization`)
+- [ ] Reuses existing auto-provision logic for EmitHQ org row
+- [ ] Generates first API key (`emhq_` prefix), returns plaintext once
+- [ ] Rate limit: 3 signups per IP per day
+- [ ] Credential storage hints in response: 1Password CLI command, env var name
+- [ ] `X-EmitHQ-Quota-Limit`, `X-EmitHQ-Quota-Used`, `X-EmitHQ-Quota-Remaining`, `X-EmitHQ-Quota-Reset`, `X-EmitHQ-Tier` headers on all authenticated API responses
+- [ ] `X-EmitHQ-Quota-Warning` header at 80% and 95% thresholds
+- [ ] 429 response body includes structured `quota` object and `action` object with upgrade tiers/URL
+- [ ] Tests: signup happy path, duplicate email, rate limit, quota headers at various usage levels
+
+---
+
+### T-064: OpenAPI Spec + Machine-Readable Docs + llm.txt
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-063
+**Research:** docs/research/llm-automatable-onboarding.md
+
+**Description:** Publish machine-readable API documentation so LLM agents can discover and use EmitHQ autonomously. OpenAPI 3.1 spec for all endpoints. `llm.txt` at the domain root. Update landing site `/docs/api` with curl examples covering the full API-only journey. Update SDK README with LLM-friendly examples.
+
+**Acceptance criteria:**
+
+- [ ] OpenAPI 3.1 spec covering all `/api/v1/` endpoints including `/signup`
+- [ ] Spec served at `/api/v1/openapi.json` (or static file on landing site)
+- [ ] `llm.txt` at `emithq.com/llm.txt` — product summary, API overview, signup flow, authentication, key concepts
+- [ ] `agents.json` at `emithq.com/.well-known/agents.json` — capability manifest for agent discovery
+- [ ] Landing site `/docs/api` updated with curl examples: signup → create app → API key → endpoint → send event → check status
+- [ ] SDK README updated with LLM-friendly examples (no ambiguous steps)
+- [ ] Stripe Customer Portal accessible via API documented: `POST /api/v1/billing/portal` returns portal URL
+
+---
+
+### T-065: Payment-Gated Abuse Prevention
+
+**Phase:** 10 (post-launch)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-063
+**Research:** docs/research/llm-automatable-onboarding.md
+
+**Description:** Add Stripe SetupIntent (card-on-file, $0 charge) as a gate for free tier access. Consolidates with T-042's signup rate limiting. Prevents multi-account abuse while keeping LLM automation frictionless. Optional 7-day/10K-event no-card trial if conversion data warrants it.
+
+**Acceptance criteria:**
+
+- [ ] Stripe SetupIntent flow: programmatic card-on-file collection (no browser required)
+- [ ] Free tier gated on valid payment method (or within 7-day trial window)
+- [ ] Disposable email domain blocklist (mailinator, guerrillamail, etc.)
+- [ ] Usage velocity detection: flag orgs hitting 100K within 48 hours
+- [ ] Consolidates T-042 signup rate limiting (3/IP/day already in T-063)
+- [ ] Admin endpoint to disable org immediately (from T-042)
+
+---
+
+### T-066: API Key Scoping + Audit Trail
+
+**Phase:** 10 (post-launch)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-063
+**Research:** docs/research/llm-automatable-onboarding.md
+
+**Description:** Add optional scope restrictions to API keys and an audit trail for all API operations. Differentiator: 93% of agent projects use unscoped keys. Scoped keys + audit logs make EmitHQ the most security-conscious option for LLM-driven webhook infrastructure.
+
+**Acceptance criteria:**
+
+- [ ] Optional `scopes` array on API key creation (e.g., `messages:write`, `endpoints:read`)
+- [ ] Scope enforcement in auth middleware — reject operations outside key's scope
+- [ ] Optional `ip_allowlist` and per-key `rate_limit` on API key creation
+- [ ] `audit_log` table: key ID, IP, user-agent, method, path, key params, timestamp
+- [ ] Audit middleware logs every authenticated API call
+- [ ] 90-day retention policy on audit logs
+- [ ] Auto-disable on anomalous usage (10x normal volume in 1 hour)
+
+---
+
+### T-067: EmitHQ MCP Server
+
+**Phase:** 10 (post-launch)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-064
+**Research:** docs/research/llm-automatable-onboarding.md
+
+**Description:** Build an MCP (Model Context Protocol) server for EmitHQ so Claude and other LLM agents can manage webhooks via tool interface. The MCP server wraps EmitHQ API calls as tools — create app, manage endpoints, send events, check delivery status, manage billing.
+
+**Acceptance criteria:**
+
+- [ ] MCP server package (`packages/mcp` or standalone npm package)
+- [ ] Tools: signup, create app, list apps, create endpoint, list endpoints, send event, get message status, get delivery attempts, check quota, manage billing
+- [ ] Authentication via EmitHQ API key (configured in MCP settings)
+- [ ] Published to npm as `@emithq/mcp`
+- [ ] Documented in landing site `/docs` and SDK README
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d
 **Effort:** Low
 **Complexity:** Simple
-**Depends on:** T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056
+**Depends on:** T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056, T-060, T-061, T-063, T-064
 **Research:** docs/research/gtm-execution.md
 
 **Description:** Verify all Show HN prerequisites are met before executing T-034. This is a checklist ticket, not implementation work. If any gate fails, defer T-034 until it's resolved.
@@ -472,6 +670,10 @@ _Publish content and establish community presence before the public launch spike
 - [ ] Technical deep-dive blog live (from T-056)
 - [ ] 2+ weeks of build-in-public posts (from T-057)
 - [ ] T-030 marketplace submissions completed (Julian's manual items)
+- [ ] E2E happy-path test passes locally (T-060)
+- [ ] MFA enabled in Clerk (T-061)
+- [ ] API-only signup endpoint live and tested (T-063)
+- [ ] OpenAPI spec + llm.txt + agents.json published (T-064)
 - [ ] All production services healthy (API, worker, dashboard, Umami)
 
 ---

@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/applications', label: 'Applications', icon: '📦' },
   { href: '/dashboard/billing', label: 'Billing', icon: '💳' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
+  { href: '/dashboard/profile', label: 'Profile', icon: '👤' },
 ];
 
 function NavLinks() {
@@ -82,8 +83,8 @@ function MobileNavLinks() {
     return `${base}?app=${encodeURIComponent(appParam)}`;
   }
 
-  // Show only the first 4 items on mobile (skip Applications — accessible via sidebar)
-  const mobileItems = NAV_ITEMS.slice(0, 4);
+  // Show first 4 nav items + Profile on mobile
+  const mobileItems = [...NAV_ITEMS.slice(0, 4), NAV_ITEMS[NAV_ITEMS.length - 1]];
 
   return (
     <ul className="flex justify-around py-2">
