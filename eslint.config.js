@@ -5,7 +5,14 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ['dist/', 'node_modules/', 'coverage/', 'packages/landing/'],
+    ignores: [
+      '**/dist/',
+      'node_modules/',
+      'coverage/',
+      'packages/landing/',
+      '**/.next/',
+      '**/next-env.d.ts',
+    ],
   },
   {
     rules: {
