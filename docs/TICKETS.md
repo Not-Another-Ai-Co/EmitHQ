@@ -505,7 +505,7 @@ _The dashboard is read-only — users can't create endpoints, manage API keys, o
 
 ---
 
-### T-048: Endpoint Management UI (Full CRUD)
+### T-048: Endpoint Management UI (Full CRUD) [x] [verified]
 
 **Phase:** 8a
 **Effort:** Medium
