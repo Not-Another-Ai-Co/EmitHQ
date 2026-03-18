@@ -457,24 +457,185 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-068: Research — Dashboard UX Restructure
+### T-068: Research — Dashboard UX Restructure [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
 **Complexity:** Complex
 **Depends on:** T-060
-**Research:** none (this IS the research)
+**Research:** docs/research/dashboard-ux-restructure.md
 
 **Description:** The dashboard UX has several issues surfaced during smoke testing. Research and plan a restructure covering: (1) App selection should be the landing page, not a dropdown — overview page shows apps as cards, user clicks to enter an app's context. (2) Getting Started integrated into the landing page and disappears after first app is created. (3) Settings should include Profile and Billing (consolidated page, not 3 separate nav items). (4) Deleted apps should be soft-deleted with 30-day recovery in settings. (5) App dropdown shows stale deleted apps (client cache not invalidated). (6) Delete button formatting issues. Check frontend research at `~/.claude/knowledge/` and review modern SaaS dashboard patterns.
 
 **Acceptance criteria:**
 
-- [ ] Research: review dashboard patterns (Vercel, Railway, Clerk, Stripe) for app-centric navigation
-- [ ] Research: soft-delete with recovery UX patterns
-- [ ] Research: settings consolidation (profile + billing + API keys in one page vs tabs)
-- [ ] Design: wireframe/description of new dashboard layout
-- [ ] Plan: break into implementation tickets with effort estimates
-- [ ] Artifact: `docs/research/dashboard-ux-restructure.md`
+- [x] Research: review dashboard patterns (Vercel, Railway, Clerk, Stripe) for app-centric navigation
+- [x] Research: soft-delete with recovery UX patterns
+- [x] Research: settings consolidation (profile + billing + API keys in one page vs tabs)
+- [x] Design: wireframe/description of new dashboard layout
+- [x] Plan: break into implementation tickets with effort estimates
+- [x] Artifact: `docs/research/dashboard-ux-restructure.md`
+
+---
+
+### Phase 8a: Dashboard UX Restructure (Implementation)
+
+_Six tickets from T-068 research. Implements app-centric navigation, inline onboarding, settings consolidation, soft delete, and cache fix. Show HN blocker._
+
+---
+
+### T-070: Route Restructure + Sidebar Transform
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-068
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Restructure dashboard routes from flat `?app=` query param to path-based `/dashboard/app/[appId]/*`. Replace the AppSwitcher dropdown with a two-state sidebar: global mode (Apps, Settings, Sign Out) and app-context mode (Overview, Events, Endpoints, DLQ with "Back to Apps" link). Remove `hrefWithApp()` query param propagation.
+
+**Acceptance criteria:**
+
+- [ ] `/dashboard/app/[appId]` nested layout with dynamic route
+- [ ] Events, Endpoints, DLQ pages moved to `/dashboard/app/[appId]/*`
+- [ ] Sidebar renders global nav when on `/dashboard` or `/dashboard/settings`
+- [ ] Sidebar renders app-scoped nav with app name and "Back to Apps" when on `/dashboard/app/*`
+- [ ] `useApp()` hook reads `appId` from path params instead of query params
+- [ ] All internal links updated to path-based app context
+- [ ] AppSwitcher component removed
+- [ ] `hrefWithApp()` removed from nav
+
+---
+
+### T-071: App Listing as Landing Page
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-070
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Make the app card grid the dashboard landing page at `/dashboard`. Each card shows app name, uid, endpoint count, and 24h event count. Clicking a card navigates to `/dashboard/app/[appId]`. The current Overview stats page becomes the app-scoped overview at `/dashboard/app/[appId]`.
+
+**Acceptance criteria:**
+
+- [ ] `/dashboard` renders app card grid (moved from `/dashboard/applications`)
+- [ ] Each card shows: app name, uid (if set), endpoint count, 24h event count, created date
+- [ ] "+ New Application" card/button in the grid
+- [ ] Click card navigates to `/dashboard/app/[appId]`
+- [ ] Overview stats page moved to `/dashboard/app/[appId]`
+- [ ] Empty state: centered CTA when no apps exist
+- [ ] `/dashboard/applications` route removed or redirects to `/dashboard`
+
+---
+
+### T-072: Inline Onboarding
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-071
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Move the Getting Started checklist from a standalone page to an inline card on the app listing page. Add server-side `onboarding_completed_at` flag to organizations table. Checklist appears above app cards when incomplete, auto-hides when all steps done, dismissible.
+
+**Acceptance criteria:**
+
+- [ ] Getting Started extracted to reusable component (not a page)
+- [ ] Rendered inline on `/dashboard` above app cards when onboarding incomplete
+- [ ] `onboarding_completed_at` column added to organizations table (migration)
+- [ ] Dismiss sets both localStorage AND server-side flag
+- [ ] Auto-hides when all 4 steps complete (brief "You're all set" state)
+- [ ] `/dashboard/getting-started` page removed
+- [ ] Getting Started nav item removed
+- [ ] New API endpoint: `POST /api/v1/onboarding/dismiss`
+
+---
+
+### T-073: Settings Consolidation
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-068
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Consolidate Settings (API keys), Billing, and Profile into a single tabbed page at `/dashboard/settings`. Tab routing via `?tab=` query param. Remove Billing and Profile from sidebar nav. Add empty Danger Zone tab (populated by T-074).
+
+**Acceptance criteria:**
+
+- [ ] `/dashboard/settings` renders tabbed interface: API Keys (default), Billing, Profile, Danger Zone
+- [ ] Tab routing via `?tab=api-keys|billing|profile|danger-zone`
+- [ ] API Keys tab contains current Settings page content
+- [ ] Billing tab contains current Billing page content
+- [ ] Profile tab contains Clerk `<UserProfile />`
+- [ ] Danger Zone tab shows placeholder ("No recently deleted apps")
+- [ ] Billing and Profile removed from sidebar nav
+- [ ] `/dashboard/billing` and `/dashboard/profile` redirect to `/dashboard/settings?tab=billing` and `?tab=profile`
+
+---
+
+### T-074: Soft Delete + Recovery
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-073
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Replace hard delete of applications with soft delete. Add `deleted_at` column, update DELETE endpoint to set timestamp instead of cascading delete, add restore endpoint, add recovery UI in Settings > Danger Zone tab. 30-day auto-purge of soft-deleted apps.
+
+**Acceptance criteria:**
+
+- [ ] `deleted_at TIMESTAMPTZ` column added to applications table (migration)
+- [ ] Partial index: `CREATE INDEX idx_applications_deleted ON applications(org_id) WHERE deleted_at IS NULL`
+- [ ] `DELETE /api/v1/app/:appId` sets `deleted_at = NOW()` and disables all endpoints
+- [ ] `GET /api/v1/app` filters `WHERE deleted_at IS NULL` by default
+- [ ] `GET /api/v1/app?deleted=true` returns only soft-deleted apps
+- [ ] `POST /api/v1/app/:appId/restore` clears `deleted_at` and re-enables endpoints
+- [ ] Settings > Danger Zone tab lists soft-deleted apps with Restore and Permanent Delete buttons
+- [ ] 5-second undo toast in dashboard after soft-delete
+- [ ] Confirmation dialog updated: "This app will be moved to trash. You can restore it within 30 days."
+- [ ] 30-day auto-purge: hard-delete apps where `deleted_at < NOW() - INTERVAL '30 days'`
+
+---
+
+### T-075: Stale App Cache Fix
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-070
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Replace per-component `useState` app lists with a shared React Context. All components that need the app list consume from `useApps()`. Mutations (create, delete, restore) update context immediately, eliminating stale data in the sidebar.
+
+**Acceptance criteria:**
+
+- [ ] `AppsProvider` React Context wrapping dashboard layout
+- [ ] `useApps()` hook: `{ apps, loading, refetch, removeApp, addApp }`
+- [ ] App listing page consumes from `useApps()` instead of local fetch
+- [ ] Sidebar app name (in app-context mode) reads from context
+- [ ] Create/delete/restore operations update context immediately
+- [ ] No stale apps visible anywhere after mutation
+
+---
+
+### T-069: Frontend-Backend Integration Hardening
+
+**Phase:** 10 (post-launch)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-038
+**Research:** ~/.claude/knowledge/frontend-backend-integration-e2e/research.md
+
+**Description:** Apply frontend-backend integration best practices from cross-project knowledge base research. Key items: E2E tests should use a local test DB instead of Neon branch for speed, and add OpenAPI spec drift detection to CI (T-064 already generates the spec).
+
+**Acceptance criteria:**
+
+- [ ] E2E tests (T-060) configured to use local PostgreSQL instead of Neon branch
+- [ ] CI step: regenerate OpenAPI spec, fail if diff against committed spec (drift detection)
+- [ ] Review and apply any other applicable patterns from KB research
 
 ---
 
