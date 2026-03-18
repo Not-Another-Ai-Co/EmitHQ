@@ -2,20 +2,32 @@
 
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import { useApps } from '@/lib/apps-context';
+import {
+  LayoutGrid,
+  Settings,
+  BarChart3,
+  Zap,
+  Link2,
+  AlertTriangle,
+  ArrowLeft,
+  LogOut,
+} from 'lucide-react';
 
-const GLOBAL_NAV_ITEMS = [
-  { href: '/dashboard', label: 'Applications', icon: '📦' },
-  { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
+const ICON_SIZE = 16;
+
+const GLOBAL_NAV_ITEMS: { href: string; label: string; icon: ReactNode }[] = [
+  { href: '/dashboard', label: 'Applications', icon: <LayoutGrid size={ICON_SIZE} /> },
+  { href: '/dashboard/settings', label: 'Settings', icon: <Settings size={ICON_SIZE} /> },
 ];
 
-const APP_NAV_ITEMS = [
-  { segment: '', label: 'Overview', icon: '◉' },
-  { segment: '/events', label: 'Events', icon: '⚡' },
-  { segment: '/endpoints', label: 'Endpoints', icon: '🔗' },
-  { segment: '/dlq', label: 'Dead Letter Queue', icon: '⚠' },
+const APP_NAV_ITEMS: { segment: string; label: string; icon: ReactNode }[] = [
+  { segment: '', label: 'Overview', icon: <BarChart3 size={ICON_SIZE} /> },
+  { segment: '/events', label: 'Events', icon: <Zap size={ICON_SIZE} /> },
+  { segment: '/endpoints', label: 'Endpoints', icon: <Link2 size={ICON_SIZE} /> },
+  { segment: '/dlq', label: 'Dead Letter Queue', icon: <AlertTriangle size={ICON_SIZE} /> },
 ];
 
 function NavLinks() {
@@ -36,7 +48,7 @@ function NavLinks() {
           href="/dashboard"
           className="mb-3 flex items-center gap-2 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
         >
-          <span>←</span>
+          <ArrowLeft size={14} />
           All Apps
         </Link>
         <div className="mb-3 truncate border-b border-[var(--color-border)] pb-3 text-sm font-semibold">
@@ -127,7 +139,10 @@ function MobileNavLinks() {
 
   if (appId) {
     const appBase = `/dashboard/app/${appId}`;
-    const mobileAppItems = [...APP_NAV_ITEMS, { segment: '@@back', label: 'Apps', icon: '📦' }];
+    const mobileAppItems = [
+      ...APP_NAV_ITEMS,
+      { segment: '@@back', label: 'Apps', icon: (<LayoutGrid size={ICON_SIZE} />) as ReactNode },
+    ];
     return (
       <ul className="flex justify-around py-2">
         {mobileAppItems.map((item) => {
@@ -138,7 +153,7 @@ function MobileNavLinks() {
                   href="/dashboard"
                   className="flex flex-col items-center gap-1 px-3 py-1 text-xs text-[var(--color-text-muted)]"
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <span className="flex justify-center">{item.icon}</span>
                   {item.label}
                 </Link>
               </li>
@@ -157,7 +172,7 @@ function MobileNavLinks() {
                   active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="flex justify-center">{item.icon}</span>
                 {item.label}
               </Link>
             </li>
@@ -184,7 +199,7 @@ function MobileNavLinks() {
                 active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
               }`}
             >
-              <span className="text-lg">{item.icon}</span>
+              <span className="flex justify-center">{item.icon}</span>
               {item.label}
             </Link>
           </li>
@@ -202,7 +217,9 @@ function SignOutButton() {
       onClick={() => signOut({ redirectUrl: '/sign-in' })}
       className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
     >
-      <span className="inline-flex w-5 justify-center">↩</span>
+      <span className="inline-flex w-5 justify-center">
+        <LogOut size={ICON_SIZE} />
+      </span>
       Sign Out
     </button>
   );

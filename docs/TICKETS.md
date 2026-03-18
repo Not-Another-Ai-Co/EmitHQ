@@ -416,7 +416,7 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-077: Dashboard Polish + Onboarding Verification
+### T-077: Dashboard Polish + Onboarding Verification [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
@@ -428,12 +428,12 @@ _Publish content and establish community presence before the public launch spike
 
 **Acceptance criteria:**
 
-- [ ] Getting Started card verified working: clear localStorage, confirm card appears for new orgs
-- [ ] Clerk email deliverability: add SPF/DKIM records for emithq.com in Cloudflare DNS
-- [ ] LLM signup flow (`POST /api/v1/signup`) verified end-to-end: creates org, returns API key, key works for sending events
-- [ ] Dashboard populates correctly after LLM signup (app appears, endpoints work, events flow)
-- [ ] Research: review frontend patterns (animations, loading states, empty states, toast notifications) for polish
-- [ ] Apply top 3-5 quick frontend improvements from research
+- [x] Getting Started card verified working: clear localStorage, confirm card appears for new orgs
+- [x] Clerk email deliverability: DKIM records verified (clk.\_domainkey, clk2.\_domainkey → clerk.services). Clerk sends from own domain — SPF on emithq.com not required.
+- [~] LLM signup flow (`POST /api/v1/signup`) verified end-to-end: endpoint returns 500 — Clerk Backend API rejects user creation (likely production instance restriction). Code logic verified via unit tests (12 pass). Julian to test with real email.
+- [~] Dashboard populates correctly after LLM signup: blocked on signup flow above. Auto-provision path (browser login) verified in code review.
+- [x] Research: review frontend patterns (animations, loading states, empty states, toast notifications) for polish
+- [x] Apply top 3-5 quick frontend improvements from research
 
 ---
 

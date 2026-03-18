@@ -5,6 +5,8 @@ import { useApiFetch } from '@/lib/use-api';
 import { useApp } from '@/lib/use-app';
 import { StatusBadge } from '@/components/status-badge';
 import { Modal } from '@/components/modal';
+import { SkeletonEndpointCard } from '@/components/skeleton';
+import { toast } from 'sonner';
 
 interface Endpoint {
   id: string;
@@ -133,6 +135,7 @@ export default function EndpointsPage() {
       setCreateFilter('');
       setShowCreate(false);
       await fetchEndpoints();
+      toast.success('Endpoint created');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create endpoint');
     } finally {
@@ -179,6 +182,7 @@ export default function EndpointsPage() {
       }
       setEditingId(null);
       await fetchEndpoints();
+      toast.success('Endpoint updated');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update endpoint');
     } finally {
@@ -201,6 +205,7 @@ export default function EndpointsPage() {
       }
       setDeleteTarget(null);
       await fetchEndpoints();
+      toast.success('Endpoint deleted');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete endpoint');
     } finally {
@@ -264,7 +269,11 @@ export default function EndpointsPage() {
     return (
       <div>
         <h1 className="mb-6 text-2xl font-bold">Endpoints</h1>
-        <p className="text-[var(--color-text-muted)]">Loading...</p>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <SkeletonEndpointCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -557,7 +566,10 @@ export default function EndpointsPage() {
         </div>
         <button
           onClick={() => {
-            if (newSecret) navigator.clipboard.writeText(newSecret);
+            if (newSecret) {
+              navigator.clipboard.writeText(newSecret);
+              toast.success('Copied to clipboard');
+            }
           }}
           className="mt-3 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent)]/80"
         >

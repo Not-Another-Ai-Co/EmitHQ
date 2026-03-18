@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useApiFetch } from '@/lib/use-api';
 import { Modal } from '@/components/modal';
 import { UserProfile } from '@clerk/nextjs';
+import { toast } from 'sonner';
 
 const TABS = [
   { id: 'api-keys', label: 'API Keys' },
@@ -100,6 +101,7 @@ function ApiKeysTab() {
       setCreateName('');
       setShowCreate(false);
       await fetchKeys();
+      toast.success('API key created');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create API key');
     } finally {
@@ -119,6 +121,7 @@ function ApiKeysTab() {
       }
       setRevokeTarget(null);
       await fetchKeys();
+      toast.success('API key revoked');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to revoke API key');
     } finally {
@@ -246,7 +249,10 @@ function ApiKeysTab() {
         </div>
         <button
           onClick={() => {
-            if (newKey) navigator.clipboard.writeText(newKey);
+            if (newKey) {
+              navigator.clipboard.writeText(newKey);
+              toast.success('Copied to clipboard');
+            }
           }}
           className="mt-3 rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent)]/80"
         >
@@ -712,6 +718,7 @@ function DangerZoneTab() {
         throw new Error(json?.error?.message ?? `Error ${res.status}`);
       }
       await fetchDeleted();
+      toast.success('Application restored');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to restore application');
     } finally {

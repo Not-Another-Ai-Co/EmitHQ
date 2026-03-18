@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useApiFetch } from '@/lib/use-api';
 import { useApps } from '@/lib/apps-context';
 import { GettingStartedCard } from '@/components/getting-started-card';
+import { SkeletonCard } from '@/components/skeleton';
+import { toast } from 'sonner';
 
 export default function AppsLandingPage() {
   const { apps, loading, error: appsError, refetch, removeApp } = useApps();
@@ -15,7 +17,6 @@ export default function AppsLandingPage() {
   const [creating, setCreating] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [undoToast, setUndoToast] = useState<{ appId: string; appName: string } | null>(null);
   const apiFetch = useApiFetch();
   const router = useRouter();
 
@@ -42,6 +43,7 @@ export default function AppsLandingPage() {
       setCreateUid('');
       setShowCreate(false);
       await refetch();
+      toast.success('Application created');
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : 'Failed to create application');
     } finally {
@@ -67,8 +69,24 @@ export default function AppsLandingPage() {
       setDeleteConfirm(null);
       removeApp(appId);
       if (deletedApp) {
-        setUndoToast({ appId: deletedApp.id, appName: deletedApp.name });
-        setTimeout(() => setUndoToast(null), 5000);
+        toast(`"${deletedApp.name}" deleted`, {
+          action: {
+            label: 'Undo',
+            onClick: async () => {
+              try {
+                const res = await apiFetch(`/api/v1/app/${deletedApp.id}/restore`, {
+                  method: 'POST',
+                });
+                if (!res.ok) throw new Error('Failed to restore');
+                await refetch();
+                toast.success('Application restored');
+              } catch {
+                toast.error('Failed to undo delete');
+              }
+            },
+          },
+          duration: 5000,
+        });
       }
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : 'Failed to delete application');
@@ -77,24 +95,15 @@ export default function AppsLandingPage() {
     }
   }
 
-  async function handleUndo() {
-    if (!undoToast) return;
-    try {
-      const res = await apiFetch(`/api/v1/app/${undoToast.appId}/restore`, { method: 'POST' });
-      if (!res.ok) throw new Error('Failed to restore');
-      setUndoToast(null);
-      await refetch();
-    } catch (err) {
-      setLocalError(err instanceof Error ? err.message : 'Failed to undo delete');
-      setUndoToast(null);
-    }
-  }
-
   if (loading) {
     return (
       <div>
         <h1 className="mb-6 text-2xl font-bold">Applications</h1>
-        <p className="text-[var(--color-text-muted)]">Loading...</p>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -239,23 +248,6 @@ export default function AppsLandingPage() {
               </div>
             </div>
           ))}
-        </div>
-      )}
-
-      {/* Undo toast */}
-      {undoToast && (
-        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-lg">
-          <div className="flex items-center gap-3 text-sm">
-            <span className="text-[var(--color-text-muted)]">
-              &ldquo;{undoToast.appName}&rdquo; deleted
-            </span>
-            <button
-              onClick={handleUndo}
-              className="font-medium text-[var(--color-accent)] hover:text-[var(--color-accent)]/80"
-            >
-              Undo
-            </button>
-          </div>
         </div>
       )}
     </div>
