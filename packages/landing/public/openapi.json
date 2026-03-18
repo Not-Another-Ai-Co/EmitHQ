@@ -1288,6 +1288,68 @@
           }
         }
       }
+    },
+    "/api/v1/onboarding/status": {
+      "get": {
+        "operationId": "getOnboardingStatus",
+        "summary": "Check onboarding dismiss state",
+        "description": "Returns whether the onboarding checklist has been dismissed for this organization.",
+        "tags": ["Onboarding"],
+        "responses": {
+          "200": {
+            "description": "Onboarding status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "dismissed": { "type": "boolean" },
+                        "onboardingCompletedAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/dismiss": {
+      "post": {
+        "operationId": "dismissOnboarding",
+        "summary": "Mark onboarding as complete",
+        "description": "Sets the onboarding_completed_at timestamp for the organization. Idempotent.",
+        "tags": ["Onboarding"],
+        "responses": {
+          "200": {
+            "description": "Onboarding dismissed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "dismissed": { "type": "boolean" },
+                        "onboardingCompletedAt": { "type": "string", "format": "date-time" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "tags": [
@@ -1299,6 +1361,7 @@
     { "name": "Replay", "description": "Retry failed deliveries" },
     { "name": "Dashboard", "description": "Stats, health, and DLQ" },
     { "name": "Transform", "description": "Payload transformation preview" },
-    { "name": "Billing", "description": "Subscription and billing management" }
+    { "name": "Billing", "description": "Subscription and billing management" },
+    { "name": "Onboarding", "description": "Onboarding checklist state management" }
   ]
 }
