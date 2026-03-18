@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-18
+> Last verified: 2026-03-19
 
 ## Overview
 
@@ -85,19 +85,20 @@ Two database roles:
 
 Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
 
-## API Surface (32 endpoints)
+## API Surface (35 endpoints)
 
-| Group        | Endpoints                                                  | Auth                                      |
-| ------------ | ---------------------------------------------------------- | ----------------------------------------- |
-| Signup       | POST `/api/v1/signup`                                      | None (public, rate-limited)               |
-| Auth/Keys    | POST/GET/DELETE `/api/v1/auth/keys`                        | Clerk session                             |
-| Applications | POST/GET `/api/v1/app`, GET `/api/v1/app/:appId`           | API key or Clerk session                  |
-| Messages     | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`           | API key                                   |
-| Endpoints    | CRUD `/api/v1/app/:appId/endpoint`, test delivery          | API key                                   |
-| Replay       | POST retry (message-level, attempt-level)                  | API key                                   |
-| Dashboard    | GET stats, msg list, DLQ, endpoint-health                  | API key                                   |
-| Transform    | POST `/api/v1/transform/preview`                           | API key                                   |
-| Billing      | POST checkout, GET subscription, POST portal, POST webhook | Clerk session (webhook: Stripe signature) |
+| Group        | Endpoints                                                          | Auth                                      |
+| ------------ | ------------------------------------------------------------------ | ----------------------------------------- |
+| Signup       | POST `/api/v1/signup`                                              | None (public, rate-limited)               |
+| Auth/Keys    | POST/GET/DELETE `/api/v1/auth/keys`                                | Clerk session                             |
+| Applications | POST/GET `/api/v1/app`, GET `/api/v1/app/:appId`                   | API key or Clerk session                  |
+| Messages     | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`                   | API key                                   |
+| Endpoints    | CRUD `/api/v1/app/:appId/endpoint`, test delivery                  | API key                                   |
+| Replay       | POST retry (message-level, attempt-level)                          | API key                                   |
+| Dashboard    | GET stats, msg list, DLQ, endpoint-health                          | API key                                   |
+| Transform    | POST `/api/v1/transform/preview`                                   | API key                                   |
+| Billing      | POST checkout, GET subscription, POST portal, POST webhook         | Clerk session (webhook: Stripe signature) |
+| Onboarding   | GET `/api/v1/onboarding/status`, POST `/api/v1/onboarding/dismiss` | API key or Clerk session                  |
 
 ## Billing (T-011)
 
@@ -107,31 +108,42 @@ Stripe Checkout Sessions for subscription signup (Starter $49/Growth $149/Scale 
 
 Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFORE signing. Zero-dependency engine: JSONPath dot-notation subset, `{{...}}` template interpolation, built-in functions (formatDate, uppercase, lowercase, concat). Passthrough when rules are null/empty.
 
-## Dashboard (T-017, T-045, T-047, T-048, T-049, T-050, T-051)
+## Dashboard (T-017, T-045, T-047–T-051, T-068–T-074)
 
 Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Clerk middleware at `src/middleware.ts` with `auth.protect()`, server-side `auth()` guard in dashboard layout, client-side `useApiFetch()` hook for Bearer token auth.
 
-**App selection:** URL search param `?app=<uid>` propagated across all pages via `useApp()` hook (client) and `searchParams` (server). App switcher dropdown in sidebar. Applications management page with create form.
+**Navigation:** Two-state sidebar (DEC-028). Global mode shows Applications + Settings. App-context mode shows Overview, Events, Endpoints, DLQ with "Back to Apps" link. Mobile nav mirrors both states.
 
-**Pages:**
+**Routing (DEC-028):** Path-based app context at `/dashboard/app/[appId]/*`. `useApp()` reads `appId` from `useParams()`. No query-param propagation.
 
-- Overview (24h rolling stats, server component)
-- Events (filterable log + detail panel)
-- Endpoints (full CRUD: create with signing secret modal, edit inline, delete with confirmation, disable/enable toggle, test delivery button, health metrics overlay)
-- DLQ (dead-letter queue with replay)
-- Applications (list, create with name + uid)
-- Billing (current tier card with features, usage bar with color thresholds, tier upgrade grid → Stripe Checkout, manage subscription → Stripe Portal, checkout success detection)
-- Getting Started (4-step onboarding checklist — auto-detects app/key/endpoint/event via API, SDK code snippet with copy, localStorage dismiss, conditional nav visibility)
-- Settings (API key management: generate with one-time display modal, list, revoke with confirmation, last-key protection)
-- Profile (Clerk `<UserProfile />` with MFA enrollment — TOTP enabled in Clerk dashboard)
+**Route structure:**
 
-**Shared components:** `Modal` (overlay with Escape/backdrop close), `AppSwitcher`, `StatusBadge`, `StatCard`. No UI library — all custom with CSS variables.
+```
+/dashboard                           → App card grid (landing) + inline onboarding
+  /dashboard/app/[appId]             → Overview (stats, server component)
+  /dashboard/app/[appId]/events      → Event log + detail panel
+  /dashboard/app/[appId]/endpoints   → Endpoint CRUD + health metrics
+  /dashboard/app/[appId]/dlq         → Dead letter queue + replay
+/dashboard/settings                  → Tabbed: API Keys | Billing | Profile | Danger Zone
+/dashboard/billing                   → Redirects to /dashboard/settings?tab=billing
+/dashboard/profile                   → Redirects to /dashboard/settings?tab=profile
+```
+
+**App listing (`/dashboard`):** Card grid with per-app stats (endpoint count, 24h event count). Create form. Soft-delete with 5-second undo toast. Inline `<GettingStartedCard />` when onboarding incomplete (server-side `onboarding_completed_at` flag + localStorage cache).
+
+**Settings (consolidated):** Single tabbed page with 4 tabs — API Keys (generate/list/revoke), Billing (tier card, usage bar, Stripe Checkout/Portal), Profile (Clerk `<UserProfile />`), Danger Zone (soft-deleted app recovery with restore button, 30-day countdown).
+
+**Soft-delete (T-074):** Applications use `deleted_at` column. DELETE sets timestamp + cascade-disables endpoints (`disabledReason: 'app_deleted'`). Restore clears `deleted_at` + re-enables endpoints. `GET /api/v1/app?deleted=true` lists trash. 30-day auto-purge via `purgeDeletedApps()` in worker.
+
+**Onboarding (T-072):** `POST /api/v1/onboarding/dismiss` + `GET /api/v1/onboarding/status`. Dual persistence: localStorage (instant) + server (`onboarding_completed_at` on organizations). Auto-dismisses when all 4 steps complete.
+
+**Shared components:** `Modal` (overlay with Escape/backdrop close), `GettingStartedCard`, `StatusBadge`, `StatCard`. No UI library — all custom with CSS variables.
 
 ## Landing & Docs Site (T-020, T-064)
 
 Separate Next.js app at `packages/landing/`. Static export for Vercel. No auth, no DB. Pages: landing (hero, pricing gap, features, code snippet), pricing (4-tier table + FAQ), compare (vs Svix/Hookdeck/Convoy + build-vs-buy), docs (getting started, API reference with signup/applications/billing sections, SDK guide). Umami analytics (self-hosted, proxied via Vercel rewrites). SEO (meta, OG, sitemap, robots.txt).
 
-**Machine-readable docs (T-064):** `public/openapi.json` (OpenAPI 3.1, 20 public paths), `public/llm.txt` (product summary + API quick start), `public/.well-known/agents.json` (capability manifest for agent discovery). CI drift check (`scripts/check-openapi-drift.mjs`) compares code routes vs spec paths — fails if any route is missing from the spec.
+**Machine-readable docs (T-064):** `public/openapi.json` (OpenAPI 3.1, 23 public paths), `public/llm.txt` (product summary + API quick start), `public/.well-known/agents.json` (capability manifest for agent discovery). CI drift check (`scripts/check-openapi-drift.mjs`) compares code routes vs spec paths — fails if any route is missing from the spec.
 
 ## TypeScript SDK (T-019)
 
@@ -152,7 +164,7 @@ Separate Next.js app at `packages/landing/`. Static export for Vercel. No auth, 
 - **API service:** `tsx src/server.ts` (Hono HTTP server, port from `PORT` env var)
 - **Worker service:** `tsx src/worker.ts` (BullMQ delivery worker, no HTTP, `restartPolicyType: ALWAYS`)
 
-Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker()` from `@emithq/core` with graceful SIGTERM/SIGINT shutdown (30s forced-exit fallback).
+Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker()` from `@emithq/core` with graceful SIGTERM/SIGINT shutdown (30s forced-exit fallback). Also runs `purgeDeletedApps()` on startup and daily (24h interval) to hard-delete applications soft-deleted >30 days ago.
 
 **Database migrations:** Drizzle ORM with `drizzle-kit`. Migration files at `packages/core/src/db/migrations/`. Scripts: `npm run db:generate`, `npm run db:migrate`, `npm run db:push`. Run against Neon via `DATABASE_ADMIN_URL` (BYPASSRLS role).
 
@@ -173,7 +185,7 @@ Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker(
 
 ## Testing (T-060)
 
-**Unit tests:** Vitest (284 tests across 20 files). Colocated `*.test.ts` files. Mock pattern: `coreMock()` for DB/queue, `authMock()`/`tenantMock()` for middleware. `createTestApp()` factory mounts real route handlers with injected auth context.
+**Unit tests:** Vitest (286 tests across 20 files). Colocated `*.test.ts` files. Mock pattern: `coreMock()` for DB/queue, `authMock()`/`tenantMock()` for middleware. `createTestApp()` factory mounts real route handlers with injected auth context.
 
 **E2E tests:** Playwright + `@clerk/testing` in `packages/dashboard/e2e/`. Three suites: browser journey (8-step signup→delivery flow), API-only journey (LLM-automatable flow via `POST /signup`), account management (profile/billing/settings smoke tests). Webhook test fixture (`http.createServer`) records delivered payloads. Auth via Clerk Testing Token + storageState. Requires running services — CI integration deferred to T-038.
 

@@ -187,3 +187,21 @@ _API-only signup (`POST /api/v1/signup`), quota headers on all responses, enrich
 ### T-060: Playwright E2E Setup + Happy-Path Journey Tests [x] [verified with notes] [audited] — tests written but deferred until T-068 dashboard restructure completes; will need updates to match new UI
 
 _Playwright + @clerk/testing: browser journey (8-step flow), API-only journey (LLM-automatable), account management smoke tests. Webhook test fixture. Auth via storageState. Research: `docs/research/e2e-new-user-journey-testing.md`. CI deferred to T-038._
+
+---
+
+## Phase 8a: Dashboard UX Restructure (completed tickets)
+
+### T-068: Research — Dashboard UX Restructure [x] [verified] [audited]
+
+### T-070: Route Restructure + Sidebar Transform [x] [verified] [audited]
+
+### T-071: App Listing as Landing Page [x] [verified] [audited]
+
+### T-072: Inline Onboarding [x] [verified] [audited]
+
+### T-073: Settings Consolidation [x] [verified] [audited]
+
+### T-074: Soft Delete + Recovery [x] [verified] [audited]
+
+_Full dashboard UX restructure: path-based app routing (`/dashboard/app/[appId]/*`), two-state sidebar, app card grid landing with per-app stats, inline onboarding with server-side flag, consolidated settings tabs (API Keys/Billing/Profile/Danger Zone), soft-delete with 30-day recovery + auto-purge. Research: `docs/research/dashboard-ux-restructure.md`. Decisions: DEC-028._
