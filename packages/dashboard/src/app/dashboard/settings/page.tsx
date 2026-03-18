@@ -223,16 +223,12 @@ function ApiKeysTab() {
                     {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : 'Never'}
                   </td>
                   <td className="px-4 py-3">
-                    {keys.length > 1 ? (
-                      <button
-                        onClick={() => setRevokeTarget(key)}
-                        className="rounded-lg border border-[var(--color-error)]/30 px-3 py-1.5 text-xs text-[var(--color-error)] transition-colors hover:bg-[var(--color-error)]/10"
-                      >
-                        Revoke
-                      </button>
-                    ) : (
-                      <span className="text-xs text-[var(--color-text-muted)]">Last key</span>
-                    )}
+                    <button
+                      onClick={() => setRevokeTarget(key)}
+                      className="rounded-lg border border-[var(--color-error)]/30 px-3 py-1.5 text-xs text-[var(--color-error)] transition-colors hover:bg-[var(--color-error)]/10"
+                    >
+                      Revoke
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -262,6 +258,12 @@ function ApiKeysTab() {
         <p className="mb-2 text-sm text-[var(--color-text-muted)]">
           Are you sure you want to revoke this key? Any integrations using it will stop working.
         </p>
+        {keys.length === 1 && (
+          <p className="mb-2 text-sm font-medium text-[var(--color-error)]">
+            This is your only API key. Revoking it will disable all API access until you generate a
+            new one.
+          </p>
+        )}
         {revokeTarget && <p className="mb-4 font-medium">{revokeTarget.name}</p>}
         <div className="flex gap-2">
           <button
@@ -590,7 +592,7 @@ function BillingTab() {
             return (
               <div
                 key={tier.id}
-                className={`rounded-xl border p-5 ${isCurrent ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}
+                className={`flex flex-col rounded-xl border p-5 ${isCurrent ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}
               >
                 <h3 className="font-semibold">{tier.name}</h3>
                 <p className="mt-1 text-2xl font-bold">
@@ -619,7 +621,7 @@ function BillingTab() {
                     </li>
                   ))}
                 </ul>
-                <div className="mt-4">
+                <div className="mt-auto pt-4">
                   {isCurrent ? (
                     <span className="inline-block rounded-lg border border-[var(--color-accent)]/30 px-4 py-2 text-sm text-[var(--color-accent)]">
                       Current plan

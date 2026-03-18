@@ -184,59 +184,59 @@ export default function AppsLandingPage() {
           {apps.map((app) => (
             <div
               key={app.id}
-              className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-accent)]/30"
+              onClick={() => selectApp(app)}
+              className="group cursor-pointer rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-accent)]/30"
             >
-              <button onClick={() => selectApp(app)} className="w-full text-left">
-                <h3 className="font-semibold">{app.name}</h3>
+              <div className="mb-3 flex items-start justify-between">
+                <h3 className="font-semibold group-hover:text-[var(--color-accent)]">{app.name}</h3>
                 {app.uid && (
-                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">uid: {app.uid}</p>
+                  <span className="ml-2 shrink-0 rounded bg-[var(--color-bg)] px-1.5 py-0.5 font-mono text-xs text-[var(--color-text-muted)]">
+                    {app.uid}
+                  </span>
                 )}
-                <div className="mt-2 flex gap-3 text-xs text-[var(--color-text-muted)]">
-                  <span>
-                    {app.endpointCount ?? 0} endpoint{(app.endpointCount ?? 0) !== 1 ? 's' : ''}
-                  </span>
-                  <span>·</span>
-                  <span>
-                    {app.events24h ?? 0} event{(app.events24h ?? 0) !== 1 ? 's' : ''} (24h)
-                  </span>
+              </div>
+              <div className="mb-3 flex gap-4 text-sm">
+                <div>
+                  <p className="text-xs text-[var(--color-text-muted)]">Endpoints</p>
+                  <p className="font-semibold">{app.endpointCount ?? 0}</p>
                 </div>
-                <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                <div>
+                  <p className="text-xs text-[var(--color-text-muted)]">Events (24h)</p>
+                  <p className="font-semibold">{app.events24h ?? 0}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-t border-[var(--color-border)] pt-3">
+                <p className="text-xs text-[var(--color-text-muted)]">
                   Created {new Date(app.createdAt).toLocaleDateString()}
                 </p>
-              </button>
-              {deleteConfirm === app.id ? (
-                <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
-                  <p className="text-xs text-red-400">
-                    This app will be moved to trash. You can restore it within 30 days from Settings
-                    &gt; Danger Zone.
-                  </p>
-                  <div className="mt-2 flex gap-2">
+                {deleteConfirm === app.id ? (
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleDelete(app.id)}
                       disabled={deleting}
-                      className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                      className="rounded bg-red-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
                     >
-                      {deleting ? 'Deleting...' : 'Yes, Delete'}
+                      {deleting ? '...' : 'Confirm'}
                     </button>
                     <button
                       onClick={() => setDeleteConfirm(null)}
-                      className="rounded border border-[var(--color-border)] px-3 py-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                      className="rounded border border-[var(--color-border)] px-2.5 py-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
                     >
                       Cancel
                     </button>
                   </div>
-                </div>
-              ) : (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteConfirm(app.id);
-                  }}
-                  className="mt-3 rounded-lg border border-[var(--color-error)]/30 px-3 py-1.5 text-xs text-[var(--color-error)] transition-colors hover:bg-[var(--color-error)]/10"
-                >
-                  Delete
-                </button>
-              )}
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirm(app.id);
+                    }}
+                    className="rounded border border-[var(--color-error)]/30 px-2.5 py-1 text-xs text-[var(--color-error)] transition-colors hover:bg-[var(--color-error)]/10"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
