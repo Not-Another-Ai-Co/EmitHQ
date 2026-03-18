@@ -1,23 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApiFetch } from '@/lib/use-api';
+import { useApps } from '@/lib/apps-context';
 import { GettingStartedCard } from '@/components/getting-started-card';
 
-interface App {
-  id: string;
-  uid: string | null;
-  name: string;
-  createdAt: string;
-  endpointCount: number;
-  events24h: number;
-}
-
 export default function AppsLandingPage() {
-  const [apps, setApps] = useState<App[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { apps, loading, error: appsError, refetch, removeApp } = useApps();
+  const [localError, setLocalError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [createName, setCreateName] = useState('');
   const [createUid, setCreateUid] = useState('');
@@ -28,28 +19,13 @@ export default function AppsLandingPage() {
   const apiFetch = useApiFetch();
   const router = useRouter();
 
-  const fetchApps = useCallback(async () => {
-    try {
-      const res = await apiFetch('/api/v1/app');
-      if (!res.ok) throw new Error('Failed to load applications');
-      const json = await res.json();
-      setApps(json.data ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load applications');
-    } finally {
-      setLoading(false);
-    }
-  }, [apiFetch]);
-
-  useEffect(() => {
-    fetchApps();
-  }, [fetchApps]);
+  const error = localError ?? appsError;
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     if (!createName.trim()) return;
     setCreating(true);
-    setError(null);
+    setLocalError(null);
     try {
       const body: Record<string, string> = { name: createName.trim() };
       if (createUid.trim()) body.uid = createUid.trim();
@@ -65,22 +41,22 @@ export default function AppsLandingPage() {
       setCreateName('');
       setCreateUid('');
       setShowCreate(false);
-      await fetchApps();
+      await refetch();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create application');
+      setLocalError(err instanceof Error ? err.message : 'Failed to create application');
     } finally {
       setCreating(false);
     }
   }
 
-  function selectApp(app: App) {
+  function selectApp(app: { id: string; uid: string | null }) {
     const appParam = app.uid ?? app.id;
     router.push(`/dashboard/app/${encodeURIComponent(appParam)}`);
   }
 
   async function handleDelete(appId: string) {
     setDeleting(true);
-    setError(null);
+    setLocalError(null);
     const deletedApp = apps.find((a) => a.id === appId);
     try {
       const res = await apiFetch(`/api/v1/app/${appId}`, { method: 'DELETE' });
@@ -89,14 +65,13 @@ export default function AppsLandingPage() {
         throw new Error(json?.error?.message ?? `Error ${res.status}`);
       }
       setDeleteConfirm(null);
-      await fetchApps();
-      // Show undo toast for 5 seconds
+      removeApp(appId);
       if (deletedApp) {
         setUndoToast({ appId: deletedApp.id, appName: deletedApp.name });
         setTimeout(() => setUndoToast(null), 5000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete application');
+      setLocalError(err instanceof Error ? err.message : 'Failed to delete application');
     } finally {
       setDeleting(false);
     }
@@ -108,9 +83,9 @@ export default function AppsLandingPage() {
       const res = await apiFetch(`/api/v1/app/${undoToast.appId}/restore`, { method: 'POST' });
       if (!res.ok) throw new Error('Failed to restore');
       setUndoToast(null);
-      await fetchApps();
+      await refetch();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to undo delete');
+      setLocalError(err instanceof Error ? err.message : 'Failed to undo delete');
       setUndoToast(null);
     }
   }
@@ -141,7 +116,7 @@ export default function AppsLandingPage() {
         <div className="mb-4 rounded-lg border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 p-3 text-sm text-[var(--color-error)]">
           {error}
           <button
-            onClick={() => setError(null)}
+            onClick={() => setLocalError(null)}
             className="ml-2 text-[var(--color-error)]/70 hover:text-[var(--color-error)]"
           >
             ×

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useClerk } from '@clerk/nextjs';
+import { useApps } from '@/lib/apps-context';
 
 const GLOBAL_NAV_ITEMS = [
   { href: '/dashboard', label: 'Applications', icon: '📦' },
@@ -22,9 +23,13 @@ function NavLinks() {
   const params = useParams<{ appId?: string }>();
   const appId = params.appId;
   const inAppContext = !!appId;
+  const { apps } = useApps();
 
   if (inAppContext) {
     const appBase = `/dashboard/app/${appId}`;
+    const decodedId = decodeURIComponent(appId);
+    const currentApp = apps.find((a) => a.uid === decodedId || a.id === decodedId);
+    const appDisplayName = currentApp?.name ?? decodedId;
     return (
       <div className="flex flex-1 flex-col">
         <Link
@@ -35,7 +40,7 @@ function NavLinks() {
           All Apps
         </Link>
         <div className="mb-3 truncate border-b border-[var(--color-border)] pb-3 text-sm font-semibold">
-          {decodeURIComponent(appId)}
+          {appDisplayName}
         </div>
         <ul className="space-y-1">
           {APP_NAV_ITEMS.map((item) => {

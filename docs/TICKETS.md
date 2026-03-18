@@ -457,7 +457,7 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-075: Stale App Cache Fix
+### T-075: Stale App Cache Fix [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -469,12 +469,12 @@ _Publish content and establish community presence before the public launch spike
 
 **Acceptance criteria:**
 
-- [ ] `AppsProvider` React Context wrapping dashboard layout
-- [ ] `useApps()` hook: `{ apps, loading, refetch, removeApp, addApp }`
-- [ ] App listing page consumes from `useApps()` instead of local fetch
-- [ ] Sidebar app name (in app-context mode) reads from context
-- [ ] Create/delete/restore operations update context immediately
-- [ ] No stale apps visible anywhere after mutation
+- [x] `AppsProvider` React Context wrapping dashboard layout
+- [x] `useApps()` hook: `{ apps, loading, refetch, removeApp, addApp }`
+- [x] App listing page consumes from `useApps()` instead of local fetch
+- [x] Sidebar app name (in app-context mode) reads from context
+- [x] Create/delete/restore operations update context immediately
+- [x] No stale apps visible anywhere after mutation
 
 ---
 
