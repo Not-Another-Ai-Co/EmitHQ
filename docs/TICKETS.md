@@ -3,7 +3,7 @@
 > Last verified: 2026-03-19
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
-Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed quality gates | `[x] [verified] [audited] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
+Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality gates | `[x] [verified] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
 
 ## Open Tickets
 
