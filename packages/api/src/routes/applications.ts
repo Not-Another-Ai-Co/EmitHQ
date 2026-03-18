@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { eq, or, and, inArray, sql } from 'drizzle-orm';
-import { applications, endpoints, messages, deliveryAttempts } from '@emithq/core';
+import { eq, or, and, isNull, isNotNull, sql } from 'drizzle-orm';
+import { applications, endpoints } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
 import type { AuthEnv } from '../types';
@@ -10,6 +10,12 @@ export const applicationRoutes = new Hono<AuthEnv>();
 applicationRoutes.use('*', requireAuth, tenantScope);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function appCondition(appId: string) {
+  return UUID_RE.test(appId)
+    ? or(eq(applications.id, appId), eq(applications.uid, appId))
+    : eq(applications.uid, appId);
+}
 
 /**
  * POST /api/v1/app — Create an application
@@ -51,9 +57,27 @@ applicationRoutes.post('/', async (c) => {
 
 /**
  * GET /api/v1/app — List applications
+ * ?deleted=true returns only soft-deleted apps (for Danger Zone)
  */
 applicationRoutes.get('/', async (c) => {
   const tx = c.get('tx');
+  const showDeleted = c.req.query('deleted') === 'true';
+
+  if (showDeleted) {
+    const deleted = await tx
+      .select({
+        id: applications.id,
+        uid: applications.uid,
+        name: applications.name,
+        deletedAt: applications.deletedAt,
+        createdAt: applications.createdAt,
+      })
+      .from(applications)
+      .where(isNotNull(applications.deletedAt));
+
+    return c.json({ data: deleted });
+  }
+
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const apps = await tx
@@ -74,21 +98,18 @@ applicationRoutes.get('/', async (c) => {
           and m.created_at >= ${oneDayAgo}
       )`,
     })
-    .from(applications);
+    .from(applications)
+    .where(isNull(applications.deletedAt));
 
   return c.json({ data: apps });
 });
 
 /**
- * GET /api/v1/app/:appId — Get application
+ * GET /api/v1/app/:appId — Get application (excludes soft-deleted)
  */
 applicationRoutes.get('/:appId', async (c) => {
   const appId = c.req.param('appId');
   const tx = c.get('tx');
-
-  const condition = UUID_RE.test(appId)
-    ? or(eq(applications.id, appId), eq(applications.uid, appId))
-    : eq(applications.uid, appId);
 
   const [app] = await tx
     .select({
@@ -98,7 +119,7 @@ applicationRoutes.get('/:appId', async (c) => {
       createdAt: applications.createdAt,
     })
     .from(applications)
-    .where(condition)
+    .where(and(appCondition(appId), isNull(applications.deletedAt)))
     .limit(1);
 
   if (!app) {
@@ -109,45 +130,84 @@ applicationRoutes.get('/:appId', async (c) => {
 });
 
 /**
- * DELETE /api/v1/app/:appId — Delete an application
- * Cascading: deletes all endpoints and messages belonging to this app.
- * This is a hard delete — cannot be undone.
+ * DELETE /api/v1/app/:appId — Soft-delete an application
+ * Sets deleted_at timestamp and disables all endpoints.
+ * Recoverable within 30 days via POST /api/v1/app/:appId/restore.
  */
 applicationRoutes.delete('/:appId', async (c) => {
   const appId = c.req.param('appId');
   const orgId = c.get('orgId');
   const tx = c.get('tx');
 
-  const condition = UUID_RE.test(appId)
-    ? or(eq(applications.id, appId), eq(applications.uid, appId))
-    : eq(applications.uid, appId);
-
-  // Find the app first
   const [app] = await tx
     .select({ id: applications.id })
     .from(applications)
-    .where(condition)
+    .where(and(appCondition(appId), isNull(applications.deletedAt)))
     .limit(1);
 
   if (!app) {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  // Delete delivery attempts for messages in this app (FK: delivery_attempts → messages)
-  const appMessages = tx
-    .select({ id: messages.id })
-    .from(messages)
-    .where(and(eq(messages.appId, app.id), eq(messages.orgId, orgId)));
-  await tx.delete(deliveryAttempts).where(inArray(deliveryAttempts.messageId, appMessages));
+  // Soft-delete the app
+  await tx.update(applications).set({ deletedAt: new Date() }).where(eq(applications.id, app.id));
 
-  // Delete endpoints belonging to this app
-  await tx.delete(endpoints).where(and(eq(endpoints.appId, app.id), eq(endpoints.orgId, orgId)));
-
-  // Delete messages belonging to this app
-  await tx.delete(messages).where(and(eq(messages.appId, app.id), eq(messages.orgId, orgId)));
-
-  // Delete the app itself
-  await tx.delete(applications).where(eq(applications.id, app.id));
+  // Cascade-disable all endpoints (prevents delivery worker from sending)
+  await tx
+    .update(endpoints)
+    .set({ disabled: true, disabledReason: 'app_deleted' })
+    .where(and(eq(endpoints.appId, app.id), eq(endpoints.orgId, orgId)));
 
   return c.json({ data: { id: app.id, deleted: true } });
+});
+
+/**
+ * POST /api/v1/app/:appId/restore — Restore a soft-deleted application
+ * Clears deleted_at and re-enables endpoints that were disabled by the delete.
+ */
+applicationRoutes.post('/:appId/restore', async (c) => {
+  const appId = c.req.param('appId');
+  const orgId = c.get('orgId');
+  const tx = c.get('tx');
+
+  // Find the soft-deleted app
+  const [app] = await tx
+    .select({
+      id: applications.id,
+      uid: applications.uid,
+      name: applications.name,
+    })
+    .from(applications)
+    .where(and(appCondition(appId), isNotNull(applications.deletedAt)))
+    .limit(1);
+
+  if (!app) {
+    return c.json({ error: { code: 'not_found', message: 'Deleted application not found' } }, 404);
+  }
+
+  // Restore the app
+  const [restored] = await tx
+    .update(applications)
+    .set({ deletedAt: null })
+    .where(eq(applications.id, app.id))
+    .returning({
+      id: applications.id,
+      uid: applications.uid,
+      name: applications.name,
+      createdAt: applications.createdAt,
+    });
+
+  // Re-enable endpoints that were disabled by the app soft-delete
+  await tx
+    .update(endpoints)
+    .set({ disabled: false, disabledReason: null, failureCount: 0 })
+    .where(
+      and(
+        eq(endpoints.appId, app.id),
+        eq(endpoints.orgId, orgId),
+        eq(endpoints.disabledReason, 'app_deleted'),
+      ),
+    );
+
+  return c.json({ data: restored });
 });

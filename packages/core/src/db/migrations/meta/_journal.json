@@ -15,6 +15,13 @@
       "when": 1773804554603,
       "tag": "0001_stormy_skaar",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773807612125,
+      "tag": "0002_silly_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

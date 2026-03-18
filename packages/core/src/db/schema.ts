@@ -88,9 +88,16 @@ export const applications = pgTable(
       .references(() => organizations.id),
     uid: text('uid'),
     name: text('name').notNull(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [uniqueIndex('applications_org_uid_idx').on(t.orgId, t.uid), tenantPolicy('applications')],
+  (t) => [
+    uniqueIndex('applications_org_uid_idx').on(t.orgId, t.uid),
+    index('idx_applications_active')
+      .on(t.orgId)
+      .where(sql`deleted_at IS NULL`),
+    tenantPolicy('applications'),
+  ],
 );
 
 // ─── Endpoints ──────────────────────────────────────────────────────────────

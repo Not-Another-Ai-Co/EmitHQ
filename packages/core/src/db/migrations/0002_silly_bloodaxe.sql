@@ -1,0 +1,2 @@
+ALTER TABLE "applications" ADD COLUMN "deleted_at" timestamp with time zone;--> statement-breakpoint
+CREATE INDEX "idx_applications_active" ON "applications" USING btree ("org_id") WHERE deleted_at IS NULL;

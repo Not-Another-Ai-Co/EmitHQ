@@ -52,7 +52,7 @@ async function resolveApp(tx: unknown, appId: string) {
   const [app] = await typedTx
     .select({ id: applications.id })
     .from(applications)
-    .where(condition)
+    .where(and(condition, isNull(applications.deletedAt)))
     .limit(1);
   return app ?? null;
 }

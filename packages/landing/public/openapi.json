@@ -512,6 +512,34 @@
         }
       }
     },
+    "/api/v1/app/{appId}/restore": {
+      "post": {
+        "operationId": "restoreApplication",
+        "summary": "Restore a soft-deleted application",
+        "description": "Clears the deleted_at timestamp and re-enables endpoints that were disabled by the delete.",
+        "tags": ["Applications"],
+        "parameters": [{ "$ref": "#/components/parameters/appId" }],
+        "responses": {
+          "200": {
+            "description": "Application restored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Application" } }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Deleted application not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/app/{appId}/endpoint": {
       "post": {
         "operationId": "createEndpoint",

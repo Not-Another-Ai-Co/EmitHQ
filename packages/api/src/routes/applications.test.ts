@@ -37,6 +37,13 @@ vi.mock('../middleware/tenant', () => ({
             returning: vi.fn().mockImplementation(() => Promise.resolve(mockInsertResult)),
           }),
         }),
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              returning: vi.fn().mockResolvedValue(mockSelectResult),
+            }),
+          }),
+        }),
       };
       c.set('tx', mockTx);
       await next();
@@ -128,13 +135,15 @@ describe('GET /api/v1/app', () => {
       },
     ];
 
-    // Re-wire tenantScope mock so tx.select().from() resolves directly
+    // Re-wire tenantScope mock so tx.select().from().where() resolves
     const { tenantScope } = await import('../middleware/tenant');
     vi.mocked(tenantScope).mockImplementationOnce(
       async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
         c.set('tx', {
           select: vi.fn().mockReturnValue({
-            from: vi.fn().mockResolvedValue(mockSelectResult),
+            from: vi.fn().mockReturnValue({
+              where: vi.fn().mockResolvedValue(mockSelectResult),
+            }),
           }),
         });
         await next();
@@ -158,7 +167,9 @@ describe('GET /api/v1/app', () => {
       async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
         c.set('tx', {
           select: vi.fn().mockReturnValue({
-            from: vi.fn().mockResolvedValue([]),
+            from: vi.fn().mockReturnValue({
+              where: vi.fn().mockResolvedValue([]),
+            }),
           }),
         });
         await next();

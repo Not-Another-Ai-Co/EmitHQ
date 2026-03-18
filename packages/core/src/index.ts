@@ -43,5 +43,5 @@ export {
 export type { BillingInterval, PaidTier, PriceIds } from './billing/stripe';
 
 // Workers
-export { deliverWebhook, startDeliveryWorker } from './workers/delivery-worker';
+export { deliverWebhook, startDeliveryWorker, purgeDeletedApps } from './workers/delivery-worker';
 export type { DeliveryResult } from './workers/delivery-worker';

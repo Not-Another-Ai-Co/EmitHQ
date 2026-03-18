@@ -552,7 +552,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-073: Settings Consolidation [x]
+### T-073: Settings Consolidation [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -575,7 +575,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-074: Soft Delete + Recovery
+### T-074: Soft Delete + Recovery [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
@@ -587,16 +587,16 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 **Acceptance criteria:**
 
-- [ ] `deleted_at TIMESTAMPTZ` column added to applications table (migration)
-- [ ] Partial index: `CREATE INDEX idx_applications_deleted ON applications(org_id) WHERE deleted_at IS NULL`
-- [ ] `DELETE /api/v1/app/:appId` sets `deleted_at = NOW()` and disables all endpoints
-- [ ] `GET /api/v1/app` filters `WHERE deleted_at IS NULL` by default
-- [ ] `GET /api/v1/app?deleted=true` returns only soft-deleted apps
-- [ ] `POST /api/v1/app/:appId/restore` clears `deleted_at` and re-enables endpoints
-- [ ] Settings > Danger Zone tab lists soft-deleted apps with Restore and Permanent Delete buttons
-- [ ] 5-second undo toast in dashboard after soft-delete
-- [ ] Confirmation dialog updated: "This app will be moved to trash. You can restore it within 30 days."
-- [ ] 30-day auto-purge: hard-delete apps where `deleted_at < NOW() - INTERVAL '30 days'`
+- [x] `deleted_at TIMESTAMPTZ` column added to applications table (migration)
+- [x] Partial index: `CREATE INDEX idx_applications_deleted ON applications(org_id) WHERE deleted_at IS NULL`
+- [x] `DELETE /api/v1/app/:appId` sets `deleted_at = NOW()` and disables all endpoints
+- [x] `GET /api/v1/app` filters `WHERE deleted_at IS NULL` by default
+- [x] `GET /api/v1/app?deleted=true` returns only soft-deleted apps
+- [x] `POST /api/v1/app/:appId/restore` clears `deleted_at` and re-enables endpoints
+- [x] Settings > Danger Zone tab lists soft-deleted apps with Restore and Permanent Delete buttons
+- [x] 5-second undo toast in dashboard after soft-delete
+- [x] Confirmation dialog updated: "This app will be moved to trash. You can restore it within 30 days."
+- [x] 30-day auto-purge: hard-delete apps where `deleted_at < NOW() - INTERVAL '30 days'`
 
 ---
 

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, and, or, desc, sql, gte, lte } from 'drizzle-orm';
+import { eq, and, or, desc, sql, gte, lte, isNull } from 'drizzle-orm';
 import { applications, messages, endpoints, deliveryAttempts } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
@@ -30,7 +30,7 @@ async function resolveApp(tx: unknown, appId: string) {
   const [app] = await typedTx
     .select({ id: applications.id })
     .from(applications)
-    .where(condition)
+    .where(and(condition, isNull(applications.deletedAt)))
     .limit(1);
   return app ?? null;
 }

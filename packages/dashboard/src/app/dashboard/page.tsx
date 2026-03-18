@@ -24,6 +24,7 @@ export default function AppsLandingPage() {
   const [creating, setCreating] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [undoToast, setUndoToast] = useState<{ appId: string; appName: string } | null>(null);
   const apiFetch = useApiFetch();
   const router = useRouter();
 
@@ -80,6 +81,7 @@ export default function AppsLandingPage() {
   async function handleDelete(appId: string) {
     setDeleting(true);
     setError(null);
+    const deletedApp = apps.find((a) => a.id === appId);
     try {
       const res = await apiFetch(`/api/v1/app/${appId}`, { method: 'DELETE' });
       if (!res.ok) {
@@ -88,10 +90,28 @@ export default function AppsLandingPage() {
       }
       setDeleteConfirm(null);
       await fetchApps();
+      // Show undo toast for 5 seconds
+      if (deletedApp) {
+        setUndoToast({ appId: deletedApp.id, appName: deletedApp.name });
+        setTimeout(() => setUndoToast(null), 5000);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete application');
     } finally {
       setDeleting(false);
+    }
+  }
+
+  async function handleUndo() {
+    if (!undoToast) return;
+    try {
+      const res = await apiFetch(`/api/v1/app/${undoToast.appId}/restore`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to restore');
+      setUndoToast(null);
+      await fetchApps();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to undo delete');
+      setUndoToast(null);
     }
   }
 
@@ -212,8 +232,8 @@ export default function AppsLandingPage() {
               {deleteConfirm === app.id ? (
                 <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
                   <p className="text-xs text-red-400">
-                    This will permanently delete this app and all its endpoints, messages, and
-                    delivery data. This cannot be reversed.
+                    This app will be moved to trash. You can restore it within 30 days from Settings
+                    &gt; Danger Zone.
                   </p>
                   <div className="mt-2 flex gap-2">
                     <button
@@ -244,6 +264,23 @@ export default function AppsLandingPage() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Undo toast */}
+      {undoToast && (
+        <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-3 shadow-lg">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-[var(--color-text-muted)]">
+              &ldquo;{undoToast.appName}&rdquo; deleted
+            </span>
+            <button
+              onClick={handleUndo}
+              className="font-medium text-[var(--color-accent)] hover:text-[var(--color-accent)]/80"
+            >
+              Undo
+            </button>
+          </div>
         </div>
       )}
     </div>

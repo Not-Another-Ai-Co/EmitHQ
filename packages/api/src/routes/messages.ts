@@ -122,7 +122,7 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
   const [app] = await tx
     .select({ id: applications.id })
     .from(applications)
-    .where(appCondition)
+    .where(and(appCondition, isNull(applications.deletedAt)))
     .limit(1);
 
   if (!app) {

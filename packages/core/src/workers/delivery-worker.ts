@@ -1,8 +1,8 @@
 import { Worker, UnrecoverableError } from 'bullmq';
-import { eq } from 'drizzle-orm';
+import { eq, and, lt, isNotNull, inArray } from 'drizzle-orm';
 import { createRedisConnection } from '../queue/redis';
 import { adminDb } from '../db/client';
-import { messages, endpoints, deliveryAttempts } from '../db/schema';
+import { applications, messages, endpoints, deliveryAttempts } from '../db/schema';
 import { buildWebhookHeaders } from '../signing/webhook-signer';
 import {
   webhookBackoffStrategy,
@@ -232,6 +232,40 @@ async function handleExhaustedDelivery(data: DeliveryJobData): Promise<void> {
  * Create and start the BullMQ delivery worker.
  * Call this from the Railway worker entry point.
  */
+/**
+ * Hard-delete applications that were soft-deleted more than 30 days ago.
+ * Cascade: delivery_attempts → endpoints → messages → application.
+ * Uses adminDb (BYPASSRLS) for cross-tenant cleanup.
+ */
+export async function purgeDeletedApps(): Promise<number> {
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const expired = await adminDb
+    .select({ id: applications.id, orgId: applications.orgId })
+    .from(applications)
+    .where(and(isNotNull(applications.deletedAt), lt(applications.deletedAt, cutoff)));
+
+  if (expired.length === 0) return 0;
+
+  for (const app of expired) {
+    // Cascade hard-delete: delivery_attempts → endpoints → messages → app
+    const appMsgs = adminDb
+      .select({ id: messages.id })
+      .from(messages)
+      .where(and(eq(messages.appId, app.id), eq(messages.orgId, app.orgId)));
+    await adminDb.delete(deliveryAttempts).where(inArray(deliveryAttempts.messageId, appMsgs));
+    await adminDb
+      .delete(endpoints)
+      .where(and(eq(endpoints.appId, app.id), eq(endpoints.orgId, app.orgId)));
+    await adminDb
+      .delete(messages)
+      .where(and(eq(messages.appId, app.id), eq(messages.orgId, app.orgId)));
+    await adminDb.delete(applications).where(eq(applications.id, app.id));
+  }
+
+  return expired.length;
+}
+
 export function startDeliveryWorker(): Worker<DeliveryJobData> {
   const worker = new Worker<DeliveryJobData>(
     'webhook-delivery',
