@@ -614,6 +614,25 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
+### T-083: App Switcher, Docs Link & Quick-Start Docs Page [x]
+
+**Phase:** 8e
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-080
+**Research:** none
+
+**Description:** Add app switcher dropdown in top bar for quick context switching, add Docs link in nav bar, and create a comprehensive quick-start docs page on the landing site that explains how to use the product.
+
+**Acceptance criteria:**
+
+- [x] App switcher dropdown in top bar: click app name → dropdown of all apps with active highlight, "View all apps" link, click-outside-to-close
+- [x] "Docs" link in top bar (BookOpen icon), left of Settings gear, links to emithq.com/docs (external, new tab)
+- [x] Landing site `/docs` page: comprehensive guide with 5-step quick start (signup, app, endpoint, send, check), API key management (create/rotate/revoke), retries & DLQ table, webhook verification, billing & quotas
+- [x] Docs page is static, SEO-friendly, uses landing site CSS variables and styling patterns
+
+---
+
 ### T-082: Promote T-065 Abuse Prevention Pre-Launch
 
 **Phase:** 8e
