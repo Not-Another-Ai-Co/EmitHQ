@@ -11,7 +11,8 @@ export type AnalyticsEventName =
   | 'endpoint.created'
   | 'quota.warning_80pct'
   | 'quota.limit_reached'
-  | 'api_key.created';
+  | 'api_key.created'
+  | 'api_key.rotated';
 
 /**
  * Track a product analytics event. Fire-and-forget — never blocks the request.
