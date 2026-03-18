@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useApiFetch } from '@/lib/use-api';
 
-export interface App {
+interface App {
   id: string;
   uid: string | null;
   name: string;
