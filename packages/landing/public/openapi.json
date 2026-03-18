@@ -1,0 +1,1304 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EmitHQ API",
+    "version": "1.0.0",
+    "description": "Webhook infrastructure API for sending, receiving, and managing webhooks. Full API-only onboarding — create an account, get an API key, and start sending webhooks without a browser.",
+    "contact": { "email": "support@emithq.com", "url": "https://emithq.com" },
+    "license": {
+      "name": "AGPL-3.0",
+      "url": "https://github.com/Not-Another-Ai-Co/EmitHQ/blob/master/LICENSE"
+    },
+    "x-maintenance": "Hand-written spec. CI checks for route drift via scripts/check-openapi-drift.sh. Update this file when adding or changing API endpoints."
+  },
+  "servers": [
+    { "url": "https://api.emithq.com", "description": "Production" },
+    { "url": "http://localhost:4000", "description": "Local development" }
+  ],
+  "security": [{ "BearerAuth": [] }],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API key (emhq_ prefix) or Clerk JWT. Pass as: Authorization: Bearer emhq_your_key"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": ["code", "message"],
+            "properties": {
+              "code": { "type": "string", "example": "validation_error" },
+              "message": { "type": "string", "example": "name is required" }
+            }
+          }
+        }
+      },
+      "PaginatedResponse": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": {} },
+          "iterator": {
+            "type": "string",
+            "nullable": true,
+            "description": "Opaque cursor for next page"
+          },
+          "done": { "type": "boolean", "description": "True if no more pages" }
+        }
+      },
+      "Application": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "uid": { "type": "string", "nullable": true },
+          "name": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Endpoint": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "uid": { "type": "string", "nullable": true },
+          "url": { "type": "string", "format": "uri" },
+          "description": { "type": "string", "nullable": true },
+          "signingSecret": {
+            "type": "string",
+            "description": "Full on create, masked on read (whsec_12345678...)"
+          },
+          "eventTypeFilter": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "disabled": { "type": "boolean" },
+          "failureCount": { "type": "integer" },
+          "rateLimit": { "type": "integer", "nullable": true },
+          "transformRules": { "type": "array", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "eventType": { "type": "string" },
+          "eventId": { "type": "string", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "DeliveryAttempt": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "endpointId": { "type": "string", "format": "uuid" },
+          "attemptNumber": { "type": "integer" },
+          "status": { "type": "string", "enum": ["pending", "delivered", "failed", "exhausted"] },
+          "responseStatus": { "type": "integer", "nullable": true },
+          "responseBody": { "type": "string", "nullable": true },
+          "responseTimeMs": { "type": "integer", "nullable": true },
+          "errorMessage": { "type": "string", "nullable": true },
+          "nextAttemptAt": { "type": "string", "format": "date-time", "nullable": true },
+          "attemptedAt": { "type": "string", "format": "date-time", "nullable": true },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "QuotaExceededError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": { "type": "string", "example": "quota_exceeded" },
+              "message": { "type": "string" },
+              "quota": {
+                "type": "object",
+                "properties": {
+                  "limit": { "type": "integer" },
+                  "used": { "type": "integer" },
+                  "reset_at": { "type": "string", "format": "date-time" },
+                  "tier": { "type": "string" }
+                }
+              },
+              "action": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "example": "upgrade" },
+                  "url": { "type": "string" },
+                  "tiers": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "price": { "type": "integer" },
+                        "limit": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "appId": {
+        "name": "appId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" },
+        "description": "Application UUID or user-defined uid"
+      },
+      "epId": {
+        "name": "epId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string" },
+        "description": "Endpoint UUID or user-defined uid"
+      },
+      "msgId": {
+        "name": "msgId",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "format": "uuid" }
+      },
+      "limit": {
+        "name": "limit",
+        "in": "query",
+        "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+      },
+      "cursor": {
+        "name": "cursor",
+        "in": "query",
+        "schema": { "type": "string" },
+        "description": "Opaque pagination cursor from previous response iterator field"
+      }
+    },
+    "headers": {
+      "X-EmitHQ-Quota-Limit": {
+        "schema": { "type": "integer" },
+        "description": "Monthly event limit for your tier"
+      },
+      "X-EmitHQ-Quota-Used": {
+        "schema": { "type": "integer" },
+        "description": "Events used this billing period"
+      },
+      "X-EmitHQ-Quota-Remaining": {
+        "schema": { "type": "integer" },
+        "description": "Events remaining (floors at 0)"
+      },
+      "X-EmitHQ-Quota-Reset": {
+        "schema": { "type": "string", "format": "date-time" },
+        "description": "When the quota resets (ISO 8601)"
+      },
+      "X-EmitHQ-Tier": {
+        "schema": { "type": "string" },
+        "description": "Current tier: free, starter, growth, or scale"
+      },
+      "X-EmitHQ-Quota-Warning": {
+        "schema": { "type": "string", "enum": ["approaching_limit", "critical_limit"] },
+        "description": "Set at 80% (approaching_limit) and 95% (critical_limit) usage"
+      },
+      "X-EmitHQ-Upgrade-URL": {
+        "schema": { "type": "string" },
+        "description": "URL to upgrade when quota warning is active"
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/signup": {
+      "post": {
+        "operationId": "signup",
+        "summary": "Create account (LLM-automatable)",
+        "description": "Create a new account, organization, and API key in one request. No browser required. Returns the API key exactly once.",
+        "tags": ["Account"],
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "minLength": 8 },
+                  "orgName": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "description": "Defaults to '{email_prefix}'s org'"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "orgId": { "type": "string", "format": "uuid" },
+                        "apiKey": {
+                          "type": "string",
+                          "description": "emhq_ prefixed key — shown once, never again"
+                        },
+                        "userId": { "type": "string" },
+                        "tier": { "type": "string", "example": "free" },
+                        "eventLimit": { "type": "integer", "example": 100000 },
+                        "credential_storage_hint": {
+                          "type": "object",
+                          "properties": {
+                            "env_var": { "type": "string", "example": "EMITHQ_API_KEY" },
+                            "1password": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "409": {
+            "description": "Email already exists",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "429": {
+            "description": "Rate limited (3 signups per IP per day)",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/keys": {
+      "post": {
+        "operationId": "createApiKey",
+        "summary": "Create API key",
+        "description": "Generate a new API key. Returns plaintext exactly once.",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": { "name": { "type": "string" } }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Key created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "key": { "type": "string" },
+                        "name": { "type": "string" },
+                        "createdAt": { "type": "string", "format": "date-time" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listApiKeys",
+        "summary": "List API keys",
+        "tags": ["Authentication"],
+        "responses": {
+          "200": {
+            "description": "Key list (metadata only, no hashes)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string", "format": "uuid" },
+                          "name": { "type": "string" },
+                          "lastUsedAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "expiresAt": {
+                            "type": "string",
+                            "format": "date-time",
+                            "nullable": true
+                          },
+                          "createdAt": { "type": "string", "format": "date-time" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/keys/{keyId}": {
+      "delete": {
+        "operationId": "revokeApiKey",
+        "summary": "Revoke API key",
+        "tags": ["Authentication"],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "revoked": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app": {
+      "post": {
+        "operationId": "createApplication",
+        "summary": "Create application",
+        "tags": ["Applications"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "uid": { "type": "string", "description": "Optional user-defined ID" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Application created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Application" } }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listApplications",
+        "summary": "List applications",
+        "tags": ["Applications"],
+        "responses": {
+          "200": {
+            "description": "Application list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Application" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}": {
+      "get": {
+        "operationId": "getApplication",
+        "summary": "Get application",
+        "tags": ["Applications"],
+        "parameters": [{ "$ref": "#/components/parameters/appId" }],
+        "responses": {
+          "200": {
+            "description": "Application details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Application" } }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/endpoint": {
+      "post": {
+        "operationId": "createEndpoint",
+        "summary": "Create endpoint",
+        "tags": ["Endpoints"],
+        "parameters": [{ "$ref": "#/components/parameters/appId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["url"],
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "description": { "type": "string" },
+                  "uid": { "type": "string" },
+                  "eventTypeFilter": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "nullable": true
+                  },
+                  "rateLimit": { "type": "integer" },
+                  "transformRules": { "type": "array", "nullable": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Endpoint created (signing secret shown once)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Endpoint" } }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "Application not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listEndpoints",
+        "summary": "List endpoints",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoint list (paginated)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Endpoint" }
+                    },
+                    "iterator": { "type": "string", "nullable": true },
+                    "done": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/endpoint/{epId}": {
+      "get": {
+        "operationId": "getEndpoint",
+        "summary": "Get endpoint",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/epId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Endpoint details (signing secret masked)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Endpoint" } }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateEndpoint",
+        "summary": "Update endpoint",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/epId" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": { "type": "string", "format": "uri" },
+                  "description": { "type": "string" },
+                  "uid": { "type": "string" },
+                  "eventTypeFilter": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "nullable": true
+                  },
+                  "rateLimit": { "type": "integer", "nullable": true },
+                  "disabled": { "type": "boolean" },
+                  "transformRules": { "type": "array", "nullable": true }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Endpoint" } }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteEndpoint",
+        "summary": "Delete endpoint (soft-delete)",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/epId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "deleted": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/endpoint/{epId}/test": {
+      "post": {
+        "operationId": "testEndpoint",
+        "summary": "Send test webhook to endpoint",
+        "tags": ["Endpoints"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/epId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Test result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "success": { "type": "boolean" },
+                        "statusCode": { "type": "integer" },
+                        "responseTimeMs": { "type": "integer" },
+                        "error": { "type": "string", "nullable": true }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/msg": {
+      "post": {
+        "operationId": "sendEvent",
+        "summary": "Send webhook event",
+        "description": "Send a webhook event to all matching endpoints. Returns 202 immediately; delivery is async.",
+        "tags": ["Messages"],
+        "parameters": [{ "$ref": "#/components/parameters/appId" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["eventType"],
+                "properties": {
+                  "eventType": { "type": "string", "maxLength": 256 },
+                  "eventId": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "description": "Idempotency key — duplicate eventId returns 200 with existing message"
+                  },
+                  "payload": { "type": "object", "description": "Max 256KB" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Event accepted for delivery",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": { "data": { "$ref": "#/components/schemas/Message" } }
+                }
+              }
+            }
+          },
+          "200": { "description": "Duplicate eventId — existing message returned" },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "413": {
+            "description": "Payload too large",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "429": {
+            "description": "Quota exceeded",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QuotaExceededError" }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listMessages",
+        "summary": "List messages",
+        "tags": ["Messages"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" },
+          { "name": "eventType", "in": "query", "schema": { "type": "string" } },
+          { "name": "since", "in": "query", "schema": { "type": "string", "format": "date-time" } },
+          { "name": "until", "in": "query", "schema": { "type": "string", "format": "date-time" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message list (paginated)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Message" }
+                    },
+                    "iterator": { "type": "string", "nullable": true },
+                    "done": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/msg/{msgId}": {
+      "get": {
+        "operationId": "getMessage",
+        "summary": "Get message with delivery attempts",
+        "tags": ["Messages"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/msgId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message with attempts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "eventType": { "type": "string" },
+                        "eventId": { "type": "string", "nullable": true },
+                        "payload": { "type": "object" },
+                        "createdAt": { "type": "string", "format": "date-time" },
+                        "attempts": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/DeliveryAttempt" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/msg/{msgId}/retry": {
+      "post": {
+        "operationId": "replayMessage",
+        "summary": "Retry all failed deliveries for a message",
+        "tags": ["Replay"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/msgId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "replayed": { "type": "integer" },
+                        "attempts": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "attemptId": { "type": "string", "format": "uuid" },
+                              "jobId": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No retryable attempts",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/msg/{msgId}/attempt/{attemptId}/retry": {
+      "post": {
+        "operationId": "replayAttempt",
+        "summary": "Retry a specific delivery attempt",
+        "tags": ["Replay"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/msgId" },
+          {
+            "name": "attemptId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Replayed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "attemptId": { "type": "string", "format": "uuid" },
+                        "jobId": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not retryable",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/msg/{msgId}/attempt": {
+      "get": {
+        "operationId": "listAttempts",
+        "summary": "List delivery attempts for a message",
+        "tags": ["Messages"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/msgId" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Attempt list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/DeliveryAttempt" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/stats": {
+      "get": {
+        "operationId": "getAppStats",
+        "summary": "Get application statistics (24h rolling)",
+        "tags": ["Dashboard"],
+        "parameters": [{ "$ref": "#/components/parameters/appId" }],
+        "responses": {
+          "200": {
+            "description": "Stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "eventsToday": { "type": "integer" },
+                        "successRate": { "type": "number" },
+                        "activeEndpoints": { "type": "integer" },
+                        "pendingRetries": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/dlq": {
+      "get": {
+        "operationId": "listDlq",
+        "summary": "List dead-letter queue entries",
+        "tags": ["Dashboard"],
+        "parameters": [
+          { "$ref": "#/components/parameters/appId" },
+          { "$ref": "#/components/parameters/limit" },
+          { "$ref": "#/components/parameters/cursor" }
+        ],
+        "responses": {
+          "200": {
+            "description": "DLQ entries (paginated)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/DeliveryAttempt" }
+                    },
+                    "iterator": { "type": "string", "nullable": true },
+                    "done": { "type": "boolean" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/app/{appId}/endpoint-health": {
+      "get": {
+        "operationId": "getEndpointHealth",
+        "summary": "Get health stats for all endpoints",
+        "tags": ["Dashboard"],
+        "parameters": [{ "$ref": "#/components/parameters/appId" }],
+        "responses": {
+          "200": { "description": "Endpoint health data" }
+        }
+      }
+    },
+    "/api/v1/transform/preview": {
+      "post": {
+        "operationId": "previewTransform",
+        "summary": "Preview payload transformation",
+        "tags": ["Transform"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["payload", "rules"],
+                "properties": {
+                  "payload": { "type": "object" },
+                  "rules": { "type": "array", "items": { "type": "object" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transform result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "input": { "type": "object" },
+                        "output": { "type": "object" },
+                        "appliedRules": { "type": "integer" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/subscription": {
+      "get": {
+        "operationId": "getSubscription",
+        "summary": "Get current subscription and usage",
+        "tags": ["Billing"],
+        "responses": {
+          "200": {
+            "description": "Subscription details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tier": { "type": "string" },
+                        "subscriptionStatus": { "type": "string" },
+                        "currentPeriodEnd": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        },
+                        "usage": {
+                          "type": "object",
+                          "properties": {
+                            "current": { "type": "integer" },
+                            "limit": { "type": "integer" },
+                            "percentage": { "type": "integer" }
+                          }
+                        },
+                        "hasStripeCustomer": { "type": "boolean" },
+                        "hasSubscription": { "type": "boolean" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/checkout": {
+      "post": {
+        "operationId": "createCheckout",
+        "summary": "Create Stripe checkout session",
+        "tags": ["Billing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tier"],
+                "properties": {
+                  "tier": { "type": "string", "enum": ["starter", "growth", "scale"] },
+                  "interval": {
+                    "type": "string",
+                    "enum": ["monthly", "annual"],
+                    "default": "monthly"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checkout URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": { "url": { "type": "string", "format": "uri" } }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid tier",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "409": {
+            "description": "Active subscription exists",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/billing/portal": {
+      "post": {
+        "operationId": "createPortalSession",
+        "summary": "Create Stripe customer portal session",
+        "description": "Returns a URL to the Stripe customer portal for subscription management.",
+        "tags": ["Billing"],
+        "responses": {
+          "200": {
+            "description": "Portal URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": { "url": { "type": "string", "format": "uri" } }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "412": {
+            "description": "No Stripe customer (never subscribed)",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    { "name": "Account", "description": "Account creation and signup" },
+    { "name": "Authentication", "description": "API key management" },
+    { "name": "Applications", "description": "Application CRUD" },
+    { "name": "Endpoints", "description": "Webhook endpoint management" },
+    { "name": "Messages", "description": "Send and query webhook events" },
+    { "name": "Replay", "description": "Retry failed deliveries" },
+    { "name": "Dashboard", "description": "Stats, health, and DLQ" },
+    { "name": "Transform", "description": "Payload transformation preview" },
+    { "name": "Billing", "description": "Subscription and billing management" }
+  ]
+}

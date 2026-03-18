@@ -538,7 +538,7 @@ _Make EmitHQ fully operable by LLM agents. No browser required from signup to fi
 
 ---
 
-### T-063: API-Only Signup Endpoint + Quota Headers [x]
+### T-063: API-Only Signup Endpoint + Quota Headers [x] [verified with notes]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
@@ -564,7 +564,7 @@ _Make EmitHQ fully operable by LLM agents. No browser required from signup to fi
 
 ---
 
-### T-064: OpenAPI Spec + Machine-Readable Docs + llm.txt
+### T-064: OpenAPI Spec + Machine-Readable Docs + llm.txt [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium

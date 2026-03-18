@@ -12,6 +12,21 @@ export default function DocsPage() {
       <div className="mx-auto max-w-4xl px-4 sm:px-6">
         <h1 className="mb-8 text-3xl font-bold">Documentation</h1>
 
+        <div className="mb-4 flex flex-wrap gap-4 text-sm">
+          <a
+            href="/openapi.json"
+            className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+          >
+            OpenAPI Spec (JSON)
+          </a>
+          <a
+            href="/llm.txt"
+            className="rounded-lg border border-[var(--color-border)] px-4 py-2 text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+          >
+            llm.txt
+          </a>
+        </div>
+
         <div className="grid gap-6 sm:grid-cols-2">
           <Link
             href="/docs/api"
@@ -19,7 +34,7 @@ export default function DocsPage() {
           >
             <h2 className="mb-2 text-lg font-semibold">API Reference</h2>
             <p className="text-sm text-[var(--color-text-muted)]">
-              Complete REST API documentation with request/response examples for all 19 endpoints.
+              Complete REST API documentation with request/response examples for all 24+ endpoints.
             </p>
           </Link>
           <Link

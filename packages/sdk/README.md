@@ -51,6 +51,9 @@ await emithq.updateEndpoint('app_123', 'ep_id', { disabled: false });
 const result = await emithq.testEndpoint('app_123', 'ep_id');
 console.log(`Test delivery: ${result.success ? 'OK' : result.errorMessage}`);
 
+// Get a specific endpoint
+const ep = await emithq.getEndpoint('app_123', 'ep_id');
+
 // Delete (soft-delete) an endpoint
 await emithq.deleteEndpoint('app_123', 'ep_id');
 ```
@@ -92,7 +95,15 @@ const isValid = await verifyWebhook(
 All errors are typed:
 
 ```typescript
-import { EmitHQ, AuthError, ValidationError, RateLimitError, NotFoundError } from '@emithq/sdk';
+import {
+  EmitHQ,
+  AuthError,
+  ForbiddenError,
+  ValidationError,
+  NotFoundError,
+  RateLimitError,
+  PayloadTooLargeError,
+} from '@emithq/sdk';
 
 try {
   await emithq.sendEvent('app_123', { eventType: 'test' });
@@ -111,7 +122,7 @@ try {
 
 ## Automatic Retries
 
-The SDK automatically retries on transient failures (5xx, network errors) with exponential backoff. Non-retriable errors (400, 401, 403, 404) fail immediately.
+The SDK automatically retries on transient failures (5xx, 408, 429, network errors) with exponential backoff. Non-retriable errors (400, 401, 403, 404, 410) fail immediately.
 
 ```typescript
 const emithq = new EmitHQ('emhq_key', {

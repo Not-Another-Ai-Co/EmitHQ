@@ -35,5 +35,8 @@ jobs:
       - name: Duplication check (jscpd)
         run: npm run duplication
 
+      - name: OpenAPI drift check
+        run: bash scripts/check-openapi-drift.sh
+
       - name: Test
         run: npm test

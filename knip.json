@@ -12,6 +12,6 @@
       "ignoreDependencies": ["postcss", "postcss-load-config"]
     }
   },
-  "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**"],
+  "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**", "scripts/**"],
   "ignoreDependencies": ["tsx", "@eslint/js", "@vitest/coverage-v8"]
 }

@@ -1,0 +1,60 @@
+{
+  "name": "EmitHQ",
+  "description": "Open-source webhook infrastructure platform. Send and receive webhooks with Standard Webhooks signing, automatic retries, dead-letter queues, and a real-time dashboard.",
+  "url": "https://emithq.com",
+  "api": {
+    "type": "openapi",
+    "url": "https://emithq.com/openapi.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "description": "API key with emhq_ prefix. Obtain via POST /api/v1/signup (no browser required) or the dashboard."
+  },
+  "capabilities": [
+    {
+      "name": "signup",
+      "description": "Create an account, organization, and API key in one request. No browser required.",
+      "endpoint": "POST /api/v1/signup"
+    },
+    {
+      "name": "send_webhook",
+      "description": "Send a webhook event to all matching endpoints for an application.",
+      "endpoint": "POST /api/v1/app/{appId}/msg"
+    },
+    {
+      "name": "manage_endpoints",
+      "description": "Create, list, update, delete, and test webhook delivery endpoints.",
+      "endpoint": "/api/v1/app/{appId}/endpoint"
+    },
+    {
+      "name": "manage_applications",
+      "description": "Create and list applications (logical groupings of endpoints).",
+      "endpoint": "/api/v1/app"
+    },
+    {
+      "name": "replay_deliveries",
+      "description": "Retry failed or exhausted webhook deliveries.",
+      "endpoint": "POST /api/v1/app/{appId}/msg/{msgId}/retry"
+    },
+    {
+      "name": "check_quota",
+      "description": "Every API response includes X-EmitHQ-Quota-* headers showing current usage and limits.",
+      "endpoint": "Any authenticated endpoint"
+    },
+    {
+      "name": "manage_billing",
+      "description": "View subscription, create checkout sessions, access Stripe customer portal.",
+      "endpoint": "/api/v1/billing"
+    }
+  ],
+  "pricing": {
+    "free_tier": { "events_per_month": 100000, "price": 0 },
+    "paid_tiers": [
+      { "name": "starter", "events_per_month": 500000, "price_usd": 49 },
+      { "name": "growth", "events_per_month": 2000000, "price_usd": 149 },
+      { "name": "scale", "events_per_month": 10000000, "price_usd": 349 }
+    ]
+  },
+  "llm_txt": "https://emithq.com/llm.txt",
+  "contact": "support@emithq.com"
+}

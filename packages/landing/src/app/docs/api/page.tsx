@@ -7,6 +7,22 @@ export const metadata: Metadata = {
 
 const SECTIONS = [
   {
+    title: 'Signup (LLM-Automatable)',
+    description:
+      'Create an account, organization, and API key in one request. No browser required.',
+    endpoints: [
+      {
+        method: 'POST',
+        path: '/api/v1/signup',
+        description: 'Create account. Returns orgId + apiKey (shown once). Rate limited: 3/IP/day.',
+        body: '{ "email": "you@co.com", "password": "securepass", "orgName": "Acme" }',
+        response:
+          '{ "data": { "orgId": "uuid", "apiKey": "emhq_...", "userId": "...", "tier": "free", "eventLimit": 100000 } }',
+        status: 201,
+      },
+    ],
+  },
+  {
     title: 'Authentication',
     description: 'All API requests require a Bearer token. Use your emhq_ API key.',
     endpoints: [
@@ -174,6 +190,64 @@ const SECTIONS = [
         description: 'Preview a transformation rule against a sample payload.',
         body: '{ "payload": { ... }, "rules": [{ "sourcePath": "$.data.email", "targetField": "email" }] }',
         response: '{ "data": { "original": { ... }, "transformed": { "email": "..." } } }',
+        status: 200,
+      },
+    ],
+  },
+  {
+    title: 'Applications',
+    description:
+      'CRUD for applications — logical groupings of endpoints (usually one per customer).',
+    endpoints: [
+      {
+        method: 'POST',
+        path: '/api/v1/app',
+        description: 'Create an application.',
+        body: '{ "name": "my-app", "uid": "optional-custom-id" }',
+        response: '{ "data": { "id": "uuid", "uid": "...", "name": "my-app" } }',
+        status: 201,
+      },
+      {
+        method: 'GET',
+        path: '/api/v1/app',
+        description: 'List all applications.',
+        response: '{ "data": [{ "id": "...", "name": "...", "createdAt": "..." }] }',
+        status: 200,
+      },
+      {
+        method: 'GET',
+        path: '/api/v1/app/:appId',
+        description: 'Get a single application by UUID or uid.',
+        response: '{ "data": { "id": "...", "name": "...", "createdAt": "..." } }',
+        status: 200,
+      },
+    ],
+  },
+  {
+    title: 'Billing',
+    description: 'Subscription management and Stripe integration.',
+    endpoints: [
+      {
+        method: 'GET',
+        path: '/api/v1/billing/subscription',
+        description: 'Get current plan, usage, and billing status.',
+        response:
+          '{ "data": { "tier": "free", "usage": { "current": 50000, "limit": 100000, "percentage": 50 } } }',
+        status: 200,
+      },
+      {
+        method: 'POST',
+        path: '/api/v1/billing/checkout',
+        description: 'Create a Stripe Checkout session to upgrade.',
+        body: '{ "tier": "starter", "interval": "monthly" }',
+        response: '{ "data": { "url": "https://checkout.stripe.com/..." } }',
+        status: 200,
+      },
+      {
+        method: 'POST',
+        path: '/api/v1/billing/portal',
+        description: 'Create a Stripe Customer Portal session for subscription management.',
+        response: '{ "data": { "url": "https://billing.stripe.com/..." } }',
         status: 200,
       },
     ],
