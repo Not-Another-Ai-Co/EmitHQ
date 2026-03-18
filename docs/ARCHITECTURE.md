@@ -137,6 +137,8 @@ Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Cler
 
 **Onboarding (T-072):** `POST /api/v1/onboarding/dismiss` + `GET /api/v1/onboarding/status`. Dual persistence: localStorage (instant) + server (`onboarding_completed_at` on organizations). Auto-dismisses when all 4 steps complete.
 
+**State management (T-075):** `AppsProvider` React Context wraps dashboard layout. `useApps()` hook provides shared `{ apps, loading, refetch, removeApp, addApp }`. Landing page and sidebar both consume from context — mutations update immediately, eliminating stale data across components.
+
 **Shared components:** `Modal` (overlay with Escape/backdrop close), `GettingStartedCard`, `StatusBadge`, `StatCard`. No UI library — all custom with CSS variables.
 
 ## Landing & Docs Site (T-020, T-064)

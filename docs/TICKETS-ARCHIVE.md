@@ -204,4 +204,6 @@ _Playwright + @clerk/testing: browser journey (8-step flow), API-only journey (L
 
 ### T-074: Soft Delete + Recovery [x] [verified] [audited]
 
-_Full dashboard UX restructure: path-based app routing (`/dashboard/app/[appId]/*`), two-state sidebar, app card grid landing with per-app stats, inline onboarding with server-side flag, consolidated settings tabs (API Keys/Billing/Profile/Danger Zone), soft-delete with 30-day recovery + auto-purge. Research: `docs/research/dashboard-ux-restructure.md`. Decisions: DEC-028._
+### T-075: Stale App Cache Fix [x] [verified] [audited]
+
+_Full dashboard UX restructure: path-based app routing (`/dashboard/app/[appId]/*`), two-state sidebar, app card grid landing with per-app stats, inline onboarding with server-side flag, consolidated settings tabs (API Keys/Billing/Profile/Danger Zone), soft-delete with 30-day recovery + auto-purge, shared React Context for app state. Research: `docs/research/dashboard-ux-restructure.md`. Decisions: DEC-028._

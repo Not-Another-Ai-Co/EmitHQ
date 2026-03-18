@@ -457,27 +457,6 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-075: Stale App Cache Fix [x]
-
-**Phase:** 8a (Show HN blocker)
-**Effort:** Low
-**Complexity:** Simple
-**Depends on:** T-070
-**Research:** docs/research/dashboard-ux-restructure.md
-
-**Description:** Replace per-component `useState` app lists with a shared React Context. All components that need the app list consume from `useApps()`. Mutations (create, delete, restore) update context immediately, eliminating stale data in the sidebar.
-
-**Acceptance criteria:**
-
-- [x] `AppsProvider` React Context wrapping dashboard layout
-- [x] `useApps()` hook: `{ apps, loading, refetch, removeApp, addApp }`
-- [x] App listing page consumes from `useApps()` instead of local fetch
-- [x] Sidebar app name (in app-context mode) reads from context
-- [x] Create/delete/restore operations update context immediately
-- [x] No stale apps visible anywhere after mutation
-
----
-
 ### T-069: Frontend-Backend Integration Hardening
 
 **Phase:** 10 (post-launch)
