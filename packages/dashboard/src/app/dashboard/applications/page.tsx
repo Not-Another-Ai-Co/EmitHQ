@@ -19,6 +19,8 @@ export default function ApplicationsPage() {
   const [createName, setCreateName] = useState('');
   const [createUid, setCreateUid] = useState('');
   const [creating, setCreating] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const apiFetch = useApiFetch();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -72,6 +74,28 @@ export default function ApplicationsPage() {
   function selectApp(app: App) {
     const appParam = app.uid ?? app.id;
     router.push(`/dashboard?app=${encodeURIComponent(appParam)}`);
+  }
+
+  async function handleDelete(appId: string) {
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/v1/app/${appId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json?.error?.message ?? `Error ${res.status}`);
+      }
+      setDeleteConfirm(null);
+      // If we deleted the active app, clear the app param
+      if (appId === currentAppId) {
+        router.push('/dashboard/applications');
+      }
+      await fetchApps();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete application');
+    } finally {
+      setDeleting(false);
+    }
   }
 
   if (loading) {
@@ -167,28 +191,62 @@ export default function ApplicationsPage() {
           {apps.map((app) => {
             const isActive = app.uid === currentAppId || app.id === currentAppId;
             return (
-              <button
+              <div
                 key={app.id}
-                onClick={() => selectApp(app)}
-                className={`rounded-xl border p-5 text-left transition-colors ${
+                className={`rounded-xl border p-5 transition-colors ${
                   isActive
                     ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/5'
                     : 'border-[var(--color-border)] bg-[var(--color-surface)] hover:border-[var(--color-accent)]/30'
                 }`}
               >
-                <h3 className="font-semibold">{app.name}</h3>
-                {app.uid && (
-                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">uid: {app.uid}</p>
+                <button onClick={() => selectApp(app)} className="w-full text-left">
+                  <h3 className="font-semibold">{app.name}</h3>
+                  {app.uid && (
+                    <p className="mt-1 text-xs text-[var(--color-text-muted)]">uid: {app.uid}</p>
+                  )}
+                  <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+                    Created {new Date(app.createdAt).toLocaleDateString()}
+                  </p>
+                  {isActive && (
+                    <span className="mt-2 inline-block rounded-full bg-[var(--color-accent)]/10 px-2 py-0.5 text-xs text-[var(--color-accent)]">
+                      Active
+                    </span>
+                  )}
+                </button>
+                {deleteConfirm === app.id ? (
+                  <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+                    <p className="text-xs text-red-400">
+                      This will permanently delete this app and all its endpoints, messages, and
+                      delivery data. This cannot be reversed.
+                    </p>
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => handleDelete(app.id)}
+                        disabled={deleting}
+                        className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                      >
+                        {deleting ? 'Deleting...' : 'Yes, Delete'}
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(null)}
+                        className="rounded border border-[var(--color-border)] px-3 py-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirm(app.id);
+                    }}
+                    className="mt-3 text-xs text-[var(--color-text-muted)] hover:text-red-400"
+                  >
+                    Delete
+                  </button>
                 )}
-                <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Created {new Date(app.createdAt).toLocaleDateString()}
-                </p>
-                {isActive && (
-                  <span className="mt-2 inline-block rounded-full bg-[var(--color-accent)]/10 px-2 py-0.5 text-xs text-[var(--color-accent)]">
-                    Active
-                  </span>
-                )}
-              </button>
+              </div>
             );
           })}
         </div>

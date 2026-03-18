@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { eq, or } from 'drizzle-orm';
-import { applications } from '@emithq/core';
+import { eq, or, and } from 'drizzle-orm';
+import { applications, endpoints, messages } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
 import type { AuthEnv } from '../types';
@@ -94,4 +94,41 @@ applicationRoutes.get('/:appId', async (c) => {
   }
 
   return c.json({ data: app });
+});
+
+/**
+ * DELETE /api/v1/app/:appId — Delete an application
+ * Cascading: deletes all endpoints and messages belonging to this app.
+ * This is a hard delete — cannot be undone.
+ */
+applicationRoutes.delete('/:appId', async (c) => {
+  const appId = c.req.param('appId');
+  const orgId = c.get('orgId');
+  const tx = c.get('tx');
+
+  const condition = UUID_RE.test(appId)
+    ? or(eq(applications.id, appId), eq(applications.uid, appId))
+    : eq(applications.uid, appId);
+
+  // Find the app first
+  const [app] = await tx
+    .select({ id: applications.id })
+    .from(applications)
+    .where(condition)
+    .limit(1);
+
+  if (!app) {
+    return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
+  }
+
+  // Delete endpoints belonging to this app
+  await tx.delete(endpoints).where(and(eq(endpoints.appId, app.id), eq(endpoints.orgId, orgId)));
+
+  // Delete messages belonging to this app
+  await tx.delete(messages).where(and(eq(messages.appId, app.id), eq(messages.orgId, orgId)));
+
+  // Delete the app itself
+  await tx.delete(applications).where(eq(applications.id, app.id));
+
+  return c.json({ data: { id: app.id, deleted: true } });
 });
