@@ -119,13 +119,14 @@ signupRoutes.post('/', async (c) => {
       publicMetadata: { source: 'api_signup' },
     });
   } catch (err: unknown) {
-    const clerkErr = err as { errors?: Array<{ code?: string }> };
+    const clerkErr = err as { errors?: Array<{ code?: string; message?: string }> };
     if (clerkErr.errors?.some((e) => e.code === 'form_identifier_exists')) {
       return c.json(
         { error: { code: 'conflict', message: 'An account with this email already exists' } },
         409,
       );
     }
+    console.error('Clerk createUser failed:', JSON.stringify(clerkErr.errors ?? err));
     return c.json({ error: { code: 'signup_failed', message: 'Failed to create account' } }, 500);
   }
 
@@ -135,7 +136,9 @@ signupRoutes.post('/', async (c) => {
       name,
       createdBy: clerkUser.id,
     });
-  } catch {
+  } catch (err: unknown) {
+    const clerkErr = err as { errors?: Array<{ code?: string; message?: string }> };
+    console.error('Clerk createOrganization failed:', JSON.stringify(clerkErr.errors ?? err));
     // Clerk user created but org creation failed — user can still sign in via dashboard
     return c.json(
       {
