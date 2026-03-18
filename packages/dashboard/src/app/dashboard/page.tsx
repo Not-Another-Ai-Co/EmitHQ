@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApiFetch } from '@/lib/use-api';
+import { GettingStartedCard } from '@/components/getting-started-card';
 
 interface App {
   id: string;
@@ -105,6 +106,7 @@ export default function AppsLandingPage() {
 
   return (
     <div>
+      <GettingStartedCard />
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Applications</h1>
         <button

@@ -507,7 +507,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-071: App Listing as Landing Page [x]
+### T-071: App Listing as Landing Page [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -529,7 +529,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-072: Inline Onboarding
+### T-072: Inline Onboarding [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -541,14 +541,14 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 **Acceptance criteria:**
 
-- [ ] Getting Started extracted to reusable component (not a page)
-- [ ] Rendered inline on `/dashboard` above app cards when onboarding incomplete
-- [ ] `onboarding_completed_at` column added to organizations table (migration)
-- [ ] Dismiss sets both localStorage AND server-side flag
-- [ ] Auto-hides when all 4 steps complete (brief "You're all set" state)
-- [ ] `/dashboard/getting-started` page removed
-- [ ] Getting Started nav item removed
-- [ ] New API endpoint: `POST /api/v1/onboarding/dismiss`
+- [x] Getting Started extracted to reusable component (not a page)
+- [x] Rendered inline on `/dashboard` above app cards when onboarding incomplete
+- [x] `onboarding_completed_at` column added to organizations table (migration)
+- [x] Dismiss sets both localStorage AND server-side flag
+- [x] Auto-hides when all 4 steps complete (brief "You're all set" state)
+- [x] `/dashboard/getting-started` page removed
+- [x] Getting Started nav item removed
+- [x] New API endpoint: `POST /api/v1/onboarding/dismiss`
 
 ---
 

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { useClerk } from '@clerk/nextjs';
 
 const GLOBAL_NAV_ITEMS = [
@@ -23,12 +23,6 @@ function NavLinks() {
   const pathname = usePathname();
   const params = useParams<{ appId?: string }>();
   const appId = params.appId;
-  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
-
-  useEffect(() => {
-    setOnboardingDismissed(localStorage.getItem('emithq_onboarding_dismissed') === 'true');
-  }, []);
-
   const inAppContext = !!appId;
 
   if (inAppContext) {
@@ -98,21 +92,6 @@ function NavLinks() {
   // Global mode
   return (
     <ul className="space-y-1">
-      {!onboardingDismissed && (
-        <li>
-          <Link
-            href="/dashboard/getting-started"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-              pathname === '/dashboard/getting-started'
-                ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-            }`}
-          >
-            <span className="inline-flex w-5 justify-center">🚀</span>
-            Getting Started
-          </Link>
-        </li>
-      )}
       {GLOBAL_NAV_ITEMS.map((item) => {
         const active =
           item.href === '/dashboard'

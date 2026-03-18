@@ -11,6 +11,7 @@ import { endpointRoutes } from './routes/endpoints';
 import { transformPreviewRoutes } from './routes/transform-preview';
 import { dashboardRoutes } from './routes/dashboard';
 import { billingRoutes } from './routes/billing';
+import { onboardingRoutes } from './routes/onboarding';
 import { metricsRoutes } from './routes/metrics';
 import { adminDb, createRedisConnection } from '@emithq/core';
 import { sql } from 'drizzle-orm';
@@ -92,6 +93,7 @@ app.route('/api/v1/app', endpointRoutes);
 app.route('/api/v1/transform', transformPreviewRoutes);
 app.route('/api/v1/app', dashboardRoutes);
 app.route('/api/v1/billing', billingRoutes);
+app.route('/api/v1/onboarding', onboardingRoutes);
 
 export { app };
 export type { AuthEnv } from './types';

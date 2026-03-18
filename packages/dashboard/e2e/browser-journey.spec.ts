@@ -170,15 +170,16 @@ test.describe('Browser journey', () => {
     expect(body).toBeTruthy();
   });
 
-  test('8. getting-started shows all steps completed', async ({ page }) => {
-    // Clear onboarding dismissed state
+  test('8. getting-started inline card shows all steps completed', async ({ page }) => {
+    // Clear onboarding dismissed state (both localStorage and server)
     await page.goto('/dashboard');
     await page.evaluate(() => localStorage.removeItem('emithq_onboarding_dismissed'));
 
-    await page.goto('/dashboard/getting-started');
+    // Reload to show the inline getting-started card on the app listing page
+    await page.reload();
 
-    // All 4 steps should be completed
-    await expect(page.getByText(/4 of 4 steps complete|All done/i)).toBeVisible({
+    // The inline card should show all steps complete or auto-dismiss with success message
+    await expect(page.getByText(/4 of 4 steps complete|You're all set/i)).toBeVisible({
       timeout: 10_000,
     });
   });
