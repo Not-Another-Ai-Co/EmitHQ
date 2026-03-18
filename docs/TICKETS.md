@@ -591,7 +591,7 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
-### T-081: App Card UX Improvements
+### T-081: App Card + Nav Button UX Improvements [x]
 
 **Phase:** 8e
 **Effort:** Low
@@ -599,15 +599,18 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 **Depends on:** T-080
 **Research:** Conversation context — card grid best practices
 
-**Description:** Make app cards more visually compelling and clearly clickable. Users should understand at a glance that the real data (events, endpoints, DLQ) lives inside each app.
+**Description:** Make app cards more visually compelling and clearly clickable. Improve top bar nav button visibility in app context. Remove unnecessary uid badge on default app. Verify endpoint/event counts are accurate.
 
 **Acceptance criteria:**
 
-- [ ] Add `ChevronRight` icon on card hover (right side, fades in)
-- [ ] Add status indicator: green dot = events in last 24h, gray dot = idle
-- [ ] Add subtle subtext on hover or below stats: "View events, endpoints & deliveries"
-- [ ] Slightly increase card padding and stat font size for visual weight
-- [ ] Empty state card ("Create your first app") gets a visual illustration or icon treatment
+- [x] Add `ChevronRight` icon on card hover (right side, fades in)
+- [x] Add status indicator: green dot = events in last 24h, gray dot = idle
+- [x] Add subtle subtext below stats: "View events, endpoints & deliveries"
+- [x] Slightly increase card padding and stat font size for visual weight
+- [x] Empty state card: webhook icon in accent circle + improved copy + Plus icon on CTA button
+- [x] Top bar app-context nav buttons: border + background on both desktop and mobile (tab-style)
+- [x] Hide uid badge when uid equals "default"
+- [x] Verified: endpoint/event counts use correct SQL subqueries — 0s are accurate (no endpoints/events exist for test apps)
 
 ---
 

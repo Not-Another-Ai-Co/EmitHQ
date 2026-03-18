@@ -54,10 +54,10 @@ function TopBarLinks() {
           <Link
             key={item.segment}
             href={href}
-            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors max-md:px-1.5 ${
+            className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm transition-colors max-md:px-1.5 ${
               active
-                ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                ? 'border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                : 'border-transparent bg-[var(--color-bg)]/50 text-[var(--color-text-muted)] hover:border-[var(--color-border)] hover:text-[var(--color-text)]'
             }`}
           >
             <span className="inline-flex">{item.icon}</span>
@@ -98,8 +98,10 @@ function MobileAppNav() {
             <Link
               key={item.segment}
               href={href}
-              className={`flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs ${
-                active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
+              className={`flex shrink-0 items-center gap-1 rounded-lg border px-2 py-1 text-xs ${
+                active
+                  ? 'border-[var(--color-accent)]/30 bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                  : 'border-transparent text-[var(--color-text-muted)]'
               }`}
             >
               <span>{item.icon}</span>
