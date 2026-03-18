@@ -421,6 +421,85 @@
         }
       }
     },
+    "/api/v1/auth/keys/{keyId}/rotate": {
+      "post": {
+        "operationId": "rotateApiKey",
+        "summary": "Rotate API key",
+        "description": "Generate a new key and retire the old one with a configurable grace period. The old key remains valid until the grace period expires (default: 1 hour). Requires org:admin or org:owner role.",
+        "tags": ["Authentication"],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gracePeriodMinutes": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1440,
+                    "default": 60,
+                    "description": "How long the old key stays valid (minutes). 0 = immediate revocation."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Key rotated — new key created, old key expiring",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string", "format": "uuid" },
+                        "key": {
+                          "type": "string",
+                          "description": "New plaintext key — shown once"
+                        },
+                        "name": { "type": "string" },
+                        "createdAt": { "type": "string", "format": "date-time" },
+                        "rotatedFrom": { "type": "string", "format": "uuid" },
+                        "oldKeyExpiresAt": {
+                          "type": "string",
+                          "format": "date-time",
+                          "nullable": true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid grace period",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "404": {
+            "description": "Key not found or already revoked",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/app": {
       "post": {
         "operationId": "createApplication",

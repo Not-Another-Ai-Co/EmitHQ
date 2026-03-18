@@ -519,3 +519,22 @@
 - Keep AppSwitcher as app-context header — adds complexity without benefit when card grid is the landing page
 
 **Consequences:** Old `?app=` URLs no longer work (pre-launch, so no user impact). E2E browser journey tests updated for new URL patterns. AppSwitcher component deleted. Old `/dashboard/applications`, `/dashboard/events`, `/dashboard/endpoints`, `/dashboard/dlq` routes removed — all app-scoped pages live under `/dashboard/app/[appId]/`.
+
+---
+
+## DEC-029 | 2026-03-18 | API Key Rotation with Grace Period for LLM Agent Safety
+
+**Status:** Active
+**Linked to:** T-078
+
+**Context:** EmitHQ's differentiator is full LLM-automatable onboarding. The signup endpoint returns an API key in the response, which then lives in the LLM's conversation context — a potential exposure vector. Research (KB: `llm-api-key-security/`) found no platform has adapted auth flows for LLM agents. Key patterns: brokered credentials (MCP), scoped keys, rolling rotation with grace periods, GitHub Secret Scanning.
+
+**Decision:** Added `POST /api/v1/auth/keys/:keyId/rotate` endpoint. Creates a new key and sets `expiresAt` on the old key (grace period, default 1 hour, configurable 0-1440 minutes). If `gracePeriodMinutes: 0`, the old key is immediately revoked. Auth middleware already enforces `expiresAt` — no changes needed there. Updated `llm.txt` with full API key management section (create/list/rotate/revoke), error code reference, and rate limit docs. Updated `agents.json` with `manage_api_keys` capability and SDK reference.
+
+**Alternatives considered:**
+
+- OAuth 2.0 Client Credentials flow (short-lived tokens) — more secure but adds complexity; deferred to post-launch
+- Immediate revocation only (no grace period) — breaks running agents that can't coordinate instant key swaps
+- Two-call rotation (POST new + DELETE old) — already works but no grace period overlap; atomic rotate is safer
+
+**Consequences:** LLM agents can now rotate keys with zero downtime. The brokered credentials pattern (via MCP server, T-067) remains the recommended long-term approach — rotation is the pragmatic near-term solution. GitHub Secret Scanning partner registration (`emhq_` prefix) is a manual step for Julian.

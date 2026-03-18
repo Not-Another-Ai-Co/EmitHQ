@@ -522,6 +522,27 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
+### T-078: LLM-Friendly API Docs & Key Rotation Hardening [x]
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-064, T-063
+**Research:** ~/.claude/knowledge/llm-api-key-security/research.md
+
+**Description:** Harden the LLM-automatable onboarding flow with key rotation support, update llm.txt/agents.json with complete signup-to-first-webhook walkthrough, and register for GitHub Secret Scanning. EmitHQ's differentiator is full LLM automation — the docs and key management must reflect that.
+
+**Acceptance criteria:**
+
+- [x] `POST /api/v1/auth/keys/:keyId/rotate` endpoint: returns new key, old key valid for configurable grace period (default 1 hour)
+- [x] Update `llm.txt` with complete LLM onboarding flow: signup → create app → create endpoint → send first event + API key management section + error codes + rate limits
+- [x] Update `agents.json` with `manage_api_keys` capability including rotation flow + SDK reference
+- [x] Update `openapi.json` with rotate endpoint (signup was already present)
+- [-] Register `emhq_` prefix with GitHub Secret Scanning partner program — deferred to post-launch. Requires: email secret-scanning@github.com, build a webhook receiver for leak notifications, implement ECDSA signature verification. See [GitHub docs](https://docs.github.com/code-security/secret-scanning/secret-scanning-partnership-program/secret-scanning-partner-program).
+- [x] Tests: 17 tests covering rotation happy path, custom grace period, immediate revocation, validation, plus create/list/revoke
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d

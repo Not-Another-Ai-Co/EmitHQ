@@ -8,13 +8,23 @@
   },
   "auth": {
     "type": "bearer",
-    "description": "API key with emhq_ prefix. Obtain via POST /api/v1/signup (no browser required) or the dashboard."
+    "description": "API key with emhq_ prefix. Obtain via POST /api/v1/signup (no browser required) or the API key management endpoints."
   },
   "capabilities": [
     {
       "name": "signup",
-      "description": "Create an account, organization, and API key in one request. No browser required.",
+      "description": "Create an account, organization, and API key in one request. No browser required. Rate limit: 3 per IP per 24 hours.",
       "endpoint": "POST /api/v1/signup"
+    },
+    {
+      "name": "manage_api_keys",
+      "description": "Create, list, rotate, and revoke API keys. Rotation supports a grace period (default 1 hour) so the old key stays valid during the transition — critical for zero-downtime deployments and LLM agent key management.",
+      "endpoints": [
+        "POST /api/v1/auth/keys",
+        "GET /api/v1/auth/keys",
+        "POST /api/v1/auth/keys/{keyId}/rotate",
+        "DELETE /api/v1/auth/keys/{keyId}"
+      ]
     },
     {
       "name": "send_webhook",
@@ -47,6 +57,12 @@
       "endpoint": "/api/v1/billing"
     }
   ],
+  "sdk": {
+    "typescript": {
+      "package": "@emithq/sdk",
+      "install": "npm install @emithq/sdk"
+    }
+  },
   "pricing": {
     "free_tier": { "events_per_month": 100000, "price": 0 },
     "paid_tiers": [
