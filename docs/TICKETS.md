@@ -522,7 +522,7 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-078: LLM-Friendly API Docs & Key Rotation Hardening [x]
+### T-078: LLM-Friendly API Docs & Key Rotation Hardening [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
