@@ -462,7 +462,7 @@ _Publish content and establish community presence before the public launch spike
 **Phase:** 8d
 **Effort:** Low
 **Complexity:** Simple
-**Depends on:** T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056, T-060, T-061, T-063, T-064
+**Depends on:** T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056, T-060, T-063, T-064
 **Research:** docs/research/gtm-execution.md
 
 **Description:** Verify all Show HN prerequisites are met before executing T-034. This is a checklist ticket, not implementation work. If any gate fails, defer T-034 until it's resolved.
@@ -479,7 +479,7 @@ _Publish content and establish community presence before the public launch spike
 - [ ] 2+ weeks of build-in-public posts (from T-057)
 - [ ] T-030 marketplace submissions completed (Julian's manual items)
 - [ ] E2E happy-path test passes locally (T-060)
-- [ ] MFA enabled in Clerk (T-061)
+- [-] ~~MFA enabled in Clerk (T-061)~~ — deferred, Clerk Pro feature
 - [ ] API-only signup endpoint live and tested (T-063)
 - [ ] OpenAPI spec + llm.txt + agents.json published (T-064)
 - [ ] All production services healthy (API, worker, dashboard, Umami)

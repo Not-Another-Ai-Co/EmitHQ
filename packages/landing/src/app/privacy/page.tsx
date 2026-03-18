@@ -229,8 +229,7 @@ export default function PrivacyPage() {
             <p>
               We implement industry-standard security measures including: TLS 1.2+ encryption in
               transit, AES-256 encryption at rest, PostgreSQL Row-Level Security for tenant
-              isolation, timing-safe signature verification, API key hashing (SHA-256), and
-              multi-factor authentication (TOTP) for dashboard accounts.
+              isolation, timing-safe signature verification, and API key hashing (SHA-256).
             </p>
           </Section>
 

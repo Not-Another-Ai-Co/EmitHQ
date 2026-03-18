@@ -164,7 +164,7 @@ _Knip dead code detection + jscpd duplication checking. Pruned 12 dead barrel ex
 
 ### T-051: Getting Started / Onboarding Flow [x] [verified with notes] [audited]
 
-### T-061: Enable MFA in Clerk + Test Enrollment Flow [x] [verified with notes] [audited]
+### T-061: Enable MFA in Clerk + Test Enrollment Flow [-] deferred (Clerk Pro feature)
 
 _Billing page (tier card, usage bar, Stripe checkout/portal), onboarding checklist (4-step auto-detect), Clerk MFA (TOTP) with profile page. Decisions: DEC-025, DEC-026._
 

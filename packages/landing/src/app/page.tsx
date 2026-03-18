@@ -195,7 +195,7 @@ const FEATURES = [
     icon: '🔒',
     title: 'Multi-Tenant Security',
     description:
-      'PostgreSQL Row-Level Security for tenant isolation. Per-endpoint signing secrets. API keys with zero-downtime rotation. Multi-factor authentication (TOTP).',
+      'PostgreSQL Row-Level Security for tenant isolation. Per-endpoint signing secrets. API keys with zero-downtime rotation.',
   },
 ];
 

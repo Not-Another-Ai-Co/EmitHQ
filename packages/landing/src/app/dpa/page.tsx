@@ -58,7 +58,6 @@ export default function DpaPage() {
               <li>API key authentication with SHA-256 hashing (no plaintext storage)</li>
               <li>Timing-safe signature verification (HMAC-SHA256)</li>
               <li>Access controls limiting personnel access to production data</li>
-              <li>Multi-factor authentication (TOTP) for dashboard accounts</li>
               <li>Infrastructure provider certifications (SOC 2 via Cloudflare, Railway, Neon)</li>
             </ul>
           </Section>
