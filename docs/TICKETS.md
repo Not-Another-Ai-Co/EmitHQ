@@ -591,7 +591,7 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
-### T-081: App Card + Nav Button UX Improvements [x]
+### T-081: App Card + Nav Button UX Improvements [x] [verified]
 
 **Phase:** 8e
 **Effort:** Low
