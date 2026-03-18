@@ -1,6 +1,6 @@
 # Conventions — EmitHQ
 
-> Last verified: 2026-03-15
+> Last verified: 2026-03-18
 
 ## Language & Runtime
 

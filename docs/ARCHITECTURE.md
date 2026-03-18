@@ -70,7 +70,9 @@ Dual auth model:
 - **Dashboard users:** Clerk sessions via `@hono/clerk-auth` middleware. Clerk org ID maps to internal `org_id` via `clerk_org_id` column on organizations table.
 - **Programmatic access:** Custom `emhq_` prefixed API keys. SHA-256 hashed in `api_keys` table, verified with `crypto.timingSafeEqual`. Multiple active keys per org for zero-downtime rotation.
 
-Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenantScope` (RLS) → route handler.
+Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenantScope` (RLS) → route handler. `quotaHeaders` middleware on all `/api/v1/*` routes injects `X-EmitHQ-Quota-*` response headers (limit, used, remaining, reset, tier + warning at 80%/95%).
+
+**API-only signup (T-063):** `POST /api/v1/signup` creates Clerk user + org via Backend API, provisions EmitHQ org, generates first API key — all in one request. No browser required. In-memory rate limiting (3/IP/day). Returns `{ orgId, apiKey, userId, tier, eventLimit, credential_storage_hint }`.
 
 ## Multi-Tenancy
 
@@ -83,10 +85,11 @@ Two database roles:
 
 Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon connection (not pooler) for `SET LOCAL` compatibility.
 
-## API Surface (28 endpoints)
+## API Surface (32 endpoints)
 
 | Group        | Endpoints                                                  | Auth                                      |
 | ------------ | ---------------------------------------------------------- | ----------------------------------------- |
+| Signup       | POST `/api/v1/signup`                                      | None (public, rate-limited)               |
 | Auth/Keys    | POST/GET/DELETE `/api/v1/auth/keys`                        | Clerk session                             |
 | Applications | POST/GET `/api/v1/app`, GET `/api/v1/app/:appId`           | API key or Clerk session                  |
 | Messages     | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`           | API key                                   |
@@ -120,16 +123,19 @@ Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Cler
 - Billing (current tier card with features, usage bar with color thresholds, tier upgrade grid → Stripe Checkout, manage subscription → Stripe Portal, checkout success detection)
 - Getting Started (4-step onboarding checklist — auto-detects app/key/endpoint/event via API, SDK code snippet with copy, localStorage dismiss, conditional nav visibility)
 - Settings (API key management: generate with one-time display modal, list, revoke with confirmation, last-key protection)
+- Profile (Clerk `<UserProfile />` with MFA enrollment — TOTP enabled in Clerk dashboard)
 
 **Shared components:** `Modal` (overlay with Escape/backdrop close), `AppSwitcher`, `StatusBadge`, `StatCard`. No UI library — all custom with CSS variables.
 
-## Landing & Docs Site (T-020)
+## Landing & Docs Site (T-020, T-064)
 
-Separate Next.js app at `packages/landing/`. Static export for Vercel. No auth, no DB. Pages: landing (hero, pricing gap, features, code snippet), pricing (4-tier table + FAQ), compare (vs Svix/Hookdeck/Convoy + build-vs-buy), docs (getting started, API reference, SDK guide). Umami analytics (self-hosted, proxied via Vercel rewrites). SEO (meta, OG, sitemap, robots.txt).
+Separate Next.js app at `packages/landing/`. Static export for Vercel. No auth, no DB. Pages: landing (hero, pricing gap, features, code snippet), pricing (4-tier table + FAQ), compare (vs Svix/Hookdeck/Convoy + build-vs-buy), docs (getting started, API reference with signup/applications/billing sections, SDK guide). Umami analytics (self-hosted, proxied via Vercel rewrites). SEO (meta, OG, sitemap, robots.txt).
+
+**Machine-readable docs (T-064):** `public/openapi.json` (OpenAPI 3.1, 20 public paths), `public/llm.txt` (product summary + API quick start), `public/.well-known/agents.json` (capability manifest for agent discovery). CI drift check (`scripts/check-openapi-drift.mjs`) compares code routes vs spec paths — fails if any route is missing from the spec.
 
 ## TypeScript SDK (T-019)
 
-`@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints, replay, testEndpoint). Typed errors (AuthError, ValidationError, RateLimitError, etc.). Auto-retry on 5xx/network (3 attempts, exponential backoff). `verifyWebhook()` using WebCrypto API.
+`@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints incl. getEndpoint, replay, testEndpoint). Typed errors (AuthError, ForbiddenError, ValidationError, NotFoundError, RateLimitError, PayloadTooLargeError). Auto-retry on 5xx/408/429/network (3 attempts, exponential backoff). Non-retriable: 400/401/403/404/410. `verifyWebhook()` using WebCrypto API.
 
 ## Monitoring & SLOs (T-022)
 
@@ -164,6 +170,12 @@ Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker(
 | DNS             | Cloudflare   | emithq.com zone                       |
 | Analytics       | Umami (self) | https://analytics.emithq.com          |
 | Uptime          | Better Stack | emithq.betteruptime.com               |
+
+## Testing (T-060)
+
+**Unit tests:** Vitest (284 tests across 20 files). Colocated `*.test.ts` files. Mock pattern: `coreMock()` for DB/queue, `authMock()`/`tenantMock()` for middleware. `createTestApp()` factory mounts real route handlers with injected auth context.
+
+**E2E tests:** Playwright + `@clerk/testing` in `packages/dashboard/e2e/`. Three suites: browser journey (8-step signup→delivery flow), API-only journey (LLM-automatable flow via `POST /signup`), account management (profile/billing/settings smoke tests). Webhook test fixture (`http.createServer`) records delivered payloads. Auth via Clerk Testing Token + storageState. Requires running services — CI integration deferred to T-038.
 
 ## Key Decisions
 

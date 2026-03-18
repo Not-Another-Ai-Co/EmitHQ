@@ -155,3 +155,35 @@ _Dashboard self-service: app switcher via URL params, endpoint CRUD with signing
 ### T-059: Code Efficiency Tooling (Knip + jscpd) [x] [verified] [audited]
 
 _Knip dead code detection + jscpd duplication checking. Pruned 12 dead barrel exports from @emithq/core. Both tools blocking in CI. Research: `docs/research/code-efficiency-tooling.md`._
+
+---
+
+## Phase 8a: Dashboard Self-Service (completed tickets, batch 2)
+
+### T-050: Billing & Usage Page [x] [verified with notes] [audited]
+
+### T-051: Getting Started / Onboarding Flow [x] [verified with notes] [audited]
+
+### T-061: Enable MFA in Clerk + Test Enrollment Flow [x] [verified with notes] [audited]
+
+_Billing page (tier card, usage bar, Stripe checkout/portal), onboarding checklist (4-step auto-detect), Clerk MFA (TOTP) with profile page. Decisions: DEC-025, DEC-026._
+
+---
+
+## LLM-Automatable Onboarding (completed tickets)
+
+### T-062: Research — Fully LLM-Automatable Onboarding [x] [verified] [audited]
+
+### T-063: API-Only Signup Endpoint + Quota Headers [x] [verified with notes] [audited]
+
+### T-064: OpenAPI Spec + Machine-Readable Docs + llm.txt [x] [verified] [audited]
+
+_API-only signup (`POST /api/v1/signup`), quota headers on all responses, enriched 429 with upgrade tiers, OpenAPI 3.1 spec, llm.txt, agents.json, CI drift check. Research: `docs/research/llm-automatable-onboarding.md`. Decisions: DEC-027._
+
+---
+
+## E2E Testing (completed tickets)
+
+### T-060: Playwright E2E Setup + Happy-Path Journey Tests [x] [verified with notes] [audited]
+
+_Playwright + @clerk/testing: browser journey (8-step flow), API-only journey (LLM-automatable), account management smoke tests. Webhook test fixture. Auth via storageState. Research: `docs/research/e2e-new-user-journey-testing.md`. CI deferred to T-038._
