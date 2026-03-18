@@ -416,7 +416,7 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-077: Dashboard Polish + Onboarding Verification [x]
+### T-077: Dashboard Polish + Onboarding Verification [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
