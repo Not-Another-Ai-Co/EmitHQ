@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
+import { useClerk } from '@clerk/nextjs';
 import { AppSwitcher } from '@/components/app-switcher';
 
 const NAV_ITEMS = [
@@ -111,9 +112,23 @@ function MobileNavLinks() {
   );
 }
 
+function SignOutButton() {
+  const { signOut } = useClerk();
+
+  return (
+    <button
+      onClick={() => signOut({ redirectUrl: '/sign-in' })}
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+    >
+      <span className="inline-flex w-5 justify-center">↩</span>
+      Sign Out
+    </button>
+  );
+}
+
 export function Sidebar() {
   return (
-    <nav className="fixed left-0 top-0 h-full w-56 border-r border-[var(--color-border)] bg-[var(--color-surface)] p-4 max-md:hidden">
+    <nav className="fixed left-0 top-0 flex h-full w-56 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] p-4 max-md:hidden">
       <div className="mb-4">
         <Link href="/dashboard" className="text-xl font-bold text-[var(--color-accent)]">
           EmitHQ
@@ -131,6 +146,9 @@ export function Sidebar() {
       <Suspense fallback={null}>
         <NavLinks />
       </Suspense>
+      <div className="mt-auto border-t border-[var(--color-border)] pt-3">
+        <SignOutButton />
+      </div>
     </nav>
   );
 }
