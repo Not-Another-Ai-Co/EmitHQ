@@ -184,6 +184,6 @@ _API-only signup (`POST /api/v1/signup`), quota headers on all responses, enrich
 
 ## E2E Testing (completed tickets)
 
-### T-060: Playwright E2E Setup + Happy-Path Journey Tests [x] [verified with notes] [audited]
+### T-060: Playwright E2E Setup + Happy-Path Journey Tests [x] [verified with notes] [audited] — tests written but deferred until T-068 dashboard restructure completes; will need updates to match new UI
 
 _Playwright + @clerk/testing: browser journey (8-step flow), API-only journey (LLM-automatable), account management smoke tests. Webhook test fixture. Auth via storageState. Research: `docs/research/e2e-new-user-journey-testing.md`. CI deferred to T-038._
