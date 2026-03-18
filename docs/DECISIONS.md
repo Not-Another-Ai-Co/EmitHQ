@@ -538,3 +538,22 @@
 - Two-call rotation (POST new + DELETE old) — already works but no grace period overlap; atomic rotate is safer
 
 **Consequences:** LLM agents can now rotate keys with zero downtime. The brokered credentials pattern (via MCP server, T-067) remains the recommended long-term approach — rotation is the pragmatic near-term solution. GitHub Secret Scanning partner registration (`emhq_` prefix) is a manual step for Julian.
+
+---
+
+## DEC-030 | 2026-03-18 | Dashboard: Top Bar Replaces Sidebar at All Levels
+
+**Status:** Active (supersedes DEC-028 sidebar chrome; DEC-028 path-based routing still valid)
+**Linked to:** T-080
+
+**Context:** The two-state sidebar from DEC-028 had only 2 items (Applications, Settings) at the global level, wasting screen space. Julian flagged this as confusing — the sparse sidebar didn't communicate that rich data lives inside each app card. Research showed Railway uses no sidebar at the project list level, and Vercel recently moved to persistent but morphing nav. The 2-item sidebar was the worst of both patterns.
+
+**Decision:** Replaced the sidebar with a fixed top bar at all levels. Global mode: logo (left) + Settings gear + Sign Out (right). App-context mode: adds inline nav items (← Apps | App Name | Overview, Events, Endpoints, DLQ) in the top bar center-left. Mobile: app nav items in a secondary scrollable row below the top bar. No sidebar at any level. Full-width content everywhere.
+
+**Alternatives considered:**
+
+- Keep sidebar but add more global items (usage, billing, quick actions) — adds items that don't exist yet just to fill space
+- Railway-style top tabs only in app context — inconsistent; global still needs settings somewhere
+- Vercel-style persistent morphing sidebar — good pattern but overkill for 2 global + 4 app items
+
+**Consequences:** `Sidebar` and `MobileNav` components deleted. `TopBar` is the single nav export from `nav.tsx`. Layout `<main>` uses `pt-14` instead of `md:ml-56`. E2E tests don't reference sidebar (confirmed by explore agent) — no test changes needed. DEC-028's path-based routing (`/dashboard/app/[appId]/*`) and `useParams()` context detection remain unchanged.

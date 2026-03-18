@@ -543,6 +543,94 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
+## Pre-Launch Hardening — 2026-03-18
+
+_Address infrastructure cost risk, dashboard UX gaps, and abuse prevention before Show HN._
+
+### Phase 8e: Infrastructure & UX Fixes
+
+---
+
+### T-079: Upstash Redis Upgrade + Health Check Fix
+
+**Phase:** 8e
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** none (conversation context — BullMQ worker exhausted 500K free tier commands)
+
+**Description:** Upgrade Upstash Redis to pay-as-you-go ($0.20/100K commands). Fix the health check endpoint which creates a new Redis connection on every call — this wastes commands and will compound costs. Use a singleton connection or skip Redis health in the probe.
+
+**Acceptance criteria:**
+
+- [ ] Upstash upgraded to paid tier (Julian manual step — add payment method in Upstash console)
+- [ ] Health check reuses a singleton Redis connection instead of `createRedisConnection()` per call
+- [ ] Verify `GET /health` returns `{"status":"ok","db":true,"redis":true}` after upgrade
+- [ ] Add Upstash monthly command estimate to T-043's `/metrics/costs` spec (500K commands ≈ $1)
+
+---
+
+### T-080: Dashboard Global Layout Restructure [x]
+
+**Phase:** 8e
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** Conversation context — research on Vercel/Railway/Clerk dashboard patterns
+
+**Description:** Remove the global sidebar (which has only 2 items and wastes space). At `/dashboard`, the full page is the app card grid. Move Settings to a top bar (gear icon next to user/sign-out). Keep the app-context sidebar when inside `/dashboard/app/[appId]/` — that's where it earns its space.
+
+**Acceptance criteria:**
+
+- [x] Remove `<Sidebar>` from global layout — replaced with `<TopBar>` at all levels (no sidebar anywhere)
+- [x] Add top bar with: EmitHQ logo (left), Settings gear icon + Sign Out (right)
+- [x] App card grid uses full page width at `/dashboard`
+- [x] App-context nav shows inline in top bar: ← Apps | App Name | Overview, Events, Endpoints, DLQ
+- [x] Mobile: app-context items in scrollable secondary row below top bar; global has no bottom nav
+- [x] `/dashboard/settings` renders full-width (inherits top bar layout)
+
+---
+
+### T-081: App Card UX Improvements
+
+**Phase:** 8e
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-080
+**Research:** Conversation context — card grid best practices
+
+**Description:** Make app cards more visually compelling and clearly clickable. Users should understand at a glance that the real data (events, endpoints, DLQ) lives inside each app.
+
+**Acceptance criteria:**
+
+- [ ] Add `ChevronRight` icon on card hover (right side, fades in)
+- [ ] Add status indicator: green dot = events in last 24h, gray dot = idle
+- [ ] Add subtle subtext on hover or below stats: "View events, endpoints & deliveries"
+- [ ] Slightly increase card padding and stat font size for visual weight
+- [ ] Empty state card ("Create your first app") gets a visual illustration or icon treatment
+
+---
+
+### T-082: Promote T-065 Abuse Prevention Pre-Launch
+
+**Phase:** 8e
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-076
+**Research:** docs/research/llm-automatable-onboarding.md, ~/.claude/knowledge/llm-api-key-security/research.md
+
+**Description:** Pull forward the highest-impact items from T-065 (currently Phase 10) to prevent free-tier abuse before Show HN. Scope: disposable email blocking on signup + admin endpoint to disable an org. Defer card-on-file (Stripe SetupIntent) and velocity detection to post-launch — they require more Stripe integration work.
+
+**Acceptance criteria:**
+
+- [ ] Disposable email domain blocklist on `POST /api/v1/signup` (mailinator, guerrillamail, tempmail, etc. — 50+ domains)
+- [ ] `POST /api/v1/admin/org/:orgId/disable` — sets org disabled flag, all API calls return 403
+- [ ] Admin endpoint protected by `ADMIN_SECRET` header (same pattern as `/metrics`)
+- [ ] Tests: disposable email rejected, admin disable works, disabled org gets 403
+- [ ] Update T-065 description to note these items were pulled forward
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d

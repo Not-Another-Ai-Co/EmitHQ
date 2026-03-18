@@ -112,7 +112,7 @@ Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFO
 
 Next.js 15 App Router at `packages/dashboard/`. Three-layer auth (DEC-024): Clerk middleware at `src/middleware.ts` with `auth.protect()`, server-side `auth()` guard in dashboard layout, client-side `useApiFetch()` hook for Bearer token auth.
 
-**Navigation:** Two-state sidebar (DEC-028). Global mode shows Applications + Settings. App-context mode shows Overview, Events, Endpoints, DLQ with "Back to Apps" link. Mobile nav mirrors both states.
+**Navigation:** Fixed top bar (DEC-030, supersedes DEC-028 sidebar). Global mode shows logo + Settings gear + Sign Out. App-context mode adds inline nav (← Apps | App Name | Overview, Events, Endpoints, DLQ). Mobile: app nav items in a secondary scrollable row below the top bar. No sidebar at any level.
 
 **Routing (DEC-028):** Path-based app context at `/dashboard/app/[appId]/*`. `useApp()` reads `appId` from `useParams()`. No query-param propagation.
 

@@ -2,210 +2,125 @@
 
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { Suspense, type ReactNode } from 'react';
+import { Suspense, useState, type ReactNode } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import { useApps } from '@/lib/apps-context';
 import {
-  LayoutGrid,
-  Settings,
   BarChart3,
   Zap,
   Link2,
   AlertTriangle,
   ArrowLeft,
   LogOut,
+  Settings,
+  Menu,
+  X,
 } from 'lucide-react';
 
 const ICON_SIZE = 16;
-
-const GLOBAL_NAV_ITEMS: { href: string; label: string; icon: ReactNode }[] = [
-  { href: '/dashboard', label: 'Applications', icon: <LayoutGrid size={ICON_SIZE} /> },
-  { href: '/dashboard/settings', label: 'Settings', icon: <Settings size={ICON_SIZE} /> },
-];
 
 const APP_NAV_ITEMS: { segment: string; label: string; icon: ReactNode }[] = [
   { segment: '', label: 'Overview', icon: <BarChart3 size={ICON_SIZE} /> },
   { segment: '/events', label: 'Events', icon: <Zap size={ICON_SIZE} /> },
   { segment: '/endpoints', label: 'Endpoints', icon: <Link2 size={ICON_SIZE} /> },
-  { segment: '/dlq', label: 'Dead Letter Queue', icon: <AlertTriangle size={ICON_SIZE} /> },
+  { segment: '/dlq', label: 'DLQ', icon: <AlertTriangle size={ICON_SIZE} /> },
 ];
 
-function NavLinks() {
+function TopBarLinks() {
   const pathname = usePathname();
   const params = useParams<{ appId?: string }>();
   const appId = params.appId;
   const inAppContext = !!appId;
   const { apps } = useApps();
 
-  if (inAppContext) {
-    const appBase = `/dashboard/app/${appId}`;
-    const decodedId = decodeURIComponent(appId);
-    const currentApp = apps.find((a) => a.uid === decodedId || a.id === decodedId);
-    const appDisplayName = currentApp?.name ?? decodedId;
-    return (
-      <div className="flex flex-1 flex-col">
-        <Link
-          href="/dashboard"
-          className="mb-3 flex items-center gap-2 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
-        >
-          <ArrowLeft size={14} />
-          All Apps
-        </Link>
-        <div className="mb-3 truncate border-b border-[var(--color-border)] pb-3 text-sm font-semibold">
-          {appDisplayName}
-        </div>
-        <ul className="space-y-1">
-          {APP_NAV_ITEMS.map((item) => {
-            const href = `${appBase}${item.segment}`;
-            const active =
-              item.segment === ''
-                ? pathname === appBase || pathname === `${appBase}/`
-                : pathname === href || pathname?.startsWith(href + '/');
-            return (
-              <li key={item.segment}>
-                <Link
-                  href={href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                    active
-                      ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                  }`}
-                >
-                  <span className="inline-flex w-5 justify-center">{item.icon}</span>
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-        <div className="mt-auto">
-          <ul className="space-y-1 border-t border-[var(--color-border)] pt-3">
-            {GLOBAL_NAV_ITEMS.filter((i) => i.href !== '/dashboard').map((item) => {
-              const active = pathname === item.href || pathname?.startsWith(item.href + '/');
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                      active
-                        ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-                    }`}
-                  >
-                    <span className="inline-flex w-5 justify-center">{item.icon}</span>
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </div>
-    );
-  }
+  if (!inAppContext) return null;
 
-  // Global mode
+  const appBase = `/dashboard/app/${appId}`;
+  const decodedId = decodeURIComponent(appId);
+  const currentApp = apps.find((a) => a.uid === decodedId || a.id === decodedId);
+  const appDisplayName = currentApp?.name ?? decodedId;
+
   return (
-    <ul className="space-y-1">
-      {GLOBAL_NAV_ITEMS.map((item) => {
+    <div className="flex items-center gap-1">
+      <Link
+        href="/dashboard"
+        className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+      >
+        <ArrowLeft size={14} />
+        <span className="max-md:hidden">Apps</span>
+      </Link>
+      <span className="text-[var(--color-border)]">|</span>
+      <span className="truncate px-2 text-sm font-semibold max-w-[120px] md:max-w-[200px]">
+        {appDisplayName}
+      </span>
+      <span className="text-[var(--color-border)]">|</span>
+      {APP_NAV_ITEMS.map((item) => {
+        const href = `${appBase}${item.segment}`;
         const active =
-          item.href === '/dashboard'
-            ? pathname === '/dashboard'
-            : pathname === item.href || pathname?.startsWith(item.href + '/');
+          item.segment === ''
+            ? pathname === appBase || pathname === `${appBase}/`
+            : pathname === href || pathname?.startsWith(href + '/');
         return (
-          <li key={item.href}>
-            <Link
-              href={item.href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
-                active
-                  ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
-                  : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-              }`}
-            >
-              <span className="inline-flex w-5 justify-center">{item.icon}</span>
-              {item.label}
-            </Link>
-          </li>
+          <Link
+            key={item.segment}
+            href={href}
+            className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm transition-colors max-md:px-1.5 ${
+              active
+                ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+            }`}
+          >
+            <span className="inline-flex">{item.icon}</span>
+            <span className="max-md:hidden">{item.label}</span>
+          </Link>
         );
       })}
-    </ul>
+    </div>
   );
 }
 
-function MobileNavLinks() {
+function MobileAppNav() {
   const pathname = usePathname();
   const params = useParams<{ appId?: string }>();
   const appId = params.appId;
 
-  if (appId) {
-    const appBase = `/dashboard/app/${appId}`;
-    const mobileAppItems = [
-      ...APP_NAV_ITEMS,
-      { segment: '@@back', label: 'Apps', icon: (<LayoutGrid size={ICON_SIZE} />) as ReactNode },
-    ];
-    return (
-      <ul className="flex justify-around py-2">
-        {mobileAppItems.map((item) => {
-          if (item.segment === '@@back') {
-            return (
-              <li key="back">
-                <Link
-                  href="/dashboard"
-                  className="flex flex-col items-center gap-1 px-3 py-1 text-xs text-[var(--color-text-muted)]"
-                >
-                  <span className="flex justify-center">{item.icon}</span>
-                  {item.label}
-                </Link>
-              </li>
-            );
-          }
+  if (!appId) return null;
+
+  const appBase = `/dashboard/app/${appId}`;
+
+  return (
+    <>
+      <div className="fixed left-0 right-0 top-14 z-40 flex items-center gap-1 overflow-x-auto border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4 py-2 md:hidden">
+        <Link
+          href="/dashboard"
+          className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs text-[var(--color-text-muted)]"
+        >
+          <ArrowLeft size={12} />
+          Apps
+        </Link>
+        {APP_NAV_ITEMS.map((item) => {
           const href = `${appBase}${item.segment}`;
           const active =
             item.segment === ''
               ? pathname === appBase || pathname === `${appBase}/`
               : pathname === href || pathname?.startsWith(href + '/');
           return (
-            <li key={item.segment}>
-              <Link
-                href={href}
-                className={`flex flex-col items-center gap-1 px-3 py-1 text-xs ${
-                  active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
-                }`}
-              >
-                <span className="flex justify-center">{item.icon}</span>
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    );
-  }
-
-  // Global mobile nav
-  const mobileGlobalItems = GLOBAL_NAV_ITEMS;
-  return (
-    <ul className="flex justify-around py-2">
-      {mobileGlobalItems.map((item) => {
-        const active =
-          item.href === '/dashboard'
-            ? pathname === '/dashboard'
-            : pathname === item.href || pathname?.startsWith(item.href + '/');
-        return (
-          <li key={item.href}>
             <Link
-              href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-1 text-xs ${
+              key={item.segment}
+              href={href}
+              className={`flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs ${
                 active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
               }`}
             >
-              <span className="flex justify-center">{item.icon}</span>
+              <span>{item.icon}</span>
               {item.label}
             </Link>
-          </li>
-        );
-      })}
-    </ul>
+          );
+        })}
+      </div>
+      {/* Spacer to push main content below the fixed mobile nav row */}
+      <div className="h-10 md:hidden" />
+    </>
   );
 }
 
@@ -215,40 +130,48 @@ function SignOutButton() {
   return (
     <button
       onClick={() => signOut({ redirectUrl: '/sign-in' })}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+      className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+      title="Sign out"
     >
-      <span className="inline-flex w-5 justify-center">
-        <LogOut size={ICON_SIZE} />
-      </span>
-      Sign Out
+      <LogOut size={ICON_SIZE} />
+      <span className="max-md:hidden">Sign Out</span>
     </button>
   );
 }
 
-export function Sidebar() {
+export function TopBar() {
   return (
-    <nav className="fixed left-0 top-0 flex h-full w-56 flex-col border-r border-[var(--color-border)] bg-[var(--color-surface)] p-4 max-md:hidden">
-      <div className="mb-4">
-        <Link href="/dashboard" className="text-xl font-bold text-[var(--color-accent)]">
-          EmitHQ
-        </Link>
-      </div>
-      <Suspense fallback={null}>
-        <NavLinks />
-      </Suspense>
-      <div className="mt-auto border-t border-[var(--color-border)] pt-3">
-        <SignOutButton />
-      </div>
-    </nav>
-  );
-}
+    <>
+      <header className="fixed left-0 right-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[var(--color-border)] bg-[var(--color-surface)] px-4">
+        {/* Left: Logo + app context nav */}
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="text-lg font-bold text-[var(--color-accent)]">
+            EmitHQ
+          </Link>
+          <Suspense fallback={null}>
+            <TopBarLinks />
+          </Suspense>
+        </div>
 
-export function MobileNav() {
-  return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--color-border)] bg-[var(--color-surface)] md:hidden">
+        {/* Right: Settings + Sign Out */}
+        <div className="flex items-center gap-1">
+          <Link
+            href="/dashboard/settings"
+            className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+            title="Settings"
+          >
+            <Settings size={ICON_SIZE} />
+            <span className="max-md:hidden">Settings</span>
+          </Link>
+          <Suspense fallback={null}>
+            <SignOutButton />
+          </Suspense>
+        </div>
+      </header>
+      {/* Mobile: secondary nav row for app-context items */}
       <Suspense fallback={null}>
-        <MobileNavLinks />
+        <MobileAppNav />
       </Suspense>
-    </nav>
+    </>
   );
 }
