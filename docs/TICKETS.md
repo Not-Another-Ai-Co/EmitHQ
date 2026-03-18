@@ -614,7 +614,7 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
-### T-083: App Switcher, Docs Link & Quick-Start Docs Page [x]
+### T-083: App Switcher, Docs Link & Quick-Start Docs Page [x] [verified]
 
 **Phase:** 8e
 **Effort:** Medium
