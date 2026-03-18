@@ -390,6 +390,53 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
+### T-076: Stripe Checkout E2E Test + Live Mode Activation
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-073
+**Research:** docs/research/pricing-model.md
+
+**Description:** Verify the full Stripe billing flow works end-to-end in sandbox, then switch to live mode. Test that payment correctly updates org tier and that quota enforcement respects the new tier limit. Confirm DASHBOARD_URL is set correctly on Railway for checkout redirects.
+
+**Acceptance criteria:**
+
+- [ ] Verify `DASHBOARD_URL=https://app.emithq.com` set on Railway API service
+- [ ] Sandbox test: Upgrade to Starter via Checkout (test card 4242...) → webhook fires → org tier updates
+- [ ] Verify quota enforcement: free tier blocks at 100K, paid tier allows higher limit
+- [ ] Verify checkout success banner displays after redirect to `/dashboard/settings?tab=billing`
+- [ ] Verify "Manage Subscription" opens Stripe Customer Portal
+- [ ] Cancel subscription → verify downgrade to free tier
+- [ ] Create live Stripe products + prices (3 tiers × 2 intervals = 6 prices)
+- [ ] Store live price IDs in 1Password (`EmitHQ/stripe`)
+- [ ] Update Railway env vars: `STRIPE_SECRET_KEY` (sk*live*), `STRIPE_WEBHOOK_SECRET`, all `STRIPE_PRICE_*`
+- [ ] Create live webhook endpoint: `https://api.emithq.com/api/v1/billing/webhook`
+- [ ] Verify live checkout end-to-end with real card
+
+---
+
+### T-077: Dashboard Polish + Onboarding Verification
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-075
+**Research:** docs/research/dashboard-ux-restructure.md
+
+**Description:** Address remaining dashboard issues from smoke testing: Getting Started card not showing (likely localStorage dismissed), verification email going to spam (Clerk SPF/DKIM), LLM signup flow verification, and general frontend polish. Research modern SaaS frontend patterns for final UX pass.
+
+**Acceptance criteria:**
+
+- [ ] Getting Started card verified working: clear localStorage, confirm card appears for new orgs
+- [ ] Clerk email deliverability: add SPF/DKIM records for emithq.com in Cloudflare DNS
+- [ ] LLM signup flow (`POST /api/v1/signup`) verified end-to-end: creates org, returns API key, key works for sending events
+- [ ] Dashboard populates correctly after LLM signup (app appears, endpoints work, events flow)
+- [ ] Research: review frontend patterns (animations, loading states, empty states, toast notifications) for polish
+- [ ] Apply top 3-5 quick frontend improvements from research
+
+---
+
 ### Phase 8d: Show HN Readiness Gate
 
 ---
@@ -495,7 +542,7 @@ _Publish content and establish community presence before the public launch spike
 - [ ] Origin story blog live (from T-055)
 - [ ] Technical deep-dive blog live (from T-056)
 - [ ] 2+ weeks of build-in-public posts (from T-057)
-- [ ] T-030 marketplace submissions completed (Julian's manual items)
+- [x] T-030 marketplace submissions completed
 - [ ] E2E happy-path test passes locally (T-060)
 - [-] ~~MFA enabled in Clerk (T-061)~~ — deferred, Clerk Pro feature
 - [ ] API-only signup endpoint live and tested (T-063)
