@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { eq, or, and, inArray } from 'drizzle-orm';
+import { eq, or, and, inArray, sql } from 'drizzle-orm';
 import { applications, endpoints, messages, deliveryAttempts } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
@@ -54,6 +54,7 @@ applicationRoutes.post('/', async (c) => {
  */
 applicationRoutes.get('/', async (c) => {
   const tx = c.get('tx');
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const apps = await tx
     .select({
@@ -61,6 +62,17 @@ applicationRoutes.get('/', async (c) => {
       uid: applications.uid,
       name: applications.name,
       createdAt: applications.createdAt,
+      endpointCount: sql<number>`(
+        select count(*)::int from endpoints e
+        where e.app_id = ${applications.id}
+          and e.disabled = false
+          and (e.disabled_reason is null or e.disabled_reason != 'deleted')
+      )`,
+      events24h: sql<number>`(
+        select count(*)::int from messages m
+        where m.app_id = ${applications.id}
+          and m.created_at >= ${oneDayAgo}
+      )`,
     })
     .from(applications);
 

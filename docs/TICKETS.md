@@ -484,7 +484,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-070: Route Restructure + Sidebar Transform [x]
+### T-070: Route Restructure + Sidebar Transform [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
@@ -507,7 +507,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-071: App Listing as Landing Page
+### T-071: App Listing as Landing Page [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -519,13 +519,13 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 **Acceptance criteria:**
 
-- [ ] `/dashboard` renders app card grid (moved from `/dashboard/applications`)
-- [ ] Each card shows: app name, uid (if set), endpoint count, 24h event count, created date
-- [ ] "+ New Application" card/button in the grid
-- [ ] Click card navigates to `/dashboard/app/[appId]`
-- [ ] Overview stats page moved to `/dashboard/app/[appId]`
-- [ ] Empty state: centered CTA when no apps exist
-- [ ] `/dashboard/applications` route removed or redirects to `/dashboard`
+- [x] `/dashboard` renders app card grid (moved from `/dashboard/applications`) — done in T-070
+- [x] Each card shows: app name, uid (if set), endpoint count, 24h event count, created date
+- [x] "+ New Application" card/button in the grid — done in T-070
+- [x] Click card navigates to `/dashboard/app/[appId]` — done in T-070
+- [x] Overview stats page moved to `/dashboard/app/[appId]` — done in T-070
+- [x] Empty state: centered CTA when no apps exist — done in T-070
+- [x] `/dashboard/applications` route removed or redirects to `/dashboard` — done in T-070
 
 ---
 

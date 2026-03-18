@@ -9,6 +9,8 @@ interface App {
   uid: string | null;
   name: string;
   createdAt: string;
+  endpointCount: number;
+  events24h: number;
 }
 
 export default function AppsLandingPage() {
@@ -192,6 +194,15 @@ export default function AppsLandingPage() {
                 {app.uid && (
                   <p className="mt-1 text-xs text-[var(--color-text-muted)]">uid: {app.uid}</p>
                 )}
+                <div className="mt-2 flex gap-3 text-xs text-[var(--color-text-muted)]">
+                  <span>
+                    {app.endpointCount ?? 0} endpoint{(app.endpointCount ?? 0) !== 1 ? 's' : ''}
+                  </span>
+                  <span>·</span>
+                  <span>
+                    {app.events24h ?? 0} event{(app.events24h ?? 0) !== 1 ? 's' : ''} (24h)
+                  </span>
+                </div>
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
                   Created {new Date(app.createdAt).toLocaleDateString()}
                 </p>

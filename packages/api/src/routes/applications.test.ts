@@ -105,6 +105,74 @@ describe('POST /api/v1/app', () => {
   });
 });
 
+describe('GET /api/v1/app', () => {
+  it('returns app list with endpointCount and events24h fields', async () => {
+    // Override the mock tx to return stats fields for the list endpoint
+    // The list query calls tx.select({...}).from(applications) — no .where().limit() chain
+    mockSelectResult = [
+      {
+        id: 'app-1',
+        uid: 'my-app',
+        name: 'My App',
+        createdAt: '2026-03-17T00:00:00Z',
+        endpointCount: 3,
+        events24h: 42,
+      },
+      {
+        id: 'app-2',
+        uid: null,
+        name: 'Other App',
+        createdAt: '2026-03-16T00:00:00Z',
+        endpointCount: 0,
+        events24h: 0,
+      },
+    ];
+
+    // Re-wire tenantScope mock so tx.select().from() resolves directly
+    const { tenantScope } = await import('../middleware/tenant');
+    vi.mocked(tenantScope).mockImplementationOnce(
+      async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
+        c.set('tx', {
+          select: vi.fn().mockReturnValue({
+            from: vi.fn().mockResolvedValue(mockSelectResult),
+          }),
+        });
+        await next();
+      },
+    );
+
+    const app = await createTestApp();
+    const res = await app.request('/api/v1/app');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data).toHaveLength(2);
+    expect(body.data[0].endpointCount).toBe(3);
+    expect(body.data[0].events24h).toBe(42);
+    expect(body.data[1].endpointCount).toBe(0);
+    expect(body.data[1].events24h).toBe(0);
+  });
+
+  it('returns empty array when no apps exist', async () => {
+    const { tenantScope } = await import('../middleware/tenant');
+    vi.mocked(tenantScope).mockImplementationOnce(
+      async (c: { set: (k: string, v: unknown) => void }, next: () => Promise<void>) => {
+        c.set('tx', {
+          select: vi.fn().mockReturnValue({
+            from: vi.fn().mockResolvedValue([]),
+          }),
+        });
+        await next();
+      },
+    );
+
+    const app = await createTestApp();
+    const res = await app.request('/api/v1/app');
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data).toHaveLength(0);
+  });
+});
+
 describe('GET /api/v1/app/:appId', () => {
   it('returns app by non-UUID uid', async () => {
     mockSelectResult = [
