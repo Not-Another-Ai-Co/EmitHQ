@@ -42,7 +42,7 @@ test.describe('Browser journey', () => {
   });
 
   test('2. create application', async ({ page }) => {
-    await page.goto('/dashboard/applications');
+    await page.goto('/dashboard');
 
     // Wait for page content to load
     const newAppBtn = page.getByRole('button', {
@@ -58,13 +58,14 @@ test.describe('Browser journey', () => {
     // Wait for creation to complete
     await expect(page.getByText('E2E Test App')).toBeVisible({ timeout: 10_000 });
 
-    // Select the app to set the ?app= param
+    // Select the app — navigates to /dashboard/app/[appId]
     await page.getByText('E2E Test App').click();
-    await page.waitForURL(/\?app=/);
+    await page.waitForURL(/\/dashboard\/app\//);
 
-    // Extract appId from URL
+    // Extract appId from URL path
     const url = new URL(page.url());
-    appId = url.searchParams.get('app')!;
+    const match = url.pathname.match(/\/dashboard\/app\/([^/]+)/);
+    appId = match ? decodeURIComponent(match[1]) : '';
     expect(appId).toBeTruthy();
   });
 
@@ -94,7 +95,7 @@ test.describe('Browser journey', () => {
   });
 
   test('4. create endpoint', async ({ page }) => {
-    await page.goto(`/dashboard/endpoints?app=${appId}`);
+    await page.goto(`/dashboard/app/${appId}/endpoints`);
 
     // Wait for page content
     const newBtn = page.getByRole('button', { name: /new endpoint|create first endpoint/i });
@@ -141,7 +142,7 @@ test.describe('Browser journey', () => {
   });
 
   test('6. verify event appears in dashboard', async ({ page }) => {
-    await page.goto(`/dashboard/events?app=${appId}`);
+    await page.goto(`/dashboard/app/${appId}/events`);
 
     // Wait for the event to appear
     await expect(page.getByText('e2e.test')).toBeVisible({ timeout: 15_000 });

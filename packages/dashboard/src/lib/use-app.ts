@@ -1,12 +1,12 @@
 'use client';
 
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 /**
- * Hook to get the selected app ID from URL search params.
- * Falls back to 'default' if no ?app= param is present.
+ * Hook to get the selected app ID from the URL path segment.
+ * Only works within /dashboard/app/[appId]/* routes.
  */
 export function useApp(): string {
-  const searchParams = useSearchParams();
-  return searchParams.get('app') ?? 'default';
+  const params = useParams<{ appId: string }>();
+  return params.appId;
 }

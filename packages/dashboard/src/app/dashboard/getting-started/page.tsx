@@ -18,7 +18,7 @@ const STEPS: StepDef[] = [
     id: 'create-app',
     title: '1. Create an application',
     description: 'Applications represent your customers or services that send webhooks.',
-    href: '/dashboard/applications',
+    href: '/dashboard',
     linkLabel: 'Go to Applications',
   },
   {
@@ -31,9 +31,10 @@ const STEPS: StepDef[] = [
   {
     id: 'create-endpoint',
     title: '3. Create an endpoint',
-    description: 'Add a destination URL to receive webhook deliveries.',
-    href: '/dashboard/endpoints',
-    linkLabel: 'Go to Endpoints',
+    description:
+      'Add a destination URL to receive webhook deliveries. You must create an app first.',
+    href: '/dashboard',
+    linkLabel: 'Go to Applications',
   },
   {
     id: 'send-event',

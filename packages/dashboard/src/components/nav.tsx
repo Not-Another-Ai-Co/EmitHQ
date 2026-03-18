@@ -1,37 +1,101 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { useClerk } from '@clerk/nextjs';
-import { AppSwitcher } from '@/components/app-switcher';
 
-const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Overview', icon: '◉' },
-  { href: '/dashboard/events', label: 'Events', icon: '⚡' },
-  { href: '/dashboard/endpoints', label: 'Endpoints', icon: '🔗' },
-  { href: '/dashboard/dlq', label: 'Dead Letter Queue', icon: '⚠' },
-  { href: '/dashboard/applications', label: 'Applications', icon: '📦' },
-  { href: '/dashboard/billing', label: 'Billing', icon: '💳' },
+const GLOBAL_NAV_ITEMS = [
+  { href: '/dashboard', label: 'Applications', icon: '📦' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
+  { href: '/dashboard/billing', label: 'Billing', icon: '💳' },
   { href: '/dashboard/profile', label: 'Profile', icon: '👤' },
+];
+
+const APP_NAV_ITEMS = [
+  { segment: '', label: 'Overview', icon: '◉' },
+  { segment: '/events', label: 'Events', icon: '⚡' },
+  { segment: '/endpoints', label: 'Endpoints', icon: '🔗' },
+  { segment: '/dlq', label: 'Dead Letter Queue', icon: '⚠' },
 ];
 
 function NavLinks() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const appParam = searchParams.get('app');
+  const params = useParams<{ appId?: string }>();
+  const appId = params.appId;
   const [onboardingDismissed, setOnboardingDismissed] = useState(true);
 
   useEffect(() => {
     setOnboardingDismissed(localStorage.getItem('emithq_onboarding_dismissed') === 'true');
   }, []);
 
-  function hrefWithApp(base: string): string {
-    if (!appParam) return base;
-    return `${base}?app=${encodeURIComponent(appParam)}`;
+  const inAppContext = !!appId;
+
+  if (inAppContext) {
+    const appBase = `/dashboard/app/${appId}`;
+    return (
+      <div className="flex flex-1 flex-col">
+        <Link
+          href="/dashboard"
+          className="mb-3 flex items-center gap-2 text-sm text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
+        >
+          <span>←</span>
+          All Apps
+        </Link>
+        <div className="mb-3 truncate border-b border-[var(--color-border)] pb-3 text-sm font-semibold">
+          {decodeURIComponent(appId)}
+        </div>
+        <ul className="space-y-1">
+          {APP_NAV_ITEMS.map((item) => {
+            const href = `${appBase}${item.segment}`;
+            const active =
+              item.segment === ''
+                ? pathname === appBase || pathname === `${appBase}/`
+                : pathname === href || pathname?.startsWith(href + '/');
+            return (
+              <li key={item.segment}>
+                <Link
+                  href={href}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                    active
+                      ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                  }`}
+                >
+                  <span className="inline-flex w-5 justify-center">{item.icon}</span>
+                  {item.label}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="mt-auto">
+          <ul className="space-y-1 border-t border-[var(--color-border)] pt-3">
+            {GLOBAL_NAV_ITEMS.filter((i) => i.href !== '/dashboard').map((item) => {
+              const active = pathname === item.href || pathname?.startsWith(item.href + '/');
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
+                      active
+                        ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
+                        : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    }`}
+                  >
+                    <span className="inline-flex w-5 justify-center">{item.icon}</span>
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </div>
+    );
   }
 
+  // Global mode
   return (
     <ul className="space-y-1">
       {!onboardingDismissed && (
@@ -49,7 +113,7 @@ function NavLinks() {
           </Link>
         </li>
       )}
-      {NAV_ITEMS.map((item) => {
+      {GLOBAL_NAV_ITEMS.map((item) => {
         const active =
           item.href === '/dashboard'
             ? pathname === '/dashboard'
@@ -57,7 +121,7 @@ function NavLinks() {
         return (
           <li key={item.href}>
             <Link
-              href={hrefWithApp(item.href)}
+              href={item.href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                 active
                   ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]'
@@ -76,20 +140,56 @@ function NavLinks() {
 
 function MobileNavLinks() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const appParam = searchParams.get('app');
+  const params = useParams<{ appId?: string }>();
+  const appId = params.appId;
 
-  function hrefWithApp(base: string): string {
-    if (!appParam) return base;
-    return `${base}?app=${encodeURIComponent(appParam)}`;
+  if (appId) {
+    const appBase = `/dashboard/app/${appId}`;
+    const mobileAppItems = [...APP_NAV_ITEMS, { segment: '@@back', label: 'Apps', icon: '📦' }];
+    return (
+      <ul className="flex justify-around py-2">
+        {mobileAppItems.map((item) => {
+          if (item.segment === '@@back') {
+            return (
+              <li key="back">
+                <Link
+                  href="/dashboard"
+                  className="flex flex-col items-center gap-1 px-3 py-1 text-xs text-[var(--color-text-muted)]"
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  {item.label}
+                </Link>
+              </li>
+            );
+          }
+          const href = `${appBase}${item.segment}`;
+          const active =
+            item.segment === ''
+              ? pathname === appBase || pathname === `${appBase}/`
+              : pathname === href || pathname?.startsWith(href + '/');
+          return (
+            <li key={item.segment}>
+              <Link
+                href={href}
+                className={`flex flex-col items-center gap-1 px-3 py-1 text-xs ${
+                  active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
+                }`}
+              >
+                <span className="text-lg">{item.icon}</span>
+                {item.label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    );
   }
 
-  // Show first 4 nav items + Profile on mobile
-  const mobileItems = [...NAV_ITEMS.slice(0, 4), NAV_ITEMS[NAV_ITEMS.length - 1]];
-
+  // Global mobile nav
+  const mobileGlobalItems = GLOBAL_NAV_ITEMS;
   return (
     <ul className="flex justify-around py-2">
-      {mobileItems.map((item) => {
+      {mobileGlobalItems.map((item) => {
         const active =
           item.href === '/dashboard'
             ? pathname === '/dashboard'
@@ -97,7 +197,7 @@ function MobileNavLinks() {
         return (
           <li key={item.href}>
             <Link
-              href={hrefWithApp(item.href)}
+              href={item.href}
               className={`flex flex-col items-center gap-1 px-3 py-1 text-xs ${
                 active ? 'text-[var(--color-accent)]' : 'text-[var(--color-text-muted)]'
               }`}
@@ -134,15 +234,6 @@ export function Sidebar() {
           EmitHQ
         </Link>
       </div>
-      <Suspense
-        fallback={
-          <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text-muted)]">
-            Loading...
-          </div>
-        }
-      >
-        <AppSwitcher />
-      </Suspense>
       <Suspense fallback={null}>
         <NavLinks />
       </Suspense>

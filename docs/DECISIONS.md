@@ -500,3 +500,22 @@
 - Global quota middleware fetching org data — accepted the extra DB query per authenticated request for simplicity; optimize with caching if needed post-launch
 
 **Consequences:** Signup creates both a Clerk user and an EmitHQ org in one call. If EmitHQ DB insert fails after Clerk user creation, the Clerk user is orphaned but recoverable via dashboard login (auto-provision catches it). In-memory rate limiter resets on deploy — acceptable abuse window. `TIER_PRICES` constant added to `@emithq/core` for 429 response bodies.
+
+---
+
+## DEC-028 | 2026-03-18 | Dashboard: Path-Based App Context + Two-State Sidebar
+
+**Status:** Active
+**Linked to:** T-070, docs/research/dashboard-ux-restructure.md
+
+**Context:** Dashboard used `?app=<uid>` query params to track app context. This caused stale AppSwitcher state after deletes, confusing "default" fallback when no app selected, and required `hrefWithApp()` propagation on every nav link. T-068 research recommended path-based routing following Vercel/Railway patterns.
+
+**Decision:** Restructured to `/dashboard/app/[appId]/*` path-based routing. `useApp()` reads from `useParams()` instead of `useSearchParams()`. Sidebar is a two-state component: global mode (Applications, Settings, Billing, Profile) when on `/dashboard` or `/dashboard/settings/*`, and app-context mode (Overview, Events, Endpoints, DLQ + "Back to Apps") when on `/dashboard/app/*`. AppSwitcher dropdown removed. `/dashboard` landing is now the app card grid (absorbed from `/dashboard/applications`). Mobile nav also switches between global and app-context items.
+
+**Alternatives considered:**
+
+- Breadcrumb-only approach (keep sidebar static, add breadcrumb header) — doesn't clearly communicate app context, still needs query param propagation
+- Nested layout duplication (separate layout for global vs app) — duplicates auth guard and outer chrome
+- Keep AppSwitcher as app-context header — adds complexity without benefit when card grid is the landing page
+
+**Consequences:** Old `?app=` URLs no longer work (pre-launch, so no user impact). E2E browser journey tests updated for new URL patterns. AppSwitcher component deleted. Old `/dashboard/applications`, `/dashboard/events`, `/dashboard/endpoints`, `/dashboard/dlq` routes removed — all app-scoped pages live under `/dashboard/app/[appId]/`.

@@ -484,7 +484,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-070: Route Restructure + Sidebar Transform
+### T-070: Route Restructure + Sidebar Transform [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
@@ -496,14 +496,14 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 **Acceptance criteria:**
 
-- [ ] `/dashboard/app/[appId]` nested layout with dynamic route
-- [ ] Events, Endpoints, DLQ pages moved to `/dashboard/app/[appId]/*`
-- [ ] Sidebar renders global nav when on `/dashboard` or `/dashboard/settings`
-- [ ] Sidebar renders app-scoped nav with app name and "Back to Apps" when on `/dashboard/app/*`
-- [ ] `useApp()` hook reads `appId` from path params instead of query params
-- [ ] All internal links updated to path-based app context
-- [ ] AppSwitcher component removed
-- [ ] `hrefWithApp()` removed from nav
+- [x] `/dashboard/app/[appId]` nested layout with dynamic route
+- [x] Events, Endpoints, DLQ pages moved to `/dashboard/app/[appId]/*`
+- [x] Sidebar renders global nav when on `/dashboard` or `/dashboard/settings`
+- [x] Sidebar renders app-scoped nav with app name and "Back to Apps" when on `/dashboard/app/*`
+- [x] `useApp()` hook reads `appId` from path params instead of query params
+- [x] All internal links updated to path-based app context
+- [x] AppSwitcher component removed
+- [x] `hrefWithApp()` removed from nav
 
 ---
 
