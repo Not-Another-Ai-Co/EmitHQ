@@ -48,15 +48,3 @@ export function SkeletonEndpointCard() {
     </div>
   );
 }
-
-export function SkeletonRow({ cols = 4 }: { cols?: number }) {
-  return (
-    <tr>
-      {Array.from({ length: cols }).map((_, i) => (
-        <td key={i} className="px-4 py-3">
-          <div className="skeleton h-4 w-20" />
-        </td>
-      ))}
-    </tr>
-  );
-}
