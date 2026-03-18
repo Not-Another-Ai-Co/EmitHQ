@@ -457,6 +457,27 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
+### T-068: Research — Dashboard UX Restructure
+
+**Phase:** 8a (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Complex
+**Depends on:** T-060
+**Research:** none (this IS the research)
+
+**Description:** The dashboard UX has several issues surfaced during smoke testing. Research and plan a restructure covering: (1) App selection should be the landing page, not a dropdown — overview page shows apps as cards, user clicks to enter an app's context. (2) Getting Started integrated into the landing page and disappears after first app is created. (3) Settings should include Profile and Billing (consolidated page, not 3 separate nav items). (4) Deleted apps should be soft-deleted with 30-day recovery in settings. (5) App dropdown shows stale deleted apps (client cache not invalidated). (6) Delete button formatting issues. Check frontend research at `~/.claude/knowledge/` and review modern SaaS dashboard patterns.
+
+**Acceptance criteria:**
+
+- [ ] Research: review dashboard patterns (Vercel, Railway, Clerk, Stripe) for app-centric navigation
+- [ ] Research: soft-delete with recovery UX patterns
+- [ ] Research: settings consolidation (profile + billing + API keys in one page vs tabs)
+- [ ] Design: wireframe/description of new dashboard layout
+- [ ] Plan: break into implementation tickets with effort estimates
+- [ ] Artifact: `docs/research/dashboard-ux-restructure.md`
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d

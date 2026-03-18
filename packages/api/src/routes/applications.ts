@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { eq, or, and } from 'drizzle-orm';
-import { applications, endpoints, messages } from '@emithq/core';
+import { eq, or, and, inArray } from 'drizzle-orm';
+import { applications, endpoints, messages, deliveryAttempts } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
 import type { AuthEnv } from '../types';
@@ -120,6 +120,13 @@ applicationRoutes.delete('/:appId', async (c) => {
   if (!app) {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
+
+  // Delete delivery attempts for messages in this app (FK: delivery_attempts → messages)
+  const appMessages = tx
+    .select({ id: messages.id })
+    .from(messages)
+    .where(and(eq(messages.appId, app.id), eq(messages.orgId, orgId)));
+  await tx.delete(deliveryAttempts).where(inArray(deliveryAttempts.messageId, appMessages));
 
   // Delete endpoints belonging to this app
   await tx.delete(endpoints).where(and(eq(endpoints.appId, app.id), eq(endpoints.orgId, orgId)));
