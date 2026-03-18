@@ -2,20 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { Suspense, useState, type ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { useClerk } from '@clerk/nextjs';
 import { useApps } from '@/lib/apps-context';
-import {
-  BarChart3,
-  Zap,
-  Link2,
-  AlertTriangle,
-  ArrowLeft,
-  LogOut,
-  Settings,
-  Menu,
-  X,
-} from 'lucide-react';
+import { BarChart3, Zap, Link2, AlertTriangle, ArrowLeft, LogOut, Settings } from 'lucide-react';
 
 const ICON_SIZE = 16;
 
