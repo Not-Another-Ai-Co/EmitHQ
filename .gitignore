@@ -13,3 +13,6 @@ docs/tmp/
 .next/
 out/
 next-env.d.ts
+playwright-report/
+test-results/
+playwright/.clerk/

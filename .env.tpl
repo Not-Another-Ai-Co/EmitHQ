@@ -40,6 +40,10 @@ METRICS_SECRET=op://EmitHQ/metrics/secret
 # Analytics (Umami — self-hosted)
 UMAMI_APP_SECRET=op://EmitHQ/umami/app-secret
 
+# E2E Testing (Playwright + Clerk)
+E2E_CLERK_USER_EMAIL=op://EmitHQ/e2e/user-email
+E2E_CLERK_USER_PASSWORD=op://EmitHQ/e2e/user-password
+
 # App (local dev — Tailscale IP)
 NODE_ENV=development
 PORT=4000

@@ -58,6 +58,17 @@
 - Minimum: one happy-path + one failure/edge case per acceptance criterion
 - Mock external HTTP calls in unit tests; real DB in integration tests
 
+### E2E Tests (Playwright)
+
+- Located in `packages/dashboard/e2e/`
+- Run with: `cd packages/dashboard && op run --env-file=../../.env.tpl -- npx playwright test`
+- Prerequisites: dashboard (port 4002), API (port 4000), worker, Redis, PostgreSQL all running
+- Clerk test user must exist (credentials in 1Password `EmitHQ/e2e`)
+- Install browsers first: `npx playwright install chromium`
+- Three test suites: `browser-journey` (8-step UI flow), `api-journey` (LLM-automatable API flow), `account-management` (profile/billing smoke tests)
+- Uses `@clerk/testing` for auth bypass — requires `CLERK_SECRET_KEY` (dev instance only)
+- CI integration deferred to T-038
+
 ## Git
 
 - Atomic commits, imperative mood, reference ticket IDs

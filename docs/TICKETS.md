@@ -450,7 +450,7 @@ _Validate the complete signup-to-delivery flow before inviting beta users. Gates
 
 ---
 
-### T-060: Playwright E2E Setup + Happy-Path Journey Tests
+### T-060: Playwright E2E Setup + Happy-Path Journey Tests [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** High
@@ -564,7 +564,7 @@ _Make EmitHQ fully operable by LLM agents. No browser required from signup to fi
 
 ---
 
-### T-064: OpenAPI Spec + Machine-Readable Docs + llm.txt [x]
+### T-064: OpenAPI Spec + Machine-Readable Docs + llm.txt [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium

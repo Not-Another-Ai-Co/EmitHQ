@@ -6,12 +6,12 @@
       "ignoreDependencies": ["stripe", "drizzle-orm"]
     },
     "packages/dashboard": {
-      "ignoreDependencies": ["postcss", "postcss-load-config"]
+      "ignoreDependencies": ["postcss", "postcss-load-config", "@clerk/testing", "@playwright/test"]
     },
     "packages/landing": {
       "ignoreDependencies": ["postcss", "postcss-load-config"]
     }
   },
-  "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**", "scripts/**"],
+  "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**", "scripts/**", "**/e2e/**"],
   "ignoreDependencies": ["tsx", "@eslint/js", "@vitest/coverage-v8"]
 }
