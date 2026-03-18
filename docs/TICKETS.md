@@ -416,7 +416,7 @@ _Publish content and establish community presence before the public launch spike
 
 ---
 
-### T-077: Dashboard Polish + Onboarding Verification [x] [verified]
+### T-077: Dashboard Polish + Onboarding Verification [x] [verified] (2 items [~] — LLM signup + dashboard-after-signup pending Julian manual test)
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
