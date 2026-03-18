@@ -43,7 +43,7 @@ function NavLinks() {
                 : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
             }`}
           >
-            <span>🚀</span>
+            <span className="inline-flex w-5 justify-center">🚀</span>
             Getting Started
           </Link>
         </li>
@@ -63,7 +63,7 @@ function NavLinks() {
                   : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
               }`}
             >
-              <span>{item.icon}</span>
+              <span className="inline-flex w-5 justify-center">{item.icon}</span>
               {item.label}
             </Link>
           </li>
