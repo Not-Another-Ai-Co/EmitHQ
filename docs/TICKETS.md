@@ -570,7 +570,7 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
-### T-080: Dashboard Global Layout Restructure [x]
+### T-080: Dashboard Global Layout Restructure [x] [verified]
 
 **Phase:** 8e
 **Effort:** Medium
