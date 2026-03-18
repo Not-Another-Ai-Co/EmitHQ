@@ -66,8 +66,8 @@ billingRoutes.post('/checkout', requireAuth, requireRole('org:admin', 'org:owner
     line_items: [{ price: priceId, quantity: 1 }],
     metadata: { org_id: orgId, tier, interval },
     subscription_data: { metadata: { org_id: orgId } },
-    success_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/billing?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/billing`,
+    success_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/settings?tab=billing&checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/settings?tab=billing`,
   };
 
   // Reuse existing Stripe customer if we have one

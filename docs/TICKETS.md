@@ -529,7 +529,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-072: Inline Onboarding [x]
+### T-072: Inline Onboarding [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -552,7 +552,7 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 ---
 
-### T-073: Settings Consolidation
+### T-073: Settings Consolidation [x]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Low
@@ -564,14 +564,14 @@ _Six tickets from T-068 research. Implements app-centric navigation, inline onbo
 
 **Acceptance criteria:**
 
-- [ ] `/dashboard/settings` renders tabbed interface: API Keys (default), Billing, Profile, Danger Zone
-- [ ] Tab routing via `?tab=api-keys|billing|profile|danger-zone`
-- [ ] API Keys tab contains current Settings page content
-- [ ] Billing tab contains current Billing page content
-- [ ] Profile tab contains Clerk `<UserProfile />`
-- [ ] Danger Zone tab shows placeholder ("No recently deleted apps")
-- [ ] Billing and Profile removed from sidebar nav
-- [ ] `/dashboard/billing` and `/dashboard/profile` redirect to `/dashboard/settings?tab=billing` and `?tab=profile`
+- [x] `/dashboard/settings` renders tabbed interface: API Keys (default), Billing, Profile, Danger Zone
+- [x] Tab routing via `?tab=api-keys|billing|profile|danger-zone`
+- [x] API Keys tab contains current Settings page content
+- [x] Billing tab contains current Billing page content
+- [x] Profile tab contains Clerk `<UserProfile />`
+- [x] Danger Zone tab shows placeholder ("No recently deleted apps")
+- [x] Billing and Profile removed from sidebar nav
+- [x] `/dashboard/billing` and `/dashboard/profile` redirect to `/dashboard/settings?tab=billing` and `?tab=profile`
 
 ---
 

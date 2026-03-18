@@ -8,8 +8,6 @@ import { useClerk } from '@clerk/nextjs';
 const GLOBAL_NAV_ITEMS = [
   { href: '/dashboard', label: 'Applications', icon: '📦' },
   { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
-  { href: '/dashboard/billing', label: 'Billing', icon: '💳' },
-  { href: '/dashboard/profile', label: 'Profile', icon: '👤' },
 ];
 
 const APP_NAV_ITEMS = [
