@@ -728,6 +728,232 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 ---
 
+## First 10 Customers — 2026-03-19
+
+_Product is live. Stripe is live. Zero customers. Claude drives all execution. Research: docs/research/first-10-customers.md_
+
+### Phase 11: Outreach & First Users
+
+---
+
+### T-088: GitHub Svix User Mining + Cold Email Drafts
+
+**Phase:** 11
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/first-10-customers.md
+
+**Description:** Search GitHub for companies importing `@svix/svix` in package.json. Extract company names, repo context, and maintainer contact info (email from commits/profile). Draft 20 personalized cold emails highlighting the $49 vs $490 pricing gap. Each email references the specific repo.
+
+**Acceptance criteria:**
+
+- [ ] GitHub code search: find 50+ repos with `@svix/svix` in package.json or similar
+- [ ] Extract company/org name, repo URL, maintainer name, and email for each
+- [ ] Categorize: startup vs enterprise, webhook volume estimate from repo context
+- [ ] Draft 20 personalized cold emails (each references their specific repo/company)
+- [ ] Email template: intro → pricing gap → CTA (try free, no card required)
+- [ ] Follow-up template: Day 3, Day 10
+- [ ] Artifact: `docs/outreach/svix-targets.md` with target list + email drafts
+
+---
+
+### T-089: Email Sending Infrastructure
+
+**Phase:** 11
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** docs/research/first-10-customers.md
+
+**Description:** Set up email sending capability that Claude can use autonomously. Options: Resend API (transactional email service — free tier 100 emails/day), or Gmail MCP if available. Emails should come from a professional address (e.g., julian@emithq.com or hello@emithq.com). Must be automatable from Claude's bash/API access.
+
+**Acceptance criteria:**
+
+- [ ] Research: evaluate Resend vs Gmail MCP vs other options for Claude-driven email sending
+- [ ] Set up chosen email service (account, API key in 1Password, domain verification)
+- [ ] Create sending script or integration that Claude can invoke from bash
+- [ ] Configure sender address (professional @emithq.com address)
+- [ ] Send test email to julian@naac.ai to verify delivery + formatting
+- [ ] Verify emails don't land in spam (SPF/DKIM configured)
+
+---
+
+### T-090: Execute Cold Outreach — First 10 Users
+
+**Phase:** 11
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-088, T-089
+**Research:** docs/research/first-10-customers.md
+
+**Description:** Send the personalized cold emails from T-088 using the infrastructure from T-089. Track responses. Follow up on Day 3 and Day 10. White-glove onboard anyone who signs up — help them create their first app, endpoint, and send their first webhook.
+
+**Acceptance criteria:**
+
+- [ ] First batch of 20 emails sent
+- [ ] Follow-up cadence running: Day 0 → Day 3 → Day 10
+- [ ] Track in `docs/outreach/tracker.md`: sent count, reply count, signup count, active count
+- [ ] White-glove onboard any signups: create app + endpoint + first event via API on their behalf
+- [ ] Goal: 5+ orgs signed up, 2+ sending real webhook events
+- [ ] Supersedes T-052 (consolidated)
+
+---
+
+### T-091: Origin Story Blog Post
+
+**Phase:** 11
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/content-distribution-strategy.md
+
+**Description:** Write and publish "Why We Built EmitHQ: The $49-$490 Webhook Pricing Gap" on emithq.com/blog. Supports outreach emails as credibility piece. Claude writes in Julian's voice based on the pricing research and competitive analysis already completed. Supersedes T-055.
+
+**Acceptance criteria:**
+
+- [ ] Blog post written: origin story, pricing gap discovery, what EmitHQ does differently
+- [ ] Published on emithq.com/blog/why-we-built-emithq (new /blog route on landing site)
+- [ ] SEO meta tags: title, description, OG image targeting "webhook service" and "webhook platform"
+- [ ] Cross-postable format for Dev.to
+- [ ] Supersedes T-055
+
+---
+
+### T-092: Technical Deep-Dive Blog Post
+
+**Phase:** 11
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/content-distribution-strategy.md
+
+**Description:** Write and publish "Webhook Delivery Architecture: How We Achieve 99.99% Reliability." Establishes technical credibility for HN audience. Covers persist-before-enqueue, BullMQ retry with jitter, circuit breakers, Standard Webhooks signing. Supersedes T-056.
+
+**Acceptance criteria:**
+
+- [ ] Blog post written: architecture overview, delivery flow, retry strategy, signing, circuit breaker
+- [ ] Published on emithq.com/blog/webhook-delivery-architecture
+- [ ] Includes architecture diagram (text-based)
+- [ ] Code snippets showing signing implementation and retry logic
+- [ ] SEO meta tags targeting "webhook delivery reliability" and "webhook retry logic"
+- [ ] Supersedes T-056
+
+---
+
+### T-093: Community Presence + Build-in-Public
+
+**Phase:** 11
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/first-10-customers.md
+
+**Description:** Establish EmitHQ presence on community platforms. Post build-in-public updates. Set up alerts for webhook/svix/hookdeck mentions to join relevant conversations. Supersedes T-057.
+
+**Acceptance criteria:**
+
+- [ ] Create EmitHQ accounts on: Dev.to, Indie Hackers (or use Julian's if he has them)
+- [ ] Draft first 5 build-in-public posts: technical decisions, pricing research, architecture choices
+- [ ] Set up F5Bot or similar alert service for mentions of "webhook service", "svix", "hookdeck"
+- [ ] Post first update on each platform
+- [ ] Supersedes T-057
+
+---
+
+### T-096: Research — LLM & SEO Discovery Optimization
+
+**Phase:** 11 (research-only)
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** none
+**Research:** ~/.claude/knowledge/seo-llm-visibility/research.md
+
+**Description:** Research how LLMs (ChatGPT, Claude, Perplexity) decide which products to recommend, what content signals they pull from, and what EmitHQ needs to do to appear when developers ask "what webhook service should I use?" Produce actionable implementation tickets from findings.
+
+**Acceptance criteria:**
+
+- [ ] Research: how do LLMs select products to recommend? (training data, web crawl recency, structured data, llms.txt, citations)
+- [ ] Research: what SEO signals matter for developer tool discovery in 2026?
+- [ ] Audit: ask ChatGPT/Claude/Perplexity "best webhook service for SaaS" — document what they recommend and why
+- [ ] Audit: what does EmitHQ's current web presence look like to a crawler? (meta tags, structured data, backlinks)
+- [ ] Gap analysis: what's missing vs competitors (Svix, Hookdeck, Convoy) in terms of discoverability
+- [ ] Artifact: `docs/research/llm-seo-discovery.md` with findings + implementation plan
+- [ ] Create implementation tickets from findings via `/plan`
+
+---
+
+### Phase 12: Convert & Launch
+
+---
+
+### T-094: Collect Metrics + Testimonials
+
+**Phase:** 12
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-090
+**Research:** docs/research/first-10-customers.md
+
+**Description:** After 2-3 weeks of real usage, collect production metrics and testimonials from early users. Fill the Show HN draft [PLACEHOLDER] slots. Supersedes T-054.
+
+**Acceptance criteria:**
+
+- [ ] Query production metrics: total events, delivery success rate, active orgs, active endpoints
+- [ ] Request testimonial quotes from 2-3 active users
+- [ ] Update Show HN draft with real numbers
+- [ ] At least 1 user willing to comment on HN thread
+- [ ] Supersedes T-054
+
+---
+
+### T-095: Show HN Execution
+
+**Phase:** 12
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-094
+**Research:** docs/research/first-10-customers.md, docs/research/gtm-execution.md
+
+**Description:** Execute Show HN launch once real metrics and testimonials are collected. Claude writes and posts the Show HN, responds to comments, cross-posts to Dev.to. Supersedes T-034 + T-058.
+
+**Acceptance criteria:**
+
+- [ ] Show HN draft finalized with real metrics (no [PLACEHOLDER] slots)
+- [ ] Readiness gate passed: 5+ real users, 1+ paying or committed, 1+ testimonial
+- [ ] Show HN posted (Sunday 11:00-16:00 UTC)
+- [ ] Every HN comment responded to within 30 minutes for first 6 hours
+- [ ] Dev.to cross-post published day after
+- [ ] Supersedes T-034 + T-058
+
+---
+
+### Deferred Tickets [-]
+
+_The following tickets are deferred until post-first-10-customers. They add complexity without value at zero users._
+
+- [-] T-025: First Iteration Cycle — need data first
+- [-] T-035: Sustained Acquisition Setup — after Show HN
+- [-] T-036: Email Service & Lifecycle Emails — after 100+ users
+- [-] T-037: Stripe Overage Metering — after users hit limits
+- [-] T-038: CI Integration Tests — infrastructure, not user-facing
+- [-] T-039: Cloudflare Workers Edge Layer — no inbound webhook demand yet
+- [-] T-043: Infrastructure Cost Monitoring — premature at $15/mo
+- [-] T-044: Automated Social Media — manual posting is fine
+- [-] T-046: Cold Outreach Campaign — merged into T-088+T-090
+- [-] T-052: Cold Outreach First 10 — merged into T-090
+- [-] T-053: Pricing Validation Interviews — after 5+ users
+- [-] T-055: Origin Story Blog — superseded by T-091
+- [-] T-056: Technical Deep-Dive — superseded by T-092
+- [-] T-057: Build-in-Public — superseded by T-093
+- [-] T-065: Payment-Gated Abuse Prevention — zero users to abuse
+- [-] T-066: API Key Scoping — nice-to-have post-launch
+- [-] T-067: EmitHQ MCP Server — build after users request it
+- [-] T-069: Frontend-Backend Integration Hardening — infrastructure
+- [-] T-084: Vercel Migration — before first paying customer
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d
