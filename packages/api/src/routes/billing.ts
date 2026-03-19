@@ -155,7 +155,7 @@ billingRoutes.post('/portal', requireAuth, requireRole('org:admin', 'org:owner')
   try {
     session = await stripe.billingPortal.sessions.create({
       customer: org.stripeCustomerId,
-      return_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/billing`,
+      return_url: `${process.env.DASHBOARD_URL || 'http://localhost:4002'}/dashboard/settings?tab=billing`,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Stripe portal failed';
