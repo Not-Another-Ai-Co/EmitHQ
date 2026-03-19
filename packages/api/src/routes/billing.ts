@@ -166,9 +166,12 @@ billingRoutes.post('/portal', requireAuth, requireRole('org:admin', 'org:owner')
 });
 
 // ─── POST /webhook — Stripe webhook handler ─────────────────────────────────
-// No auth middleware — Stripe authenticates via signature verification.
+// Exported separately and mounted before Clerk middleware in index.ts.
+// This ensures the raw body is not consumed by Clerk before signature verification.
 
-billingRoutes.post('/webhook', async (c) => {
+export const billingWebhookRoute = new Hono();
+
+billingWebhookRoute.post('/webhook', async (c) => {
   const stripe = getStripe();
   const signature = c.req.header('stripe-signature');
 

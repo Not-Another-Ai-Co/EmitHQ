@@ -10,7 +10,7 @@ import { replayRoutes } from './routes/replay';
 import { endpointRoutes } from './routes/endpoints';
 import { transformPreviewRoutes } from './routes/transform-preview';
 import { dashboardRoutes } from './routes/dashboard';
-import { billingRoutes } from './routes/billing';
+import { billingRoutes, billingWebhookRoute } from './routes/billing';
 import { onboardingRoutes } from './routes/onboarding';
 import { metricsRoutes } from './routes/metrics';
 import { adminDb, createRedisConnection } from '@emithq/core';
@@ -82,6 +82,9 @@ app.route('/metrics', metricsRoutes);
 
 // Public signup endpoint (before Clerk middleware — no auth required)
 app.route('/api/v1/signup', signupRoutes);
+
+// Stripe webhook — must be before Clerk middleware to preserve raw body for signature verification
+app.route('/api/v1/billing', billingWebhookRoute);
 
 // Mount Clerk middleware globally for session token support
 app.use('*', clerk);

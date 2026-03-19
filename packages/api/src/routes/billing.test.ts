@@ -6,15 +6,20 @@ vi.mock('@emithq/core', () => coreMock());
 vi.mock('../middleware/auth', () => authMock());
 vi.mock('../middleware/tenant', () => tenantMock());
 
-import { billingRoutes } from './billing';
+import { billingRoutes, billingWebhookRoute } from './billing';
 import { createTestApp, jsonRequest } from '../test-helpers/create-test-app';
+import { Hono } from 'hono';
 
 describe('billing routes (real handlers)', () => {
   let app: ReturnType<typeof createTestApp>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    app = createTestApp(billingRoutes, '/api/v1/billing');
+    // Mount both billing routes and webhook route (webhook is separate since it runs before Clerk)
+    const combined = new Hono();
+    combined.route('/api/v1/billing', billingWebhookRoute);
+    combined.route('/api/v1/billing', billingRoutes);
+    app = combined as unknown as ReturnType<typeof createTestApp>;
   });
 
   describe('POST /checkout', () => {
