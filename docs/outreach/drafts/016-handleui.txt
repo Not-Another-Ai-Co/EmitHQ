@@ -1,0 +1,17 @@
+Hi Rodrigo,
+
+Saw you're using Hookdeck in github.com/handleui/detent — I built an open-source alternative called EmitHQ
+that might be worth a look as an alternative to Hookdeck.
+
+Same core workflow: apps, endpoints, event delivery with retries, dashboard, TypeScript SDK.
+Starter is $49/mo. Free tier is 100K events with no card required.
+
+It's AGPL-licensed, so you can also self-host if that's ever relevant.
+
+No pressure — just figured it was worth a note since you're already in this category.
+Happy to answer any questions if you're curious.
+
+--
+Julian Finnegan
+Founder, EmitHQ
+emithq.com  ·  github.com/emithq

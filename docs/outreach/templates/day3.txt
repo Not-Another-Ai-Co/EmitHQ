@@ -1,0 +1,14 @@
+Hi {first_name},
+
+Following up on the note below — wanted to add one thing in case it's useful:
+I just published a walkthrough of how EmitHQ handles delivery reliability
+(persist-before-enqueue, exponential backoff with jitter, circuit breakers per endpoint):
+https://emithq.com/blog/webhook-delivery-architecture
+
+If you're already happy with {competitor}, no worries at all. But if the pricing gap is
+ever a blocker, the free tier is there whenever you want to test it.
+
+--
+Julian Finnegan
+Founder, EmitHQ
+emithq.com  ·  github.com/emithq

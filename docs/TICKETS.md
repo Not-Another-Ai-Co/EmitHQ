@@ -177,7 +177,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-088: GitHub Svix User Mining + Cold Email Drafts
+### T-088: GitHub Svix User Mining + Cold Email Drafts [x]
 
 **Phase:** 11
 **Effort:** Medium
@@ -189,13 +189,13 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 **Acceptance criteria:**
 
-- [ ] GitHub code search: find 50+ repos with `@svix/svix` in package.json or similar
-- [ ] Extract company/org name, repo URL, maintainer name, and email for each
-- [ ] Categorize: startup vs enterprise, webhook volume estimate from repo context
-- [ ] Draft 20 personalized cold emails (each references their specific repo/company)
-- [ ] Email template: intro → pricing gap → CTA (try free, no card required)
-- [ ] Follow-up template: Day 3, Day 10
-- [ ] Artifact: `docs/outreach/svix-targets.md` with target list + email drafts
+- [x] GitHub code search: find 50+ repos with `@svix/svix` in package.json or similar
+- [x] Extract company/org name, repo URL, maintainer name, and email for each
+- [x] Categorize: startup vs enterprise, webhook volume estimate from repo context
+- [x] Draft 20 personalized cold emails (each references their specific repo/company)
+- [x] Email template: intro → pricing gap → CTA (try free, no card required)
+- [x] Follow-up template: Day 3, Day 10
+- [x] Artifact: `docs/outreach/svix-targets.md` with target list + email drafts
 
 ---
 

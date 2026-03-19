@@ -1,0 +1,12 @@
+Hi {first_name},
+
+Last note from me on this — just wanted to close the loop.
+
+If EmitHQ ever becomes relevant (pricing, self-hosting, or just wanting
+an alternative), I'm at julian@emithq.com. Happy to help with the integration
+personally for early users.
+
+--
+Julian Finnegan
+Founder, EmitHQ
+emithq.com  ·  github.com/emithq
