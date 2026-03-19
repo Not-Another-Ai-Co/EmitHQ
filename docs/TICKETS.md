@@ -29,7 +29,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 
 ---
 
-### T-076: Stripe Checkout E2E Test + Live Mode Activation [x]
+### T-076: Stripe Checkout E2E Test + Live Mode Activation [x] [verified]
 
 **Phase:** 8a (Show HN blocker)
 **Effort:** Medium
@@ -49,13 +49,13 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 - [x] Verified quota headers: `X-EmitHQ-Tier: free`, limit 100K, used 0, remaining 100K
 - [x] Verified quota enforcement logic: free tier hard-blocks at limit, paid tiers allow overage (code + 14 unit tests)
 - [x] Verified webhook handler: 5 events handled (checkout.completed, sub.updated, sub.deleted, invoice.paid, invoice.payment_failed) with idempotency via unique stripe_event_id
-- [~] Sandbox checkout E2E (browser): Julian to complete in Stripe checkout page with test card 4242... then verify tier updates in dashboard
-- [~] Configure Stripe Customer Portal in sandbox (Julian: Stripe Dashboard → Settings → Customer Portal)
-- [~] Create live Stripe products + prices (3 tiers × 2 intervals = 6 prices)
-- [~] Store live price IDs in 1Password (`EmitHQ/stripe`)
-- [~] Update Railway env vars: `STRIPE_SECRET_KEY` (sk*live*), `STRIPE_WEBHOOK_SECRET`, all `STRIPE_PRICE_*`
-- [~] Create live webhook endpoint: `https://api.emithq.com/api/v1/billing/webhook`
-- [~] Verify live checkout end-to-end with real card
+- [x] Sandbox checkout E2E (browser): completed — verified tier update in dashboard
+- [x] Configure Stripe Customer Portal in sandbox
+- [x] Create live Stripe products + prices (3 tiers × 2 intervals = 6 prices)
+- [x] Store live price IDs in 1Password (`EmitHQ/stripe`)
+- [x] Update Railway env vars: `STRIPE_SECRET_KEY` (sk*live), `STRIPE_WEBHOOK_SECRET`, all `STRIPE_PRICE*\*`
+- [x] Create live webhook endpoint: `https://api.emithq.com/api/v1/billing/webhook`
+- [x] Verify live checkout end-to-end with real card — Julian subscribed to Starter, confirmed working
 
 ---
 
