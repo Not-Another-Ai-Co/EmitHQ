@@ -207,3 +207,39 @@ _Playwright + @clerk/testing: browser journey (8-step flow), API-only journey (L
 ### T-075: Stale App Cache Fix [x] [verified] [audited]
 
 _Full dashboard UX restructure: path-based app routing (`/dashboard/app/[appId]/*`), two-state sidebar, app card grid landing with per-app stats, inline onboarding with server-side flag, consolidated settings tabs (API Keys/Billing/Profile/Danger Zone), soft-delete with 30-day recovery + auto-purge, shared React Context for app state. Research: `docs/research/dashboard-ux-restructure.md`. Decisions: DEC-028._
+
+---
+
+## Phase 8a: Show HN Blockers (completed tickets, batch 2)
+
+### T-077: Dashboard Polish + Onboarding Verification [x] [verified] [audited] (2 items [~] — LLM signup + dashboard-after-signup pending Julian manual test)
+
+### T-078: LLM-Friendly API Docs & Key Rotation Hardening [x] [verified] [audited]
+
+_Dashboard polish (Sonner toasts, Lucide icons, loading skeletons, StatusBadge fix). Key rotation endpoint with grace period (DEC-029). llm.txt + agents.json updated with full API key management. GitHub Secret Scanning deferred. 17 key management tests._
+
+---
+
+## Pre-Launch Hardening (completed tickets)
+
+### T-079: Upstash Redis Fixed Plan + Health Check Fix [x] [verified] [audited]
+
+### T-080: Dashboard Global Layout Restructure [x] [verified] [audited]
+
+### T-081: App Card + Nav Button UX Improvements [x] [verified] [audited]
+
+### T-083: App Switcher, Docs Link & Quick-Start Docs Page [x] [verified] [audited]
+
+### T-082: Promote T-065 Abuse Prevention Pre-Launch [x] [verified] [audited]
+
+_Upstash PAYG with $20/mo cap, singleton health check Redis. Top bar replaces sidebar (DEC-030). App cards with hover chevron, status dot, subtext. App switcher dropdown, Docs link, comprehensive /docs page. Disposable email blocking (55 domains) + admin org disable/enable (DEC-032)._
+
+---
+
+## Infrastructure Hardening (completed tickets)
+
+### T-086: SSRF Protection on Endpoint URLs [x] [verified] [audited]
+
+### T-087: Update Service Registry + Remove Unused Env Vars [x] [verified] [audited]
+
+_SSRF protection with DNS rebinding prevention (DEC-031). 20 URL validator tests. Service registry updated, unused env vars commented out._

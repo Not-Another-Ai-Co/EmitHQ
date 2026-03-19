@@ -48,13 +48,14 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 9. Return 202 Accepted with message ID
 10. BullMQ Worker (T-014): load message payload + endpoint config from adminDb (BYPASSRLS)
 11. Sign payload per Standard Webhooks spec: `HMAC-SHA256(msg_{id}.{timestamp}.{body}, whsec_secret)` → `v1,{base64}`
-12. HTTP POST to endpoint URL via native `fetch` + `AbortSignal.timeout()` (default 30s)
-13. Record result in `delivery_attempts`: status, statusCode, responseBody (1KB), responseTimeMs
-14. On 2xx: mark `delivered`, reset endpoint `failureCount`
-15. On 5xx/timeout/network error: mark `failed`, increment `failureCount`, BullMQ retries with exponential backoff
-16. On 400/401/403/404/410: throw `UnrecoverableError` (no retry — permanent error)
-17. Circuit breaker: `failureCount ≥ 10` → disable endpoint with reason `circuit_breaker`
-18. On exhaustion (T-015): move to DLQ, send operational webhook
+12. SSRF check: validate endpoint URL against blocked IP ranges and DNS rebinding (DEC-031)
+13. HTTP POST to endpoint URL via native `fetch` + `AbortSignal.timeout()` (default 30s)
+14. Record result in `delivery_attempts`: status, statusCode, responseBody (1KB), responseTimeMs
+15. On 2xx: mark `delivered`, reset endpoint `failureCount`
+16. On 5xx/timeout/network error: mark `failed`, increment `failureCount`, BullMQ retries with exponential backoff
+17. On 400/401/403/404/410: throw `UnrecoverableError` (no retry — permanent error)
+18. Circuit breaker: `failureCount ≥ 10` → disable endpoint with reason `circuit_breaker`
+19. On exhaustion (T-015): move to DLQ, send operational webhook
 
 ## Data Flow: Inbound
 
@@ -72,7 +73,11 @@ Dual auth model:
 
 Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenantScope` (RLS) → route handler. `quotaHeaders` middleware on all `/api/v1/*` routes injects `X-EmitHQ-Quota-*` response headers (limit, used, remaining, reset, tier + warning at 80%/95%).
 
-**API-only signup (T-063):** `POST /api/v1/signup` creates Clerk user + org via Backend API, provisions EmitHQ org, generates first API key — all in one request. No browser required. In-memory rate limiting (3/IP/day). Returns `{ orgId, apiKey, userId, tier, eventLimit, credential_storage_hint }`.
+**API-only signup (T-063):** `POST /api/v1/signup` creates Clerk user + org via Backend API, provisions EmitHQ org, generates first API key — all in one request. No browser required. In-memory rate limiting (3/IP/day). Disposable email domains blocked (55+ domains, T-082). Returns `{ orgId, apiKey, userId, tier, eventLimit, credential_storage_hint }`.
+
+**API key rotation (T-078):** `POST /api/v1/auth/keys/:keyId/rotate` creates a new key and sets `expiresAt` on the old key (configurable grace period, default 1 hour). Immediate revocation available with `gracePeriodMinutes: 0`.
+
+**Admin controls (T-082):** `POST /api/v1/admin/org/:orgId/disable` and `/enable` endpoints, protected by `ADMIN_SECRET` header. Disabled orgs get 403 on all API calls (both API key and Clerk session paths). Excluded from OpenAPI spec (internal-only).
 
 ## Multi-Tenancy
 
@@ -90,7 +95,8 @@ Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon 
 | Group        | Endpoints                                                          | Auth                                      |
 | ------------ | ------------------------------------------------------------------ | ----------------------------------------- |
 | Signup       | POST `/api/v1/signup`                                              | None (public, rate-limited)               |
-| Auth/Keys    | POST/GET/DELETE `/api/v1/auth/keys`                                | Clerk session                             |
+| Auth/Keys    | POST/GET/DELETE `/api/v1/auth/keys`, POST rotate                   | Clerk session                             |
+| Admin        | POST `/api/v1/admin/org/:orgId/disable\|enable`                    | ADMIN_SECRET header                       |
 | Applications | POST/GET `/api/v1/app`, GET `/api/v1/app/:appId`                   | API key or Clerk session                  |
 | Messages     | POST/GET `/api/v1/app/:appId/msg`, GET `/:msgId`                   | API key                                   |
 | Endpoints    | CRUD `/api/v1/app/:appId/endpoint`, test delivery                  | API key                                   |
