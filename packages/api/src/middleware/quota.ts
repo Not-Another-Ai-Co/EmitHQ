@@ -29,10 +29,12 @@ function buildUpgradeTiers() {
  * Does NOT block — only reads and sets headers.
  */
 export const quotaHeaders = createMiddleware<AuthEnv>(async (c, next) => {
+  // Run the route handler first — requireAuth sets orgId during request processing
+  await next();
+
+  // Now read orgId (set by requireAuth in the route's middleware chain)
   const orgId = c.get('orgId');
-  if (!orgId) {
-    return next();
-  }
+  if (!orgId) return;
 
   const [org] = await adminDb
     .select({
@@ -44,9 +46,7 @@ export const quotaHeaders = createMiddleware<AuthEnv>(async (c, next) => {
     .where(eq(organizations.id, orgId))
     .limit(1);
 
-  if (!org) {
-    return next();
-  }
+  if (!org) return;
 
   const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS.free;
   const used = org.eventCountMonth ?? 0;
@@ -54,7 +54,7 @@ export const quotaHeaders = createMiddleware<AuthEnv>(async (c, next) => {
   const resetAt = getQuotaResetDate(org.currentPeriodEnd ?? null);
   const pct = limit > 0 ? (used / limit) * 100 : 0;
 
-  // Set headers before next() so they appear on the response
+  // Set headers on the response (after route handler has produced it)
   c.header('X-EmitHQ-Quota-Limit', String(limit));
   c.header('X-EmitHQ-Quota-Used', String(used));
   c.header('X-EmitHQ-Quota-Remaining', String(remaining));
@@ -68,8 +68,6 @@ export const quotaHeaders = createMiddleware<AuthEnv>(async (c, next) => {
     c.header('X-EmitHQ-Quota-Warning', 'approaching_limit');
     c.header('X-EmitHQ-Upgrade-URL', '/api/v1/billing/checkout');
   }
-
-  await next();
 });
 
 /**
