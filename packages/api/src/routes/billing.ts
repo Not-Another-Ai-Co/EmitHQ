@@ -196,7 +196,12 @@ billingWebhookRoute.post('/webhook', async (c) => {
   let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch {
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Stripe webhook signature verification failed:', msg);
+    console.error('Signature header:', signature?.slice(0, 30) + '...');
+    console.error('Webhook secret starts with:', webhookSecret?.slice(0, 10) + '...');
+    console.error('Raw body length:', rawBody?.length);
     return c.json({ error: { code: 'unauthorized', message: 'Invalid webhook signature' } }, 401);
   }
 
