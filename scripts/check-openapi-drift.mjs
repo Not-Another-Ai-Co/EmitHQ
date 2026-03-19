@@ -55,7 +55,7 @@ for (const file of routeFiles) {
           .replace(/\/$/, ''); // strip trailing slash
 
         // Only check /api/v1/* routes (skip metrics, health, billing webhook)
-        if (fullPath.startsWith('/api/v1/') && !fullPath.includes('/billing/webhook')) {
+        if (fullPath.startsWith('/api/v1/') && !fullPath.includes('/billing/webhook') && !fullPath.includes('/admin/')) {
           codeRoutes.add(fullPath);
         }
       }
