@@ -706,7 +706,7 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 ---
 
-### T-082: Promote T-065 Abuse Prevention Pre-Launch [x]
+### T-082: Promote T-065 Abuse Prevention Pre-Launch [x] [verified]
 
 **Phase:** 8e
 **Effort:** Medium
