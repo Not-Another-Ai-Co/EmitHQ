@@ -241,13 +241,19 @@ billingWebhookRoute.post('/webhook', async (c) => {
         break;
     }
   } catch (handlerErr) {
-    console.error(
-      `Webhook handler error for ${event.type}:`,
-      handlerErr instanceof Error ? handlerErr.message : handlerErr,
+    const errMsg = handlerErr instanceof Error ? handlerErr.message : String(handlerErr);
+    const errStack =
+      handlerErr instanceof Error ? handlerErr.stack?.split('\n').slice(0, 3).join(' | ') : '';
+    console.error(`Webhook handler error for ${event.type}:`, errMsg);
+    // Return 500 with error details so Stripe dashboard shows what failed
+    return c.json(
+      {
+        error: errMsg,
+        stack: errStack,
+        eventType: event.type,
+      },
+      500,
     );
-    console.error('Event data:', JSON.stringify(obj).slice(0, 500));
-    // Return 200 so Stripe doesn't retry — the event is logged in billing_events
-    return c.json({ received: true, warning: 'Handler error logged' });
   }
 
   // Update billing_events with the actual org_id now that we've processed it
