@@ -284,18 +284,21 @@ async function handleCheckoutComplete(session: Record<string, unknown>) {
   const priceId = subscription.items.data[0]?.price.id;
   const tier = priceId ? tierFromPriceId(priceId) : null;
 
-  await adminDb
-    .update(organizations)
-    .set({
-      stripeCustomerId: customerId,
-      stripeSubscriptionId: subscriptionId,
-      subscriptionStatus: 'active',
-      tier: tier ?? 'starter',
-      currentPeriodEnd: new Date(
-        (subscription as unknown as { current_period_end: number }).current_period_end * 1000,
-      ),
-    })
-    .where(eq(organizations.id, orgId));
+  // current_period_end may be at top level or item level depending on Stripe API version
+  const sub = subscription as unknown as { current_period_end?: number };
+  const periodEnd = sub.current_period_end ?? subscription.items.data[0]?.current_period_end;
+
+  const updates: Record<string, unknown> = {
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: subscriptionId,
+    subscriptionStatus: 'active',
+    tier: tier ?? 'starter',
+  };
+  if (periodEnd) {
+    updates.currentPeriodEnd = new Date(periodEnd * 1000);
+  }
+
+  await adminDb.update(organizations).set(updates).where(eq(organizations.id, orgId));
 
   trackEvent('subscription.created', orgId, { tier: tier ?? 'starter' });
 }
@@ -331,8 +334,8 @@ async function updateOrgFromSubscription(
   sub: {
     status: string;
     cancel_at_period_end: boolean;
-    current_period_end: number;
-    items: { data: Array<{ price: { id: string } }> };
+    current_period_end?: number;
+    items: { data: Array<{ price: { id: string }; current_period_end?: number }> };
   },
 ) {
   const priceId = sub.items.data[0]?.price.id;
@@ -346,10 +349,16 @@ async function updateOrgFromSubscription(
         ? 'past_due'
         : sub.status;
 
+  // current_period_end may be at top level or item level depending on Stripe API version
+  const periodEnd = sub.current_period_end ?? sub.items.data[0]?.current_period_end;
+
   const updates: Record<string, unknown> = {
     subscriptionStatus: status,
-    currentPeriodEnd: new Date(sub.current_period_end * 1000),
   };
+
+  if (periodEnd) {
+    updates.currentPeriodEnd = new Date(periodEnd * 1000);
+  }
 
   if (tier) updates.tier = tier;
 
