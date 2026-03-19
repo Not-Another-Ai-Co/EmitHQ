@@ -154,7 +154,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality ga
 **Depends on:** none
 **Research:** docs/research/infrastructure-stack-audit.md
 
-**Description:** Vercel Hobby prohibits commercial use. Migrate the landing site to Cloudflare Pages (free, static export — zero code changes). Upgrade the dashboard to Vercel Pro ($20/mo) — simplest path, Clerk just works. Must complete before first paying customer.
+**Description:** Vercel Hobby prohibits commercial use. Migrate the landing site to Cloudflare Pages (free, static export — zero code changes). Upgrade the dashboard to Vercel Pro ($20/mo) — simplest path, Clerk just works. Low risk at small scale — defer until 5-10 paying customers.
 
 **Acceptance criteria:**
 
@@ -199,7 +199,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-089: Email Sending Infrastructure
+### T-089: Email Sending Infrastructure [x] [verified]
 
 **Phase:** 11
 **Effort:** Medium
@@ -211,12 +211,12 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 **Acceptance criteria:**
 
-- [ ] Research: evaluate Resend vs Gmail MCP vs other options for Claude-driven email sending
-- [ ] Set up chosen email service (account, API key in 1Password, domain verification)
-- [ ] Create sending script or integration that Claude can invoke from bash
-- [ ] Configure sender address (professional @emithq.com address)
-- [ ] Send test email to julian@naac.ai to verify delivery + formatting
-- [ ] Verify emails don't land in spam (SPF/DKIM configured)
+- [x] Research: evaluate Resend vs Gmail MCP vs other options for Claude-driven email sending
+- [x] Set up chosen email service (account, API key in 1Password, domain verification)
+- [x] Create sending script or integration that Claude can invoke from bash
+- [x] Configure sender address (professional @emithq.com address)
+- [x] Send test email to julian@naac.ai to verify delivery + formatting
+- [x] Verify emails don't land in spam (SPF/DKIM configured)
 
 ---
 
@@ -391,7 +391,7 @@ _The following tickets are deferred until post-first-10-customers. They add comp
 - [-] T-066: API Key Scoping — nice-to-have post-launch
 - [-] T-067: EmitHQ MCP Server — build after users request it
 - [-] T-069: Frontend-Backend Integration Hardening — infrastructure
-- [-] T-084: Vercel Migration — before first paying customer
+- [-] T-084: Vercel Migration — after first 5-10 customers
 
 ---
 

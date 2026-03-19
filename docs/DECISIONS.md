@@ -283,3 +283,22 @@
 - IP-based blocking only — easily circumvented; email blocking is more effective
 
 **Consequences:** Disposable email list needs periodic updates as new domains appear. Admin endpoints are internal-only (excluded from OpenAPI spec and drift check). T-065 remains open for card-on-file and velocity detection post-launch.
+
+---
+
+## DEC-033 | 2026-03-19 | Email Sending: Resend (Separate Account) + scripts/send-email.ts
+
+**Status:** Active
+**Linked to:** T-089
+
+**Context:** EmitHQ needs Claude-autonomous email sending for cold outreach (T-088→T-090). Must send from a professional `@emithq.com` address. Gmail MCP only supports draft creation (no send). FE project already uses Resend with `finnequities.com` on the free tier (1 domain limit).
+
+**Decision:** Created a separate free Resend account for EmitHQ (registered with `support@emithq.com`). Domain `emithq.com` verified with DKIM, SPF, and DMARC records in Cloudflare. Sending script at `scripts/send-email.ts` — CLI tool invoked via `op run` or direct env var export. Sender address: `Julian Finnegan <julian@emithq.com>`. API key stored in 1Password `EmitHQ/resend/api-key`.
+
+**Alternatives considered:**
+
+- Upgrade FE Resend account to Pro ($20/mo for 10 domains) — unnecessary cost for ~20 cold emails; shared account adds cross-project risk
+- Gmail MCP — no send capability, wrong sender address (`jfinnegan0@gmail.com`)
+- SendGrid/Mailgun/Postmark — SendGrid retired free tier + bans scraped addresses; Mailgun requires consent; Postmark is transactional-only
+
+**Consequences:** Two Resend accounts to manage (FE + EmitHQ). Free tier limits: 100 emails/day, 3K/month — sufficient for initial outreach. Cloudflare Email Routing handles inbound `@emithq.com` (forwarding to `julian@naac.ai`); Resend handles outbound only.
