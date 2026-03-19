@@ -551,7 +551,7 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
-### T-079: Upstash Redis Fixed Plan + Health Check Fix [x]
+### T-079: Upstash Redis Fixed Plan + Health Check Fix [x] [verified]
 
 **Phase:** 8e
 **Effort:** Low
@@ -563,9 +563,9 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 **Acceptance criteria:**
 
-- [~] Upstash upgraded to Fixed $10/mo plan (Julian manual step — Upstash console)
+- [x] Upstash upgraded to PAYG with $20/mo budget cap (Julian confirmed)
 - [x] Health check reuses a singleton Redis connection instead of `createRedisConnection()` per call
-- [~] Verify `GET /health` returns `{"status":"ok","db":true,"redis":true}` after upgrade (blocked on Upstash upgrade)
+- [x] Verified `GET /health` returns `{"status":"ok","db":true,"redis":true}`
 - [x] Update service registry memory with correct Upstash plan info
 
 ---
@@ -682,7 +682,7 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 ---
 
-### T-086: SSRF Protection on Endpoint URLs [x]
+### T-086: SSRF Protection on Endpoint URLs [x] [verified]
 
 **Phase:** 8f (Show HN blocker)
 **Effort:** Medium
@@ -704,7 +704,7 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 ---
 
-### T-087: Update Service Registry + Remove Unused Env Vars [x]
+### T-087: Update Service Registry + Remove Unused Env Vars [x] [verified]
 
 **Phase:** 8f
 **Effort:** Low
