@@ -44,6 +44,7 @@ export type { BillingInterval, PaidTier, PriceIds } from './billing/stripe';
 
 // Security
 export { validateEndpointUrl, isObviouslyBlockedUrl } from './security/url-validator';
+export { isDisposableEmail } from './security/disposable-emails';
 
 // Workers
 export { deliverWebhook, startDeliveryWorker, purgeDeletedApps } from './workers/delivery-worker';

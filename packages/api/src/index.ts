@@ -13,6 +13,7 @@ import { dashboardRoutes } from './routes/dashboard';
 import { billingRoutes, billingWebhookRoute } from './routes/billing';
 import { onboardingRoutes } from './routes/onboarding';
 import { metricsRoutes } from './routes/metrics';
+import { adminRoutes } from './routes/admin';
 import { adminDb, createRedisConnection } from '@emithq/core';
 import { sql } from 'drizzle-orm';
 
@@ -79,6 +80,9 @@ app.get('/health', async (c) => {
 
 // Metrics endpoint (secret-protected, before Clerk middleware)
 app.route('/metrics', metricsRoutes);
+
+// Admin endpoint (secret-protected, before Clerk middleware)
+app.route('/api/v1/admin', adminRoutes);
 
 // Public signup endpoint (before Clerk middleware — no auth required)
 app.route('/api/v1/signup', signupRoutes);

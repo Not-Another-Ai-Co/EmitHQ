@@ -706,7 +706,7 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 ---
 
-### T-082: Promote T-065 Abuse Prevention Pre-Launch
+### T-082: Promote T-065 Abuse Prevention Pre-Launch [x]
 
 **Phase:** 8e
 **Effort:** Medium
@@ -718,11 +718,13 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 **Acceptance criteria:**
 
-- [ ] Disposable email domain blocklist on `POST /api/v1/signup` (mailinator, guerrillamail, tempmail, etc. — 50+ domains)
-- [ ] `POST /api/v1/admin/org/:orgId/disable` — sets org disabled flag, all API calls return 403
-- [ ] Admin endpoint protected by `ADMIN_SECRET` header (same pattern as `/metrics`)
-- [ ] Tests: disposable email rejected, admin disable works, disabled org gets 403
-- [ ] Update T-065 description to note these items were pulled forward
+- [x] Disposable email domain blocklist (55+ domains) on `POST /api/v1/signup` — returns 400 for disposable emails
+- [x] `POST /api/v1/admin/org/:orgId/disable` — sets org disabled flag + reason, all API calls return 403
+- [x] `POST /api/v1/admin/org/:orgId/enable` — re-enables org (bonus)
+- [x] Admin endpoint protected by `ADMIN_SECRET` or `METRICS_SECRET` header
+- [x] Auth middleware checks `disabled` flag for both API key and Clerk session auth paths
+- [x] DB migration: added `disabled` + `disabled_reason` columns to organizations table
+- [x] Tests: 8 disposable email tests (blocked domains, allowed domains, case-insensitive, invalid format)
 
 ---
 

@@ -60,6 +60,20 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
       return c.json({ error: { code: 'unauthorized', message: 'Invalid API key' } }, 401);
     }
 
+    // Check if org is disabled
+    const [apiKeyOrg] = await adminDb
+      .select({ disabled: organizations.disabled })
+      .from(organizations)
+      .where(eq(organizations.id, keyRow.orgId))
+      .limit(1);
+
+    if (apiKeyOrg?.disabled) {
+      return c.json(
+        { error: { code: 'forbidden', message: 'This organization has been disabled' } },
+        403,
+      );
+    }
+
     c.set('orgId', keyRow.orgId);
     c.set('authType', 'api_key' as const);
     // No userId for API key auth — it's org-level
@@ -101,7 +115,7 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
 
   // Look up our internal org ID from Clerk's org ID — auto-provision if missing
   let [org] = await adminDb
-    .select({ id: organizations.id })
+    .select({ id: organizations.id, disabled: organizations.disabled })
     .from(organizations)
     .where(eq(organizations.clerkOrgId, auth.orgId))
     .limit(1);
@@ -121,12 +135,12 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
           slug,
         })
         .onConflictDoNothing({ target: organizations.clerkOrgId })
-        .returning({ id: organizations.id });
+        .returning({ id: organizations.id, disabled: organizations.disabled });
 
       // Handle race condition: if onConflictDoNothing returned nothing, re-fetch
       if (!org) {
         [org] = await adminDb
-          .select({ id: organizations.id })
+          .select({ id: organizations.id, disabled: organizations.disabled })
           .from(organizations)
           .where(eq(organizations.clerkOrgId, auth.orgId))
           .limit(1);
@@ -140,6 +154,13 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     if (!org) {
       return c.json({ error: { code: 'org_not_found', message: 'Organization not found' } }, 404);
     }
+  }
+
+  if (org.disabled) {
+    return c.json(
+      { error: { code: 'forbidden', message: 'This organization has been disabled' } },
+      403,
+    );
   }
 
   c.set('orgId', org.id);

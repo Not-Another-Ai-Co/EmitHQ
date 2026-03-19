@@ -40,6 +40,8 @@ export const organizations = pgTable('organizations', {
   subscriptionStatus: text('subscription_status').notNull().default('free'),
   currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
   onboardingCompletedAt: timestamp('onboarding_completed_at', { withTimezone: true }),
+  disabled: boolean('disabled').default(false),
+  disabledReason: text('disabled_reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

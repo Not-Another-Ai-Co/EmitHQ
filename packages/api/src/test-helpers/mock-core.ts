@@ -66,6 +66,8 @@ export function coreMock() {
       'stripeSubscriptionId',
       'subscriptionStatus',
       'currentPeriodEnd',
+      'disabled',
+      'disabledReason',
       'createdAt',
     ]),
     applications: table('applications', ['id', 'orgId', 'uid', 'name', 'createdAt']),
@@ -149,6 +151,11 @@ export function coreMock() {
     hashApiKey: vi.fn().mockReturnValue('test_hash'),
     verifyApiKey: vi.fn().mockReturnValue(true),
     isEmithqApiKey: vi.fn().mockReturnValue(false),
+
+    // Security
+    isDisposableEmail: vi.fn().mockReturnValue(null),
+    validateEndpointUrl: vi.fn().mockResolvedValue(null),
+    isObviouslyBlockedUrl: vi.fn().mockReturnValue(null),
 
     // Queue
     getDeliveryQueue: vi.fn().mockReturnValue({

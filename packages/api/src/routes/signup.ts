@@ -7,6 +7,7 @@ import {
   generateApiKey,
   trackEvent,
   TIER_LIMITS,
+  isDisposableEmail,
 } from '@emithq/core';
 
 // In-memory rate limiter: 3 signups per IP per 24h window
@@ -63,6 +64,11 @@ signupRoutes.post('/', async (c) => {
 
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return c.json({ error: { code: 'validation_error', message: 'Valid email is required' } }, 400);
+  }
+
+  const disposableError = isDisposableEmail(email);
+  if (disposableError) {
+    return c.json({ error: { code: 'validation_error', message: disposableError } }, 400);
   }
 
   if (!password || typeof password !== 'string' || password.length < 8) {
