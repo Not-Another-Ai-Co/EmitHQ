@@ -222,22 +222,32 @@ billingWebhookRoute.post('/webhook', async (c) => {
   }
 
   const obj = event.data.object as unknown as Record<string, unknown>;
-  switch (event.type) {
-    case 'checkout.session.completed':
-      await handleCheckoutComplete(obj);
-      break;
-    case 'customer.subscription.updated':
-      await handleSubscriptionUpdated(obj);
-      break;
-    case 'customer.subscription.deleted':
-      await handleSubscriptionDeleted(obj);
-      break;
-    case 'invoice.paid':
-      await handleInvoicePaid(obj);
-      break;
-    case 'invoice.payment_failed':
-      await handlePaymentFailed(obj);
-      break;
+  try {
+    switch (event.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutComplete(obj);
+        break;
+      case 'customer.subscription.updated':
+        await handleSubscriptionUpdated(obj);
+        break;
+      case 'customer.subscription.deleted':
+        await handleSubscriptionDeleted(obj);
+        break;
+      case 'invoice.paid':
+        await handleInvoicePaid(obj);
+        break;
+      case 'invoice.payment_failed':
+        await handlePaymentFailed(obj);
+        break;
+    }
+  } catch (handlerErr) {
+    console.error(
+      `Webhook handler error for ${event.type}:`,
+      handlerErr instanceof Error ? handlerErr.message : handlerErr,
+    );
+    console.error('Event data:', JSON.stringify(obj).slice(0, 500));
+    // Return 200 so Stripe doesn't retry — the event is logged in billing_events
+    return c.json({ received: true, warning: 'Handler error logged' });
   }
 
   // Update billing_events with the actual org_id now that we've processed it
