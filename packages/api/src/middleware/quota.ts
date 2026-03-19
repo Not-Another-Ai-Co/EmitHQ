@@ -36,37 +36,42 @@ export const quotaHeaders = createMiddleware<AuthEnv>(async (c, next) => {
   const orgId = c.get('orgId');
   if (!orgId) return;
 
-  const [org] = await adminDb
-    .select({
-      tier: organizations.tier,
-      eventCountMonth: organizations.eventCountMonth,
-      currentPeriodEnd: organizations.currentPeriodEnd,
-    })
-    .from(organizations)
-    .where(eq(organizations.id, orgId))
-    .limit(1);
+  try {
+    const [org] = await adminDb
+      .select({
+        tier: organizations.tier,
+        eventCountMonth: organizations.eventCountMonth,
+        currentPeriodEnd: organizations.currentPeriodEnd,
+      })
+      .from(organizations)
+      .where(eq(organizations.id, orgId))
+      .limit(1);
 
-  if (!org) return;
+    if (!org) return;
 
-  const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS.free;
-  const used = org.eventCountMonth ?? 0;
-  const remaining = Math.max(0, limit - used);
-  const resetAt = getQuotaResetDate(org.currentPeriodEnd ?? null);
-  const pct = limit > 0 ? (used / limit) * 100 : 0;
+    const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS.free;
+    const used = org.eventCountMonth ?? 0;
+    const remaining = Math.max(0, limit - used);
+    const resetAt = getQuotaResetDate(org.currentPeriodEnd ?? null);
+    const pct = limit > 0 ? (used / limit) * 100 : 0;
 
-  // Set headers on the response (after route handler has produced it)
-  c.header('X-EmitHQ-Quota-Limit', String(limit));
-  c.header('X-EmitHQ-Quota-Used', String(used));
-  c.header('X-EmitHQ-Quota-Remaining', String(remaining));
-  c.header('X-EmitHQ-Quota-Reset', resetAt);
-  c.header('X-EmitHQ-Tier', org.tier);
+    // Set headers on the response (after route handler has produced it)
+    c.header('X-EmitHQ-Quota-Limit', String(limit));
+    c.header('X-EmitHQ-Quota-Used', String(used));
+    c.header('X-EmitHQ-Quota-Remaining', String(remaining));
+    c.header('X-EmitHQ-Quota-Reset', resetAt);
+    c.header('X-EmitHQ-Tier', org.tier);
 
-  if (pct >= 95) {
-    c.header('X-EmitHQ-Quota-Warning', 'critical_limit');
-    c.header('X-EmitHQ-Upgrade-URL', '/api/v1/billing/checkout');
-  } else if (pct >= 80) {
-    c.header('X-EmitHQ-Quota-Warning', 'approaching_limit');
-    c.header('X-EmitHQ-Upgrade-URL', '/api/v1/billing/checkout');
+    if (pct >= 95) {
+      c.header('X-EmitHQ-Quota-Warning', 'critical_limit');
+      c.header('X-EmitHQ-Upgrade-URL', '/api/v1/billing/checkout');
+    } else if (pct >= 80) {
+      c.header('X-EmitHQ-Quota-Warning', 'approaching_limit');
+      c.header('X-EmitHQ-Upgrade-URL', '/api/v1/billing/checkout');
+    }
+  } catch (err) {
+    // Quota headers are best-effort — never crash the response
+    console.error('Quota headers error:', err instanceof Error ? err.message : err);
   }
 });
 
