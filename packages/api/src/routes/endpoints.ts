@@ -10,6 +10,7 @@ import {
   validateTransformRules,
   TransformValidationError,
   trackEvent,
+  validateEndpointUrl as validateEndpointUrlSsrf,
 } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
@@ -24,12 +25,18 @@ const MAX_PAGE_SIZE = 100;
 
 /**
  * Validate an endpoint URL. HTTPS required in production, HTTP allowed in dev.
+ * Also runs SSRF checks (blocks private IPs, metadata endpoints, DNS rebinding).
  */
-function validateEndpointUrl(url: string): string | null {
+async function validateEndpointUrl(url: string): Promise<string | null> {
   try {
     const parsed = new URL(url);
-    if (parsed.protocol === 'https:') return null;
-    if (parsed.protocol === 'http:' && process.env.NODE_ENV !== 'production') return null;
+    if (parsed.protocol === 'https:') {
+      // SSRF check: resolve DNS and verify IP is not private/blocked
+      return await validateEndpointUrlSsrf(url);
+    }
+    if (parsed.protocol === 'http:' && process.env.NODE_ENV !== 'production') {
+      return await validateEndpointUrlSsrf(url);
+    }
     return 'Endpoint URL must use HTTPS';
   } catch {
     return 'Invalid URL format';
@@ -87,7 +94,7 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
     return c.json({ error: { code: 'validation_error', message: 'url is required' } }, 400);
   }
 
-  const urlError = validateEndpointUrl(body.url);
+  const urlError = await validateEndpointUrl(body.url);
   if (urlError) {
     return c.json({ error: { code: 'validation_error', message: urlError } }, 400);
   }
@@ -324,7 +331,7 @@ endpointRoutes.put('/:appId/endpoint/:epId', async (c) => {
 
   // Validate URL if being updated
   if (body.url !== undefined) {
-    const urlError = validateEndpointUrl(body.url);
+    const urlError = await validateEndpointUrl(body.url);
     if (urlError) {
       return c.json({ error: { code: 'validation_error', message: urlError } }, 400);
     }

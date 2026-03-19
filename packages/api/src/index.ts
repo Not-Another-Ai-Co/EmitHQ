@@ -47,6 +47,9 @@ app.use(
   }),
 );
 
+// Singleton Redis connection for health checks — avoids creating a new connection per probe
+let healthRedis: ReturnType<typeof createRedisConnection> | null = null;
+
 // Health check (no auth) — probes DB and Redis connectivity
 app.get('/health', async (c) => {
   let dbOk = false;
@@ -60,12 +63,14 @@ app.get('/health', async (c) => {
   }
 
   try {
-    const redis = createRedisConnection();
-    await redis.ping();
-    await redis.quit();
+    if (!healthRedis) {
+      healthRedis = createRedisConnection();
+    }
+    await healthRedis.ping();
     redisOk = true;
   } catch {
-    /* Redis unreachable */
+    // Connection may be stale — reset so next probe creates a fresh one
+    healthRedis = null;
   }
 
   const status = dbOk && redisOk ? 'ok' : 'degraded';

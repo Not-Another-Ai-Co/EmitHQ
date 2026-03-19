@@ -551,22 +551,22 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 
 ---
 
-### T-079: Upstash Redis Upgrade + Health Check Fix
+### T-079: Upstash Redis Fixed Plan + Health Check Fix [x]
 
 **Phase:** 8e
 **Effort:** Low
 **Complexity:** Simple
 **Depends on:** none
-**Research:** none (conversation context — BullMQ worker exhausted 500K free tier commands)
+**Research:** docs/research/infrastructure-stack-audit.md
 
-**Description:** Upgrade Upstash Redis to pay-as-you-go ($0.20/100K commands). Fix the health check endpoint which creates a new Redis connection on every call — this wastes commands and will compound costs. Use a singleton connection or skip Redis health in the probe.
+**Description:** Upgrade Upstash Redis from free tier to Fixed $10/mo plan (unlimited commands, 256MB). Fix the health check endpoint which creates a new Redis connection on every call. BullMQ polling burns ~2.6M commands/month on free tier (500K limit) — fixed plan eliminates this entirely.
 
 **Acceptance criteria:**
 
-- [ ] Upstash upgraded to paid tier (Julian manual step — add payment method in Upstash console)
-- [ ] Health check reuses a singleton Redis connection instead of `createRedisConnection()` per call
-- [ ] Verify `GET /health` returns `{"status":"ok","db":true,"redis":true}` after upgrade
-- [ ] Add Upstash monthly command estimate to T-043's `/metrics/costs` spec (500K commands ≈ $1)
+- [~] Upstash upgraded to Fixed $10/mo plan (Julian manual step — Upstash console)
+- [x] Health check reuses a singleton Redis connection instead of `createRedisConnection()` per call
+- [~] Verify `GET /health` returns `{"status":"ok","db":true,"redis":true}` after upgrade (blocked on Upstash upgrade)
+- [x] Update service registry memory with correct Upstash plan info
 
 ---
 
@@ -630,6 +630,95 @@ _Address infrastructure cost risk, dashboard UX gaps, and abuse prevention befor
 - [x] "Docs" link in top bar (BookOpen icon), left of Settings gear, links to emithq.com/docs (external, new tab)
 - [x] Landing site `/docs` page: comprehensive guide with 5-step quick start (signup, app, endpoint, send, check), API key management (create/rotate/revoke), retries & DLQ table, webhook verification, billing & quotas
 - [x] Docs page is static, SEO-friendly, uses landing site CSS variables and styling patterns
+
+---
+
+## Infrastructure Hardening — 2026-03-18
+
+_From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violations, add SSRF protection, update service metadata._
+
+### Phase 8f: Pre-Launch Infrastructure
+
+---
+
+### T-084: Migrate Landing Site to Cloudflare Pages
+
+**Phase:** 8f
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/infrastructure-stack-audit.md
+
+**Description:** The landing site is on Vercel Hobby which prohibits commercial use. Migrate to Cloudflare Pages (free, commercial allowed). The site is already `output: 'export'` (static HTML) — no adapter needed. Just connect the GitHub repo to Cloudflare Pages, configure the build command, and update DNS.
+
+**Acceptance criteria:**
+
+- [ ] Cloudflare Pages project created, connected to GitHub repo
+- [ ] Build config: root directory `packages/landing`, build command `npm run build`, output `out`
+- [ ] Custom domain `emithq.com` and `www.emithq.com` configured on Cloudflare Pages
+- [ ] Verify all pages render correctly (homepage, pricing, compare, docs, legal)
+- [ ] Remove Vercel project for landing site
+- [ ] Update ARCHITECTURE.md to reflect Cloudflare Pages hosting
+
+---
+
+### T-085: Dashboard Hosting — Vercel Pro or Cloudflare Pages
+
+**Phase:** 8f
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-084
+**Research:** docs/research/infrastructure-stack-audit.md
+
+**Description:** The dashboard is also on Vercel Hobby (ToS violation). Two options: (1) upgrade to Vercel Pro ($20/mo) — zero code changes, Clerk just works; (2) migrate to Cloudflare Pages with `@cloudflare/next-on-pages` — free but needs Clerk compatibility testing. Recommend Vercel Pro for simplicity pre-launch; revisit Cloudflare Pages post-launch.
+
+**Acceptance criteria:**
+
+- [ ] Decision: Vercel Pro ($20/mo) or Cloudflare Pages migration (add DEC entry)
+- [ ] If Vercel Pro: upgrade plan in Vercel dashboard (Julian manual step)
+- [ ] If CF Pages: test `@cloudflare/next-on-pages` with `@clerk/nextjs`, configure Pages project, update DNS for app.emithq.com
+- [ ] Verify dashboard functions correctly (auth, API calls, settings, app context)
+- [ ] Update ARCHITECTURE.md
+
+---
+
+### T-086: SSRF Protection on Endpoint URLs [x]
+
+**Phase:** 8f (Show HN blocker)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** docs/research/infrastructure-stack-audit.md
+
+**Description:** The delivery worker will POST to any URL registered as an endpoint — including internal IPs (169.254.169.254, 10.x.x.x, 127.0.0.1). Add URL validation at both endpoint creation and delivery time. Block RFC 1918, link-local, loopback, and cloud metadata endpoints.
+
+**Acceptance criteria:**
+
+- [x] `validateEndpointUrl(url)` + `isObviouslyBlockedUrl(url)` in `@emithq/core/security/url-validator.ts`
+- [x] Validation runs at endpoint creation (`POST /api/v1/app/:appId/endpoint`) and update (`PUT`) — returns 400
+- [x] Validation runs at delivery time (in worker before `fetch`) — marks attempt failed, throws UnrecoverableError
+- [x] Blocked ranges: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16, ::1, fc00::/7, fe80::/10
+- [x] Blocked hostnames: metadata.google.internal, metadata.goog, kubernetes.default.svc, localhost
+- [x] DNS resolution check: resolve hostname, verify resolved IP not in blocked ranges (prevents DNS rebinding)
+- [x] 20 tests: blocked IPs, public IPs, DNS rebinding, protocol validation, hostname blocking
+
+---
+
+### T-087: Update Service Registry + Remove Unused Env Vars [x]
+
+**Phase:** 8f
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/infrastructure-stack-audit.md
+
+**Description:** Update auto-memory service registry with correct Clerk free tier (50K MAU, not 10K). Comment out unused QStash and Redis REST env vars in `.env.tpl` to reduce cognitive overhead (they're for T-039, post-launch). Update upgrade triggers based on stack audit.
+
+**Acceptance criteria:**
+
+- [x] Updated `project_service_registry.md`: Clerk 50K MAU, Upstash Fixed $10/mo, CF Pages planned, Vercel ToS flagged
+- [x] Commented out unused env vars in `.env.tpl`: REDIS*URL, REDIS_TOKEN, QSTASH*\*, with note referencing T-039
+- [x] Updated upgrade triggers and priority order based on stack audit
 
 ---
 

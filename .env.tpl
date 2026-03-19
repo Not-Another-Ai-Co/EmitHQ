@@ -5,18 +5,16 @@
 DATABASE_URL=op://EmitHQ/database/connection-string
 DATABASE_ADMIN_URL=op://EmitHQ/database/admin-connection-string
 
-# Redis (Upstash) — REST client
-REDIS_URL=op://EmitHQ/redis/url
-REDIS_TOKEN=op://EmitHQ/redis/token
-
-# Redis (Upstash) — TCP for BullMQ (ioredis)
+# Redis (Upstash) — TCP for BullMQ (ioredis). Fixed $10/mo plan.
 UPSTASH_REDIS_HOST=op://EmitHQ/redis/host
 UPSTASH_REDIS_PASSWORD=op://EmitHQ/redis/password
 
-# QStash (Upstash)
-QSTASH_TOKEN=op://EmitHQ/qstash/token
-QSTASH_CURRENT_SIGNING_KEY=op://EmitHQ/qstash/signing-key
-QSTASH_NEXT_SIGNING_KEY=op://EmitHQ/qstash/next-signing-key
+# Redis REST + QStash — planned for T-039 (Cloudflare Workers edge layer), not used yet
+# REDIS_URL=op://EmitHQ/redis/url
+# REDIS_TOKEN=op://EmitHQ/redis/token
+# QSTASH_TOKEN=op://EmitHQ/qstash/token
+# QSTASH_CURRENT_SIGNING_KEY=op://EmitHQ/qstash/signing-key
+# QSTASH_NEXT_SIGNING_KEY=op://EmitHQ/qstash/next-signing-key
 
 # Auth (Clerk)
 CLERK_SECRET_KEY=op://EmitHQ/clerk/secret-key

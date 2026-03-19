@@ -42,6 +42,9 @@ export {
 } from './billing/stripe';
 export type { BillingInterval, PaidTier, PriceIds } from './billing/stripe';
 
+// Security
+export { validateEndpointUrl, isObviouslyBlockedUrl } from './security/url-validator';
+
 // Workers
 export { deliverWebhook, startDeliveryWorker, purgeDeletedApps } from './workers/delivery-worker';
 export type { DeliveryResult } from './workers/delivery-worker';

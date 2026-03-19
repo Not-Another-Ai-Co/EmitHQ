@@ -11,6 +11,7 @@ import {
 } from '../queue/backoff';
 import type { DeliveryJobData } from '../queue/delivery-queue';
 import { applyTransformation } from '../transformation/transform';
+import { validateEndpointUrl } from '../security/url-validator';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const MAX_RESPONSE_BODY_LENGTH = 1024;
@@ -125,6 +126,21 @@ export async function processDeliveryJob(data: DeliveryJobData, attemptsMade = 0
 
   if (!endpoint) {
     throw new UnrecoverableError(`Endpoint ${data.endpointId} not found`);
+  }
+
+  // SSRF protection: verify endpoint URL is not targeting internal/private IPs
+  const ssrfError = await validateEndpointUrl(endpoint.url);
+  if (ssrfError) {
+    await adminDb
+      .update(deliveryAttempts)
+      .set({
+        status: 'failed',
+        errorMessage: `SSRF blocked: ${ssrfError}`,
+        attemptedAt: new Date(),
+      })
+      .where(eq(deliveryAttempts.id, data.attemptId));
+
+    throw new UnrecoverableError(`SSRF blocked for endpoint ${data.endpointId}: ${ssrfError}`);
   }
 
   // Skip disabled endpoints
