@@ -13,5 +13,5 @@
     }
   },
   "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**", "scripts/**", "**/e2e/**"],
-  "ignoreDependencies": ["tsx", "@eslint/js", "@vitest/coverage-v8"]
+  "ignoreDependencies": ["tsx", "@eslint/js", "@vitest/coverage-v8", "resend"]
 }
