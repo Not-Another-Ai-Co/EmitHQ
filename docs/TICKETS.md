@@ -641,7 +641,7 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 
 ---
 
-### T-084: Migrate Landing Site to Cloudflare Pages
+### T-084: Migrate Off Vercel Hobby (ToS Compliance)
 
 **Phase:** 8f
 **Effort:** Low
@@ -649,35 +649,15 @@ _From stack audit (docs/research/infrastructure-stack-audit.md). Fix ToS violati
 **Depends on:** none
 **Research:** docs/research/infrastructure-stack-audit.md
 
-**Description:** The landing site is on Vercel Hobby which prohibits commercial use. Migrate to Cloudflare Pages (free, commercial allowed). The site is already `output: 'export'` (static HTML) — no adapter needed. Just connect the GitHub repo to Cloudflare Pages, configure the build command, and update DNS.
+**Description:** Vercel Hobby prohibits commercial use. Migrate the landing site to Cloudflare Pages (free, static export — zero code changes). Upgrade the dashboard to Vercel Pro ($20/mo) — simplest path, Clerk just works. Must complete before first paying customer.
 
 **Acceptance criteria:**
 
-- [ ] Cloudflare Pages project created, connected to GitHub repo
-- [ ] Build config: root directory `packages/landing`, build command `npm run build`, output `out`
-- [ ] Custom domain `emithq.com` and `www.emithq.com` configured on Cloudflare Pages
-- [ ] Verify all pages render correctly (homepage, pricing, compare, docs, legal)
-- [ ] Remove Vercel project for landing site
-- [ ] Update ARCHITECTURE.md to reflect Cloudflare Pages hosting
-
----
-
-### T-085: Dashboard Hosting — Vercel Pro or Cloudflare Pages
-
-**Phase:** 8f
-**Effort:** Low
-**Complexity:** Simple
-**Depends on:** T-084
-**Research:** docs/research/infrastructure-stack-audit.md
-
-**Description:** The dashboard is also on Vercel Hobby (ToS violation). Two options: (1) upgrade to Vercel Pro ($20/mo) — zero code changes, Clerk just works; (2) migrate to Cloudflare Pages with `@cloudflare/next-on-pages` — free but needs Clerk compatibility testing. Recommend Vercel Pro for simplicity pre-launch; revisit Cloudflare Pages post-launch.
-
-**Acceptance criteria:**
-
-- [ ] Decision: Vercel Pro ($20/mo) or Cloudflare Pages migration (add DEC entry)
-- [ ] If Vercel Pro: upgrade plan in Vercel dashboard (Julian manual step)
-- [ ] If CF Pages: test `@cloudflare/next-on-pages` with `@clerk/nextjs`, configure Pages project, update DNS for app.emithq.com
-- [ ] Verify dashboard functions correctly (auth, API calls, settings, app context)
+- [ ] Landing site: Cloudflare Pages project created, connected to GitHub repo, build config set (root: `packages/landing`, build: `npm run build`, output: `out`)
+- [ ] Landing site: custom domains `emithq.com` + `www.emithq.com` on CF Pages, DNS updated
+- [ ] Landing site: verify all pages render (homepage, pricing, compare, docs, legal)
+- [ ] Landing site: remove Vercel project
+- [ ] Dashboard: upgrade to Vercel Pro ($20/mo) in Vercel console (Julian manual step)
 - [ ] Update ARCHITECTURE.md
 
 ---
