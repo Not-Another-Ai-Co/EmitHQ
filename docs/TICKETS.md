@@ -1,6 +1,6 @@
 # Tickets — Webhook Infrastructure SaaS
 
-> Last verified: 2026-03-19
+> Last verified: 2026-03-20
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified]` passed quality gates | `[x] [verified] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
@@ -449,7 +449,7 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 ---
 
-### T-097: Playwright MCP Smoke Test + Dashboard Baseline
+### T-097: Playwright MCP Smoke Test + Dashboard Baseline [x]
 
 **Phase:** 11 (pre-T-090)
 **Effort:** Low
@@ -461,12 +461,12 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 **Acceptance criteria:**
 
-- [ ] Playwright MCP connects to live dashboard at `https://app.emithq.com`
-- [ ] Auth works: navigate to dashboard, Clerk login completes (use E2E test user from 1Password)
-- [ ] Navigate to 3+ dashboard pages: home, apps list, settings
-- [ ] Verify key elements render: app table, billing tab, API key section
-- [ ] Document any Clerk-specific quirks (iframe auth, session handling) in TEST_PLAN.md
-- [ ] Update TEST_PLAN.md: mark archetypes 1 (auth) and 8 (navigation) as "Covered" if tests pass
+- [x] Playwright MCP connects to live dashboard at `https://app.emithq.com`
+- [x] Auth works: navigate to dashboard, Clerk login completes (use E2E test user from 1Password)
+- [x] Navigate to 3+ dashboard pages: home, apps list, settings
+- [x] Verify key elements render: app table, billing tab, API key section
+- [x] Document any Clerk-specific quirks (iframe auth, session handling) in TEST_PLAN.md
+- [x] Update TEST_PLAN.md: mark archetypes 1 (auth) and 8 (navigation) as "Covered" if tests pass
 
 ---
 
