@@ -177,7 +177,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-088: GitHub Svix User Mining + Cold Email Drafts [x]
+### T-088: GitHub Svix User Mining + Cold Email Drafts [x] [verified]
 
 **Phase:** 11
 **Effort:** Medium
@@ -223,19 +223,67 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 ### T-090: Execute Cold Outreach — First 10 Users
 
 **Phase:** 11
-**Effort:** Medium
-**Complexity:** Simple
+**Effort:** Large
+**Complexity:** Complex
 **Depends on:** T-088, T-089
-**Research:** docs/research/first-10-customers.md
+**Research:** docs/research/first-10-customers.md, docs/tmp/build-explore-outreach-loop.md, docs/tmp/build-explore-outreach-best-practices.md, docs/tmp/build-explore-tooling-audit.md, docs/tmp/build-explore-resend-capabilities.md
 
-**Description:** Send the personalized cold emails from T-088 using the infrastructure from T-089. Track responses. Follow up on Day 3 and Day 10. White-glove onboard anyone who signs up — help them create their first app, endpoint, and send their first webhook.
+**Description:** Build and run a fully autonomous cold outreach campaign. Claude sends initial emails, monitors for bounces/replies, classifies responses, auto-responds to low-risk categories, flags high-value replies for Julian, and sends scheduled follow-ups with different angles per touch. Continuous GitHub mining refills the prospect pipeline. System designed for future migration into Index-based workflow engine.
+
+**Architecture (from research):**
+
+- **Campaign state:** `docs/outreach/campaign.json` — structured JSON with targets, touch history, resend IDs
+- **Event log:** `docs/outreach/events.jsonl` — append-only, typed events (send, delivered, bounced, reply, flagged, approved). Index-ingestible format.
+- **Reply capture:** Resend inbound on `replies.emithq.com` (MX → `inbound-smtp.resend.com`). API handler at `/api/v1/inbound/reply` classifies and routes replies.
+- **Bounce/delivery tracking:** Resend webhook at `/api/v1/inbound/resend-events` for `email.bounced`, `email.delivered`, `email.complained`.
+- **Morning cron (8 AM Mon–Thu):** `claude -p` reads campaign state, sends due follow-ups, polls bounce status, updates state. Rate limit: 20 first-touch/day, 30 total/day.
+- **Evening cron (6 PM daily):** Aggregates daily activity, writes digest, emails Julian if flags exist.
+- **Continuous prospecting cron (weekly):** `claude -p` mines GitHub for new Svix/Hookdeck/Convoy users, appends to campaign.json, queues for Julian approval before first touch.
+- **Notification:** Resend email to `julian@naac.ai` for flags (interested replies, angry, spam complaints, bounce rate >2%).
+- **Approval flow (v1):** Julian approves in next Claude session. Future: reply-to-approve via Resend inbound. Longer-term: Index workflow engine.
+
+**6-touch sequence (different angle each):**
+
+1. Day 0 — Personalized hook: their repo, pricing gap ($49 vs $490)
+2. Day 3 — Architecture story: persist-before-enqueue, circuit breakers
+3. Day 10 — Social proof / early metrics
+4. Day 17 — Self-hosting / open-source (AGPL)
+5. Day 22 — Resource share: technical blog post
+6. Day 30 — Honest breakup: "last email, here if needed"
+
+**Reply classification (12 categories):**
+
+- Auto-respond: `question` (factual answer from docs), `not_interested` (graceful close)
+- Flag for Julian: `interested`, `meeting_request`, `wrong_person`, `angry`
+- Auto-handle: `unsubscribe` (suppress immediately), `out_of_office` (pause sequence), `bounced_hard` (remove), `bounced_soft` (retry), `spam_complaint` (suppress), `competitor` (suppress)
+
+**Safety rails:**
+
+- Suppression list (`docs/outreach/suppression-list.txt`) checked before every send
+- CAN-SPAM: physical address in footer (187 E. Warm Springs Road, Suite B - NV189, Las Vegas NV 89119), reply-to as opt-out mechanism, no formal unsubscribe footer (volume <5K)
+- No List-Unsubscribe header (not required at this volume)
+- Claude cannot invent metrics, disparage competitors, or make legal claims
+- `interested`/`angry`/`meeting_request` replies always gated behind Julian
+
+**Cron notes:** `claude -p --model sonnet` runs as separate process, does NOT interrupt interactive sessions. Shares subscription rate limit pool but lightweight usage won't conflict.
+
+**Future-proofing:** JSON + JSONL event format designed for Index ingestion. When Index becomes the workflow backbone, campaign state becomes queryable items and crons become Index-triggered actions.
 
 **Acceptance criteria:**
 
-- [ ] First batch of 20 emails sent
-- [ ] Follow-up cadence running: Day 0 → Day 3 → Day 10
-- [ ] Track in `docs/outreach/tracker.md`: sent count, reply count, signup count, active count
-- [ ] White-glove onboard any signups: create app + endpoint + first event via API on their behalf
+- [ ] DNS: `replies.emithq.com` MX record added via Cloudflare API
+- [ ] Resend inbound configured for `replies.emithq.com`
+- [ ] API handlers: `/api/v1/inbound/reply` (reply classification + routing) and `/api/v1/inbound/resend-events` (bounce/delivery webhook)
+- [ ] `campaign.json` + `events.jsonl` state management
+- [ ] `scripts/outreach-loop.sh` morning cron (send follow-ups, check bounces)
+- [ ] `scripts/outreach-digest.sh` evening cron (daily digest, flag alerts)
+- [ ] `scripts/outreach-prospect.sh` weekly cron (GitHub mining for new targets)
+- [ ] Follow-up templates for touches 2–6 (different angle each)
+- [ ] Reply classifier prompt + auto-response templates
+- [ ] Suppression list handling
+- [ ] Julian approves first-touch batch, first batch sent
+- [ ] Follow-up cadence running autonomously
+- [ ] White-glove onboard any signups
 - [ ] Goal: 5+ orgs signed up, 2+ sending real webhook events
 - [ ] Supersedes T-052 (consolidated)
 
