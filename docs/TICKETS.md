@@ -443,6 +443,74 @@ _The following tickets are deferred until post-first-10-customers. They add comp
 
 ---
 
+## Testing Baseline — 2026-03-20
+
+_Establish Playwright MCP baseline and T-090 test infrastructure before building the outreach system._
+
+---
+
+### T-097: Playwright MCP Smoke Test + Dashboard Baseline
+
+**Phase:** 11 (pre-T-090)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** ~/.claude/knowledge/browser-mcp-testing/research.md
+
+**Description:** First-ever Playwright MCP test in this project. Validate the tool works against the live dashboard (Clerk auth, page navigation, element interaction). Establish patterns for future `/verify` browser testing. This is a one-time setup — once proven, `/verify` handles incremental testing.
+
+**Acceptance criteria:**
+
+- [ ] Playwright MCP connects to live dashboard at `https://app.emithq.com`
+- [ ] Auth works: navigate to dashboard, Clerk login completes (use E2E test user from 1Password)
+- [ ] Navigate to 3+ dashboard pages: home, apps list, settings
+- [ ] Verify key elements render: app table, billing tab, API key section
+- [ ] Document any Clerk-specific quirks (iframe auth, session handling) in TEST_PLAN.md
+- [ ] Update TEST_PLAN.md: mark archetypes 1 (auth) and 8 (navigation) as "Covered" if tests pass
+
+---
+
+### T-098: T-090 Unit Test Infrastructure
+
+**Phase:** 11 (pre-T-090)
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** none
+
+**Description:** Write the Vitest test suite for T-090's backend components BEFORE building them (test-first). This ticket creates test files with clear expectations; T-090 implements the code that makes them pass. Covers: reply classification (12 categories), campaign state management (JSON read/write), suppression list enforcement, and inbound API handler validation.
+
+**Acceptance criteria:**
+
+- [ ] `packages/api/src/routes/inbound.test.ts` — tests for `/api/v1/inbound/reply` handler: valid reply payload → classified correctly, missing fields → 400, invalid signature → 401, suppressed sender → auto-handled
+- [ ] `packages/api/src/routes/inbound.test.ts` — tests for `/api/v1/inbound/resend-events` handler: `email.bounced` → marks target as bounced, `email.delivered` → logs delivery, `email.complained` → adds to suppression list, duplicate event ID → idempotent
+- [ ] `scripts/__tests__/reply-classifier.test.ts` — tests for all 12 reply categories: `interested`, `meeting_request`, `question`, `not_interested`, `wrong_person`, `angry`, `unsubscribe`, `out_of_office`, `bounced_hard`, `bounced_soft`, `spam_complaint`, `competitor`
+- [ ] `scripts/__tests__/campaign-state.test.ts` — tests for campaign.json read/write: add target, record touch, update status, append event to events.jsonl, check suppression list
+- [ ] All tests initially fail (no implementation yet) — verified with `vitest run --reporter=verbose`
+
+---
+
+### T-099: Landing Site Browser Smoke Test
+
+**Phase:** 11 (pre-T-090)
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-097
+**Research:** none
+
+**Description:** Use Playwright MCP to verify the landing site pages that outreach emails link to. Prospective Customer persona: every cold email CTA links to emithq.com — those pages must work. Quick visual verification of homepage, pricing, compare, docs.
+
+**Acceptance criteria:**
+
+- [ ] Playwright MCP loads `https://emithq.com` — homepage renders, CTA buttons visible
+- [ ] Navigate to `/pricing` — 3 tiers visible with correct prices ($49, $149, $349)
+- [ ] Navigate to `/compare` — comparison table renders
+- [ ] Navigate to `/docs` — API reference loads
+- [ ] No console errors or broken images on any page
+- [ ] Update TEST_PLAN.md: note landing site coverage under archetype 14 (performance) if LCP measured
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d
