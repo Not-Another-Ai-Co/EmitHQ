@@ -73,7 +73,9 @@ Dual auth model:
 
 Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenantScope` (RLS) → route handler. `quotaHeaders` middleware on all `/api/v1/*` routes injects `X-EmitHQ-Quota-*` response headers (limit, used, remaining, reset, tier + warning at 80%/95%).
 
-**API-only signup (T-063):** `POST /api/v1/signup` creates Clerk user + org via Backend API, provisions EmitHQ org, generates first API key — all in one request. No browser required. In-memory rate limiting (3/IP/day). Disposable email domains blocked (55+ domains, T-082). Returns `{ orgId, apiKey, userId, tier, eventLimit, credential_storage_hint }`.
+**API-only signup (T-063):** `POST /api/v1/signup` creates Clerk user + org via Backend API, provisions EmitHQ org, generates first API key — all in one request. No browser required. In-memory rate limiting (3/IP/day). Disposable email domains blocked (55+ domains, T-082). Returns `{ orgId, apiKey, userId, tier, eventLimit, credential_storage_hint }`. Clerk validation errors (password/email) surfaced as 400 — not swallowed as 500.
+
+**Dashboard auth middleware:** Uses `auth().redirectToSignIn()` (not `auth.protect()`) — Clerk v6's `protect()` rewrites to 404 when sign-in URL resolution fails. Explicit `redirectToSignIn({ returnBackUrl })` guarantees 302 redirect.
 
 **API key rotation (T-078):** `POST /api/v1/auth/keys/:keyId/rotate` creates a new key and sets `expiresAt` on the old key (configurable grace period, default 1 hour). Immediate revocation available with `gracePeriodMinutes: 0`.
 
@@ -157,7 +159,7 @@ Separate Next.js app at `packages/landing/`. Static export for Vercel. No auth, 
 
 ## TypeScript SDK (T-019)
 
-`@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints incl. getEndpoint, replay, testEndpoint). Typed errors (AuthError, ForbiddenError, ValidationError, NotFoundError, RateLimitError, PayloadTooLargeError). Auto-retry on 5xx/408/429/network (3 attempts, exponential backoff). Non-retriable: 400/401/403/404/410. `verifyWebhook()` using WebCrypto API.
+`@emithq/sdk` — published to npm. Zero dependencies, fetch-based. 10 methods (sendEvent, CRUD endpoints incl. getEndpoint, replay, testEndpoint). Typed errors (AuthError, ForbiddenError, ValidationError, NotFoundError, RateLimitError, PayloadTooLargeError). Auto-retry on 5xx/408/429/network (3 attempts, exponential backoff). Non-retriable: 400/401/403/404/410. `verifyWebhook()` using WebCrypto API. Auto-published via `publish-sdk.yml` GitHub Actions workflow on version bump in `packages/sdk/package.json` (DEC-036).
 
 ## Monitoring & SLOs (T-022)
 

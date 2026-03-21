@@ -3,6 +3,24 @@
 > Last verified: 2026-03-21
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
 
+## DEC-036 | 2026-03-21 | SDK Auto-Publish via GitHub Actions
+
+**Status:** Active
+**Linked to:** T-096
+
+**Context:** SDK v0.1.0 was published manually on March 14. README updates on March 17-18 never reached npm. Need automated publishing so npm stays in sync.
+
+**Decision:** GitHub Actions workflow (`publish-sdk.yml`) triggers on pushes to `packages/sdk/package.json` or manual `workflow_dispatch`. Compares repo version against npm registry — publishes only when repo version is newer. NPM Automation token stored in GitHub secrets (sourced from 1Password `EmitHQ/npm publish token/token`). Writes `.npmrc` directly in SDK dir for auth.
+
+**Alternatives considered:**
+
+- `semantic-release` — over-engineered for a single-package monorepo with manual version bumps
+- Git tag-based triggers — adds ceremony; version bump in package.json is simpler and already the standard
+
+**Consequences:** Version bump + push = auto-publish. Manual `gh workflow run "Publish SDK"` available as fallback. README and dist are always in sync with npm.
+
+---
+
 ## DEC-035 | 2026-03-21 | API-Level Tier Enforcement for Payload Transforms
 
 **Status:** Active
