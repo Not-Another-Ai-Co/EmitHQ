@@ -219,8 +219,10 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 **Acceptance criteria:**
 
+- [ ] DNS: fix SPF record to include Resend (add `include:amazonses.com`) — current SPF only authorizes Cloudflare, outreach emails will fail SPF alignment without this
 - [ ] DNS: `replies.emithq.com` MX record added via Cloudflare API
 - [ ] Resend inbound configured for `replies.emithq.com`
+- [ ] DNS: verify DMARC stays at `p=none` during initial outreach, tighten to `p=quarantine` after confirming email authentication passes
 - [ ] API handlers: `/api/v1/inbound/reply` (reply classification + routing) and `/api/v1/inbound/resend-events` (bounce/delivery webhook)
 - [ ] `campaign.json` + `events.jsonl` state management
 - [ ] `scripts/outreach-loop.sh` morning cron (send follow-ups, check bounces)
