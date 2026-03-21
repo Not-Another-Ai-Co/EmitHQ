@@ -22,7 +22,11 @@ const ROWS = [
   { label: 'Throughput scaling', emithq: 'Included in tier', hookdeck: 'Paid add-on (~$1/evt/s)' },
   { label: 'Retry strategy', emithq: 'Configurable, up to 50', hookdeck: 'Configurable, up to 50' },
   { label: 'Signing spec', emithq: 'Standard Webhooks', hookdeck: 'Custom (x-hookdeck-*)' },
-  { label: 'Payload transformations', emithq: 'JSONPath + templates', hookdeck: 'JavaScript' },
+  {
+    label: 'Payload transformations',
+    emithq: 'JSONPath + templates (Starter+, $49/mo)',
+    hookdeck: 'JavaScript',
+  },
   { label: 'SDK languages', emithq: 'TypeScript', hookdeck: 'TypeScript' },
   { label: 'License', emithq: 'AGPL-3.0 (open source)', hookdeck: 'Proprietary' },
   { label: 'Self-hosted option', emithq: 'Yes', hookdeck: 'No (Outpost only)' },

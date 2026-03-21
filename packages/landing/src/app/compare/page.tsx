@@ -23,7 +23,7 @@ const COMPETITORS = [
     outbound: true,
     retries: 'Configurable per endpoint',
     signing: 'Standard Webhooks',
-    transform: true,
+    transform: 'Starter+ ($49/mo)',
     license: 'AGPL-3.0 + MIT SDKs',
     selfHost: true,
     dashboard: true,

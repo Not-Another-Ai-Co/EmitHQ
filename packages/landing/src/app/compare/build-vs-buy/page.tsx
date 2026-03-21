@@ -98,7 +98,7 @@ export default function BuildVsBuyPage() {
               'Delivery attempt logging and replay',
               'Rate limiting per tenant',
               'Customer-facing delivery dashboard',
-              'Payload transformation engine',
+              'Payload transformation engine (Starter+)',
               'Multi-tenant data isolation (RLS)',
               'Monitoring, alerting, and SLO tracking',
             ].map((item) => (

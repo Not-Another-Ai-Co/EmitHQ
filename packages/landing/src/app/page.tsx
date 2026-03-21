@@ -189,7 +189,7 @@ const FEATURES = [
     icon: '🔀',
     title: 'Payload Transformation',
     description:
-      'Reshape webhook payloads before delivery using JSONPath extraction and template expressions. No code required.',
+      'Reshape webhook payloads before delivery using JSONPath extraction and template expressions. No code required. Available on Starter+ plans.',
   },
   {
     icon: '🔒',
@@ -242,6 +242,7 @@ const TIERS = [
       'Unlimited endpoints',
       '90-day retention',
       '50 retries (configurable)',
+      'Payload transformation',
       'Static IPs',
       'Dedicated support',
     ],
