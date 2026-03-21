@@ -1,6 +1,6 @@
 # Maintenance — EmitHQ
 
-> Last verified: 2026-03-15
+> Last verified: 2026-03-21
 
 ## Documentation Sync
 

@@ -243,3 +243,47 @@ _Upstash PAYG with $20/mo cap, singleton health check Redis. Top bar replaces si
 ### T-087: Update Service Registry + Remove Unused Env Vars [x] [verified] [audited]
 
 _SSRF protection with DNS rebinding prevention (DEC-031). 20 URL validator tests. Service registry updated, unused env vars commented out._
+
+---
+
+## Phase 8a: Stripe Live Mode (completed tickets)
+
+### T-076: Stripe Checkout E2E Test + Live Mode Activation [x] [verified] [audited]
+
+_Full Stripe billing flow verified end-to-end: sandbox testing, quota headers fix, webhook handler (5 events with idempotency), live Stripe products/prices created (3 tiers × 2 intervals), live checkout confirmed with real card. Portal return URL fix, quota headers middleware ordering fix._
+
+---
+
+## Phase 11: Outreach & First Users (completed tickets)
+
+### T-088: GitHub Svix User Mining + Cold Email Drafts [x] [verified] [audited]
+
+### T-089: Email Sending Infrastructure [x] [verified] [audited]
+
+_Svix/Hookdeck/Convoy user mining: 50+ repos found, 20 cold email drafts with personalized hooks. Resend email service configured (SPF/DKIM verified, @emithq.com sender). Artifacts: `docs/outreach/svix-targets.md`, `docs/outreach/drafts/`, `scripts/send-email.ts`._
+
+---
+
+## Testing Baseline (completed tickets)
+
+### T-097: Playwright MCP Smoke Test + Dashboard Baseline [x] [verified] [audited]
+
+### T-098: T-090 Unit Test Infrastructure [x] [verified] [audited]
+
+### T-099: Landing Site Browser Smoke Test [x] [verified] [audited]
+
+_Playwright MCP established as browser testing tool. T-097: 5 dashboard pages verified (Clerk auth, settings tabs, app overview), 5 Clerk quirks documented in TEST_PLAN.md. T-098: 54 test-first tests for T-090 outreach system (reply classifier 12 categories, campaign state CRUD, inbound API handlers). T-099: 4 landing pages verified (homepage, pricing, compare, docs), zero console errors. Testing archetypes tracked in TEST_PLAN.md, personas in PERSONAS.md._
+
+---
+
+## Phase 13a: Payload Transform Dashboard (completed tickets)
+
+### T-100: Fix Pricing Inconsistency — Transforms Available Starter+ [x] [verified] [audited]
+
+### T-101: Transform Rule Editor UI — Endpoint Create/Edit [x] [verified] [audited]
+
+### T-102: Live Transform Preview Panel [x] [verified] [audited]
+
+### T-103: Transform Tier Gating UI [x] [verified] [audited]
+
+_Pricing aligned: transforms Starter+ ($49/mo) across landing site + dashboard (DEC-034). Visual form-based transform editor: collapsible details/summary section, rule rows (Source Path → Target Field → Template), max 20 rules, inline validation, function reference tooltip, mobile-responsive. Live preview panel with debounced 300ms API calls to POST /transform/preview. Free tier upgrade prompt, paid tiers get full editor. Component: `packages/dashboard/src/components/transform-rule-editor.tsx`._

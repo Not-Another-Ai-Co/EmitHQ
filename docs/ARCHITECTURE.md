@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-19
+> Last verified: 2026-03-21
 
 ## Overview
 
@@ -110,9 +110,11 @@ Database: Drizzle ORM with `pgPolicy()` for inline RLS definitions. Direct Neon 
 
 Stripe Checkout Sessions for subscription signup (Starter $49/Growth $149/Scale $349, monthly or annual). Customer Portal for self-service plan changes. Webhook handler processes 5 Stripe event types: `checkout.session.completed`, `customer.subscription.updated/deleted`, `invoice.paid/payment_failed`. `billingEvents` table with unique `stripe_event_id` for idempotent webhook processing. Organizations auto-provisioned on first Clerk login. Free tier hard-blocks at 100K events; paid tiers allow overage. `invoice.paid` resets `event_count_month` per billing period.
 
-## Payload Transformation (T-018)
+## Payload Transformation (T-018, T-101–T-103)
 
-Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFORE signing. Zero-dependency engine: JSONPath dot-notation subset, `{{...}}` template interpolation, built-in functions (formatDate, uppercase, lowercase, concat). Passthrough when rules are null/empty.
+Per-endpoint `transformRules` (JSONB, nullable). Applied in delivery worker BEFORE signing. Zero-dependency engine: JSONPath dot-notation subset, `{{...}}` template interpolation, built-in functions (formatDate, uppercase, lowercase, concat). Passthrough when rules are null/empty. Available on Starter+ tier ($49/mo); free tier sees upgrade prompt (DEC-034).
+
+**Dashboard UI (T-101–T-103):** Visual form-based editor on endpoint create/edit page — collapsible `<details>` section with rule rows (Source Path → Target Field → Template). Max 20 rules, inline validation, function reference tooltip. Live preview panel calls `POST /api/v1/transform/preview` (debounced 300ms). `TransformRuleEditor` + `TransformPreview` components at `packages/dashboard/src/components/transform-rule-editor.tsx`. Free tier gating via `GET /api/v1/billing/subscription` tier check.
 
 ## Dashboard (T-017, T-045, T-047–T-051, T-068–T-074)
 
@@ -191,11 +193,13 @@ Worker entry point: `packages/api/src/worker.ts` — calls `startDeliveryWorker(
 | Analytics       | Umami (self) | https://analytics.emithq.com          |
 | Uptime          | Better Stack | emithq.betteruptime.com               |
 
-## Testing (T-060)
+## Testing (T-060, T-097–T-099)
 
-**Unit tests:** Vitest (286 tests across 20 files). Colocated `*.test.ts` files. Mock pattern: `coreMock()` for DB/queue, `authMock()`/`tenantMock()` for middleware. `createTestApp()` factory mounts real route handlers with injected auth context.
+**Unit tests:** Vitest (353 tests across 25 files). Colocated `*.test.ts` files. Mock pattern: `coreMock()` for DB/queue, `authMock()`/`tenantMock()` for middleware. `createTestApp()` factory mounts real route handlers with injected auth context. Test-first stubs for T-090 outreach system: reply classifier (12 categories), campaign state (JSON read/write), inbound API handlers — 42 tests skipped until implementation (T-098).
 
 **E2E tests:** Playwright + `@clerk/testing` in `packages/dashboard/e2e/`. Three suites: browser journey (8-step signup→delivery flow), API-only journey (LLM-automatable flow via `POST /signup`), account management (profile/billing/settings smoke tests). Webhook test fixture (`http.createServer`) records delivered payloads. Auth via Clerk Testing Token + storageState. Requires running services — CI integration deferred to T-038.
+
+**Browser smoke tests (Playwright MCP):** T-097 verified 5 dashboard pages (Clerk auth, navigation, settings tabs). T-099 verified 4 landing site pages (homepage, pricing, compare, docs). Clerk quirks documented in `docs/TEST_PLAN.md`. Testing archetypes tracked in `docs/TEST_PLAN.md`, personas in `docs/PERSONAS.md`.
 
 ## Key Decisions
 

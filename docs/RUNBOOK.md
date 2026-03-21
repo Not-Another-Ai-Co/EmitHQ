@@ -1,6 +1,6 @@
 # Incident Response Runbook — EmitHQ
 
-> Last verified: 2026-03-15
+> Last verified: 2026-03-21
 
 ## Alert: High Delivery Error Rate (>1% failures)
 
