@@ -326,7 +326,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-105: Technical SEO & LLM Discovery Foundations
+### T-105: Technical SEO & LLM Discovery Foundations [x]
 
 **Phase:** 11a
 **Effort:** Medium
@@ -338,14 +338,14 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 **Acceptance criteria:**
 
-- [ ] JSON-LD: Organization schema on homepage (name, URL, logo, legalName, sameAs: GitHub/npm)
-- [ ] JSON-LD: SoftwareApplication schema on homepage + pricing (applicationCategory, AggregateOffer with 4 tiers)
-- [ ] JSON-LD: FAQPage schema on pricing page (extract existing FAQ section)
-- [ ] robots.txt: differentiate AI bots — allow retrieval (ChatGPT-User, PerplexityBot, Claude-SearchBot), block training (GPTBot, ClaudeBot, Google-Extended, CCBot)
-- [ ] `/llms.txt` (plural, spec-compliant) — copy/redirect from existing `/llm.txt`
-- [ ] `/llms-full.txt` — complete docs content in one Markdown file (product overview, API reference, SDK guide, pricing, error codes, retry strategy)
-- [ ] Canonical URLs: add `metadataBase` to root layout, `alternates.canonical` per page
-- [ ] Google Search Console: DNS TXT verification via Cloudflare API, submit sitemap
+- [x] JSON-LD: Organization schema on homepage (name, URL, logo, legalName, sameAs: GitHub/npm)
+- [x] JSON-LD: SoftwareApplication schema on homepage + pricing (applicationCategory, AggregateOffer with 4 tiers)
+- [x] JSON-LD: FAQPage schema on pricing page (extract existing FAQ section)
+- [x] robots.txt: differentiate AI bots — allow retrieval (ChatGPT-User, PerplexityBot, Claude-SearchBot), block training (GPTBot, ClaudeBot, Google-Extended, CCBot)
+- [x] `/llms.txt` (plural, spec-compliant) — copy/redirect from existing `/llm.txt`
+- [x] `/llms-full.txt` — complete docs content in one Markdown file (product overview, API reference, SDK guide, pricing, error codes, retry strategy)
+- [x] Canonical URLs: add `metadataBase` to root layout, `alternates.canonical` per page
+- [ ] Google Search Console: DNS TXT verification via Cloudflare API, submit sitemap — waiting on Julian to generate verification token from GSC
 
 ---
 
