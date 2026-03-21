@@ -449,7 +449,7 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 ---
 
-### T-097: Playwright MCP Smoke Test + Dashboard Baseline [x]
+### T-097: Playwright MCP Smoke Test + Dashboard Baseline [x] [verified]
 
 **Phase:** 11 (pre-T-090)
 **Effort:** Low
@@ -490,7 +490,7 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 ---
 
-### T-099: Landing Site Browser Smoke Test
+### T-099: Landing Site Browser Smoke Test [x] [verified]
 
 **Phase:** 11 (pre-T-090)
 **Effort:** Low
@@ -502,12 +502,12 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 **Acceptance criteria:**
 
-- [ ] Playwright MCP loads `https://emithq.com` — homepage renders, CTA buttons visible
-- [ ] Navigate to `/pricing` — 3 tiers visible with correct prices ($49, $149, $349)
-- [ ] Navigate to `/compare` — comparison table renders
-- [ ] Navigate to `/docs` — API reference loads
-- [ ] No console errors or broken images on any page
-- [ ] Update TEST_PLAN.md: note landing site coverage under archetype 14 (performance) if LCP measured
+- [x] Playwright MCP loads `https://emithq.com` — homepage renders, CTA buttons visible
+- [x] Navigate to `/pricing` — 3 tiers visible with correct prices ($49, $149, $349)
+- [x] Navigate to `/compare` — comparison table renders
+- [x] Navigate to `/docs` — API reference loads
+- [x] No console errors or broken images on any page
+- [x] Update TEST_PLAN.md: note landing site coverage under archetype 14 (performance) if LCP measured
 
 ---
 

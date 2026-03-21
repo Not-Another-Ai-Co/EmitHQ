@@ -21,7 +21,7 @@ Testing archetypes applicable to EmitHQ. Checked = applies to this project. Cove
 | 11  | File upload/download                                      | [ ]     | [ ]     | Not applicable                                                                 |
 | 12  | Real-time updates (WebSocket, polling)                    | [ ]     | [ ]     | Not implemented yet                                                            |
 | 13  | Search & filtering (message list, delivery attempts)      | [x]     | [ ]     | Dashboard has filtering but untested                                           |
-| 14  | Performance budgets (LCP < 2.5s, CLS < 0.1)               | [x]     | [ ]     | Landing + dashboard — not measured                                             |
+| 14  | Performance budgets (LCP < 2.5s, CLS < 0.1)               | [x]     | [ ]     | T-099: landing 4 pages verified (no errors), LCP not measured (no Lighthouse)  |
 | 15  | Security surface (XSS, CSRF, SSRF, timing-safe compare)   | [x]     | [x]     | Signing uses timingSafeEqual, SSRF validation on endpoints                     |
 | 16  | Third-party integrations (Stripe, Clerk, Resend)          | [x]     | [x]     | Stripe billing E2E verified (T-076), Clerk auth in E2E                         |
 | 17  | Data integrity (idempotency, soft-delete, concurrent)     | [x]     | [x]     | UNIQUE(app_id, event_id) dedup, Stripe webhook idempotency                     |
