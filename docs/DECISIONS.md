@@ -3,6 +3,24 @@
 > Last verified: 2026-03-21
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
 
+## DEC-035 | 2026-03-21 | API-Level Tier Enforcement for Payload Transforms
+
+**Status:** Active
+**Linked to:** T-104, DEC-034
+
+**Context:** DEC-034 made transforms Starter+ but noted "No API-level tier enforcement for now." The dashboard UI gates free users with an upgrade prompt, but the API accepts `transformRules` on endpoint create/update regardless of tier — a free user can bypass the UI gate via direct API calls.
+
+**Decision:** Add server-side tier check in endpoint POST and PUT handlers. After `validateTransformRules()` passes, query `organizations.tier` via `adminDb` (same pattern as `quotaCheck` middleware). Free tier gets 403 with `code: 'forbidden'` and `action.type: 'upgrade'`. Setting `transformRules: null` (clearing rules) is allowed on any tier. Transform preview endpoint (`/transform/preview`) is not gated — stateless, no side effects, already UI-gated.
+
+**Alternatives considered:**
+
+- Middleware-based gate (check tier before route handler) — rejected, would add a DB query to every endpoint request even when no transforms are involved
+- Feature flags table — over-engineering for a single feature gate; inline check follows existing quota pattern
+
+**Consequences:** Free-tier API users now get a clear 403 with upgrade guidance. No breaking change for paid tiers.
+
+---
+
 ## DEC-034 | 2026-03-21 | Transforms Available Starter+ ($49) with Visual Form UI
 
 **Status:** Active

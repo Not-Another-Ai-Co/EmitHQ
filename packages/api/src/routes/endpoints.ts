@@ -4,6 +4,8 @@ import { sql } from 'drizzle-orm';
 import {
   applications,
   endpoints,
+  organizations,
+  adminDb,
   generateSigningSecret,
   deliverWebhook,
   buildWebhookHeaders,
@@ -21,6 +23,18 @@ export const endpointRoutes = new Hono<AuthEnv>();
 endpointRoutes.use('*', requireAuth, tenantScope);
 
 const DEFAULT_PAGE_SIZE = 20;
+
+const TRANSFORM_ALLOWED_TIERS = ['starter', 'growth', 'scale'];
+
+/** Check if org tier allows payload transforms (Starter+). */
+async function checkTransformTier(orgId: string): Promise<boolean> {
+  const [org] = await adminDb
+    .select({ tier: organizations.tier })
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1);
+  return TRANSFORM_ALLOWED_TIERS.includes(org?.tier ?? 'free');
+}
 const MAX_PAGE_SIZE = 100;
 
 /**
@@ -109,6 +123,21 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
         return c.json({ error: { code: 'validation_error', message: err.message } }, 400);
       }
       throw err;
+    }
+
+    // Tier gate: transforms require Starter+ ($49/mo)
+    const allowed = await checkTransformTier(orgId);
+    if (!allowed) {
+      return c.json(
+        {
+          error: {
+            code: 'forbidden',
+            message: 'Payload transforms require a paid plan (Starter+).',
+            action: { type: 'upgrade', url: '/api/v1/billing/checkout' },
+          },
+        },
+        403,
+      );
     }
   }
 
@@ -346,6 +375,22 @@ endpointRoutes.put('/:appId/endpoint/:epId', async (c) => {
         return c.json({ error: { code: 'validation_error', message: err.message } }, 400);
       }
       throw err;
+    }
+
+    // Tier gate: transforms require Starter+ ($49/mo)
+    const orgId = c.get('orgId');
+    const allowed = await checkTransformTier(orgId);
+    if (!allowed) {
+      return c.json(
+        {
+          error: {
+            code: 'forbidden',
+            message: 'Payload transforms require a paid plan (Starter+).',
+            action: { type: 'upgrade', url: '/api/v1/billing/checkout' },
+          },
+        },
+        403,
+      );
     }
   }
 

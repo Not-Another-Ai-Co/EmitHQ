@@ -206,6 +206,148 @@ describe('endpoint CRUD routes (contract tests)', () => {
     expect(json).toHaveProperty('done');
   });
 
+  it('create endpoint with transformRules on free tier returns 403', async () => {
+    const { Hono } = await import('hono');
+    const app = new Hono();
+
+    const TRANSFORM_ALLOWED_TIERS = ['starter', 'growth', 'scale'];
+
+    app.post('/:appId/endpoint', async (c) => {
+      const body = await c.req.json();
+      const orgTier = c.req.header('x-test-tier') ?? 'free';
+
+      if (body.transformRules !== undefined) {
+        if (!TRANSFORM_ALLOWED_TIERS.includes(orgTier)) {
+          return c.json(
+            {
+              error: {
+                code: 'forbidden',
+                message: 'Payload transforms require a paid plan (Starter+).',
+                action: { type: 'upgrade', url: '/api/v1/billing/checkout' },
+              },
+            },
+            403,
+          );
+        }
+      }
+      return c.json(
+        { data: { id: 'ep-1', url: body.url, transformRules: body.transformRules } },
+        201,
+      );
+    });
+
+    const res = await app.request('/app-1/endpoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-test-tier': 'free' },
+      body: JSON.stringify({
+        url: 'https://example.com/webhook',
+        transformRules: [{ type: 'extract', source: '$.data', target: '$.result' }],
+      }),
+    });
+
+    expect(res.status).toBe(403);
+    const json = await res.json();
+    expect(json.error.code).toBe('forbidden');
+    expect(json.error.action.type).toBe('upgrade');
+  });
+
+  it('create endpoint with transformRules on starter tier returns 201', async () => {
+    const { Hono } = await import('hono');
+    const app = new Hono();
+
+    const TRANSFORM_ALLOWED_TIERS = ['starter', 'growth', 'scale'];
+
+    app.post('/:appId/endpoint', async (c) => {
+      const body = await c.req.json();
+      const orgTier = c.req.header('x-test-tier') ?? 'free';
+
+      if (body.transformRules !== undefined) {
+        if (!TRANSFORM_ALLOWED_TIERS.includes(orgTier)) {
+          return c.json({ error: { code: 'forbidden', message: 'Upgrade required' } }, 403);
+        }
+      }
+      return c.json(
+        { data: { id: 'ep-1', url: body.url, transformRules: body.transformRules } },
+        201,
+      );
+    });
+
+    const res = await app.request('/app-1/endpoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-test-tier': 'starter' },
+      body: JSON.stringify({
+        url: 'https://example.com/webhook',
+        transformRules: [{ type: 'extract', source: '$.data', target: '$.result' }],
+      }),
+    });
+
+    expect(res.status).toBe(201);
+    const json = await res.json();
+    expect(json.data.transformRules).toBeDefined();
+  });
+
+  it('create endpoint without transformRules on free tier returns 201', async () => {
+    const { Hono } = await import('hono');
+    const app = new Hono();
+
+    const TRANSFORM_ALLOWED_TIERS = ['starter', 'growth', 'scale'];
+
+    app.post('/:appId/endpoint', async (c) => {
+      const body = await c.req.json();
+      const orgTier = c.req.header('x-test-tier') ?? 'free';
+
+      if (body.transformRules !== undefined) {
+        if (!TRANSFORM_ALLOWED_TIERS.includes(orgTier)) {
+          return c.json({ error: { code: 'forbidden', message: 'Upgrade required' } }, 403);
+        }
+      }
+      return c.json({ data: { id: 'ep-1', url: body.url } }, 201);
+    });
+
+    const res = await app.request('/app-1/endpoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-test-tier': 'free' },
+      body: JSON.stringify({ url: 'https://example.com/webhook' }),
+    });
+
+    expect(res.status).toBe(201);
+  });
+
+  it('update endpoint with transformRules null on free tier is allowed (clears rules)', async () => {
+    const { Hono } = await import('hono');
+    const app = new Hono();
+
+    const TRANSFORM_ALLOWED_TIERS = ['starter', 'growth', 'scale'];
+
+    app.put('/:appId/endpoint/:epId', async (c) => {
+      const body = await c.req.json();
+      const orgTier = c.req.header('x-test-tier') ?? 'free';
+
+      if (body.transformRules !== undefined && body.transformRules !== null) {
+        if (!TRANSFORM_ALLOWED_TIERS.includes(orgTier)) {
+          return c.json({ error: { code: 'forbidden', message: 'Upgrade required' } }, 403);
+        }
+      }
+
+      const updates: Record<string, unknown> = {};
+      if (body.transformRules !== undefined) updates.transformRules = body.transformRules;
+      if (Object.keys(updates).length === 0) {
+        return c.json({ error: { code: 'validation_error', message: 'No fields to update' } }, 400);
+      }
+      return c.json({ data: { id: 'ep-1', transformRules: null } });
+    });
+
+    const res = await app.request('/app-1/endpoint/ep-1', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'x-test-tier': 'free' },
+      body: JSON.stringify({ transformRules: null }),
+    });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.transformRules).toBeNull();
+  });
+
   it('test delivery returns delivery result', async () => {
     const { Hono } = await import('hono');
     const app = new Hono();

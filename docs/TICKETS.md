@@ -5,6 +5,29 @@
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed quality gates | `[x] [verified] [audited] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
 
+## Recently Completed
+
+### T-104: API-Level Tier Enforcement for Payload Transforms
+
+**Phase:** 10
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-100
+**Research:** none (gap found during catchup audit)
+
+**Description:** Add server-side tier check on endpoint create (POST) and update (PUT) — free-tier orgs attempting to set `transformRules` get 403 with upgrade guidance. Closes the bypass where free users could use transforms via direct API calls.
+
+**Acceptance criteria:**
+
+- [x] `checkTransformTier()` helper queries org tier via `adminDb`
+- [x] POST `/:appId/endpoint` returns 403 when free tier sets `transformRules`
+- [x] PUT `/:appId/endpoint/:epId` returns 403 when free tier sets `transformRules`
+- [x] `transformRules: null` on PUT (clearing rules) allowed on any tier
+- [x] Error response: `{ code: 'forbidden', action: { type: 'upgrade' } }`
+- [x] 4 contract tests added to `endpoints.test.ts`
+
+---
+
 ## Open Tickets
 
 ### T-025: First Iteration Cycle
