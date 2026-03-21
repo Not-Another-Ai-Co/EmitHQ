@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export interface TransformRule {
   sourcePath: string;
@@ -239,4 +239,118 @@ export function cleanRules(rules: TransformRule[]): TransformRule[] | null {
       ...(r.template ? { template: r.template } : {}),
     }));
   return cleaned.length > 0 ? cleaned : null;
+}
+
+// ─── Live Preview ───────────────────────────────────────────────────────────
+
+interface TransformPreviewProps {
+  rules: TransformRule[];
+  apiFetch: (path: string, init?: RequestInit) => Promise<Response>;
+}
+
+export function TransformPreview({ rules, apiFetch }: TransformPreviewProps) {
+  const [samplePayload, setSamplePayload] = useState('');
+  const [output, setOutput] = useState<string | null>(null);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const validRules = cleanRules(rules);
+
+  const runPreview = useCallback(
+    async (payload: string, currentRules: TransformRule[] | null) => {
+      if (!payload.trim()) {
+        setOutput(null);
+        setPreviewError(null);
+        return;
+      }
+
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(payload);
+      } catch {
+        setPreviewError('Invalid JSON — paste a valid JSON object');
+        setOutput(null);
+        return;
+      }
+
+      if (!currentRules || currentRules.length === 0) {
+        setOutput(JSON.stringify(parsed, null, 2));
+        setPreviewError(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const res = await apiFetch('/api/v1/transform/preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ payload: parsed, rules: currentRules }),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          setPreviewError(json?.error?.message ?? `Error ${res.status}`);
+          setOutput(null);
+        } else {
+          setOutput(JSON.stringify(json.data.transformed, null, 2));
+          setPreviewError(null);
+        }
+      } catch {
+        setPreviewError('Preview request failed');
+        setOutput(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [apiFetch],
+  );
+
+  // Debounced preview on payload or rules change
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      runPreview(samplePayload, validRules);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [samplePayload, JSON.stringify(validRules)]);
+
+  return (
+    <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3">
+      <p className="mb-2 text-xs font-medium text-[var(--color-text-muted)]">Live Preview</p>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex-1">
+          <label className="mb-1 block text-xs text-[var(--color-text-muted)]">
+            Sample Payload
+          </label>
+          <textarea
+            value={samplePayload}
+            onChange={(e) => setSamplePayload(e.target.value)}
+            placeholder='{"user": {"email": "jane@example.com"}}'
+            rows={5}
+            className="w-full resize-y rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 font-mono text-xs text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="mb-1 block text-xs text-[var(--color-text-muted)]">
+            Transformed Output {loading && <span className="text-[var(--color-accent)]">...</span>}
+            {!validRules && samplePayload.trim() && !previewError && (
+              <span className="text-[var(--color-text-muted)]">(passthrough)</span>
+            )}
+          </label>
+          {previewError ? (
+            <div className="rounded border border-[var(--color-error)]/30 bg-[var(--color-error)]/10 px-2 py-1.5 text-xs text-[var(--color-error)]">
+              {previewError}
+            </div>
+          ) : (
+            <pre className="min-h-[7.5rem] overflow-auto rounded border border-[var(--color-border)] bg-[var(--color-surface)] px-2 py-1.5 font-mono text-xs text-[var(--color-text)]">
+              {output ?? ''}
+            </pre>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

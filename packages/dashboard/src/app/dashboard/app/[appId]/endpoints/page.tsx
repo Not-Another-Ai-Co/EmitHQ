@@ -9,6 +9,7 @@ import { SkeletonEndpointCard } from '@/components/skeleton';
 import { toast } from 'sonner';
 import {
   TransformRuleEditor,
+  TransformPreview,
   hasTransformErrors,
   cleanRules,
   type TransformRule,
@@ -375,6 +376,7 @@ export default function EndpointsPage() {
                 onChange={setCreateTransformRules}
                 disabled={creating}
               />
+              <TransformPreview rules={createTransformRules} apiFetch={apiFetch} />
             </div>
           </details>
           <button
@@ -532,6 +534,7 @@ export default function EndpointsPage() {
                           onChange={setEditTransformRules}
                           disabled={saving}
                         />
+                        <TransformPreview rules={editTransformRules} apiFetch={apiFetch} />
                       </div>
                     </details>
                     <div className="flex gap-2">

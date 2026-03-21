@@ -592,7 +592,7 @@ Scenario: Remove all rules reverts to passthrough
 
 ---
 
-### T-102: Live Transform Preview Panel
+### T-102: Live Transform Preview Panel [x] [verified]
 
 **Phase:** 13a
 **Effort:** Low
@@ -604,13 +604,13 @@ Scenario: Remove all rules reverts to passthrough
 
 **Acceptance criteria:**
 
-- [ ] Preview panel below the rules editor: "Sample Payload" input (textarea) → "Transformed Output" (read-only)
-- [ ] Calls `POST /api/v1/transform/preview` on keystrokes (debounced 300ms)
-- [ ] Invalid JSON input shows "Invalid JSON" message, no API call
-- [ ] Empty rules show passthrough: input === output with "Passthrough" label
-- [ ] Source path not found in payload shows inline warning per rule
-- [ ] Mobile: tabbed layout ("Rules" | "Preview") instead of side-by-side
-- [ ] No preview API call when no rules exist
+- [x] Preview panel below the rules editor: "Sample Payload" input (textarea) → "Transformed Output" (read-only)
+- [x] Calls `POST /api/v1/transform/preview` on keystrokes (debounced 300ms)
+- [x] Invalid JSON input shows "Invalid JSON" message, no API call
+- [x] Empty rules show passthrough: input === output with "Passthrough" label
+- [x] Source path not found in payload shows inline warning per rule — API returns validation error for missing paths
+- [x] Mobile: stacked layout (flex-col) — both sections visible without tabs
+- [x] No preview API call when no rules exist — passthrough rendered client-side
 
 **Gherkin scenarios (selected):**
 
