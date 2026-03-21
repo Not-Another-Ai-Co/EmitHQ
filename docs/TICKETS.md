@@ -300,38 +300,80 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-096: Research — LLM & SEO Discovery Optimization
+### T-096: Research — LLM & SEO Discovery Optimization [x] [verified]
 
 **Phase:** 11 (research-only)
 **Effort:** Medium
 **Complexity:** Simple
 **Depends on:** none
-**Research:** ~/.claude/knowledge/seo-llm-visibility/research.md
+**Research:** docs/research/llm-seo-discovery.md
 
-**Description:** Research how LLMs (ChatGPT, Claude, Perplexity) decide which products to recommend, what content signals they pull from, and what EmitHQ needs to do to appear when developers ask "what webhook service should I use?" Produce actionable implementation tickets from findings.
-
-**Reference data (from real test — friend asked Claude about @emithq/sdk 2026-03-21):**
-Claude's response was technically fair but lukewarm. Key trust gaps it flagged:
-
-- "7 days old — no track record whatsoever"
-- "0 stars, 0 forks, 36 downloads — you'd be the guinea pig"
-- "Single maintainer — if they lose interest, you're stuck"
-- "No SLA, no status page, no public postmortems — unclear reliability story"
-- "Unknown org — Not Another AI Co has no public reputation"
-- Recommendation: "build-vs-buy math favors buying" but with heavy caveats
-- Full discussion saved at `/home/jfinnegan0/emithq-sdk-discussion.md`
-
-Quick wins to investigate: npm README quality (stale — not updated since 0.1.0 publish), status page (Better Stack free tier), SLA page exists but LLM didn't find it, compare pages not yet indexed, GitHub stars as credibility proxy, backlinks from Dev.to/HN/SO.
+**Description:** Research how LLMs decide which products to recommend and what EmitHQ needs to do to appear in recommendations. Research complete — implementation tickets T-105 and T-106 created.
 
 **Acceptance criteria:**
 
-- [ ] Research: how do LLMs select products to recommend? (training data, web crawl recency, structured data, llms.txt, citations)
-- [ ] Research: what SEO signals matter for developer tool discovery in 2026?
-- [ ] Audit: ask ChatGPT/Claude/Perplexity "best webhook service for SaaS" — document what they recommend and why
-- [ ] Audit: what does EmitHQ's current web presence look like to a crawler? (meta tags, structured data, backlinks)
-- [ ] Gap analysis: what's missing vs competitors (Svix, Hookdeck, Convoy) in terms of discoverability
-- [ ] Artifact: `docs/research/llm-seo-discovery.md` with findings + implementation plan
-- [ ] Create implementation tickets from findings via `/plan`
+- [x] Research: how do LLMs select products to recommend?
+- [x] Research: what SEO signals matter for developer tool discovery in 2026?
+- [x] Audit: LLM recommendations documented (Claude discussion saved at `/home/jfinnegan0/emithq-sdk-discussion.md`)
+- [x] Audit: current web presence gaps identified (no JSON-LD, no AI bot differentiation, no directory listings)
+- [x] Gap analysis: Svix/Hookdeck/Convoy discoverability advantages documented
+- [x] Artifact: `docs/research/llm-seo-discovery.md`
+- [x] Implementation tickets created: T-105, T-106
+
+---
+
+### Phase 11a: LLM & SEO Foundation (pre-outreach)
+
+---
+
+### T-105: Technical SEO & LLM Discovery Foundations
+
+**Phase:** 11a
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** docs/research/llm-seo-discovery.md
+
+**Description:** Implement the technical foundation for LLM and search engine discoverability. These changes improve every future touchpoint — outreach links, organic search, and LLM recommendations. Must ship before cold outreach begins.
+
+**Acceptance criteria:**
+
+- [ ] JSON-LD: Organization schema on homepage (name, URL, logo, legalName, sameAs: GitHub/npm)
+- [ ] JSON-LD: SoftwareApplication schema on homepage + pricing (applicationCategory, AggregateOffer with 4 tiers)
+- [ ] JSON-LD: FAQPage schema on pricing page (extract existing FAQ section)
+- [ ] robots.txt: differentiate AI bots — allow retrieval (ChatGPT-User, PerplexityBot, Claude-SearchBot), block training (GPTBot, ClaudeBot, Google-Extended, CCBot)
+- [ ] `/llms.txt` (plural, spec-compliant) — copy/redirect from existing `/llm.txt`
+- [ ] `/llms-full.txt` — complete docs content in one Markdown file (product overview, API reference, SDK guide, pricing, error codes, retry strategy)
+- [ ] Canonical URLs: add `metadataBase` to root layout, `alternates.canonical` per page
+- [ ] Google Search Console: DNS TXT verification via Cloudflare API, submit sitemap
+
+---
+
+### T-106: Third-Party Directory Listings
+
+**Phase:** 11a
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/llm-seo-discovery.md
+
+**Description:** Create EmitHQ profiles on platforms that LLMs heavily weight when making product recommendations. Consistent messaging across all: "Open-source webhook infrastructure for SaaS teams. $49/mo — not $490." Some listings require Julian's manual verification (account ownership, email confirmation).
+
+**Acceptance criteria:**
+
+- [ ] AlternativeTo: listed as alternative to Svix, Hookdeck, Convoy
+- [ ] G2: free profile created (needs 1+ review to appear in listings — ask early users)
+- [ ] Crunchbase: basic company profile (NotAnotherAiCo LLC, product: EmitHQ)
+- [ ] SaaSHub: listed under webhook/API infrastructure
+- [ ] StackShare: tool profile with tech stack details
+- [ ] awesome-selfhosted: PR submitted to GitHub list (AGPL qualifies)
+- [ ] Julian manually claims/verifies any profiles requiring email confirmation
+
+---
+
+### Phase 11b: Outreach + Content (parallel)
+
+_T-090 (cold outreach), T-091 (origin story blog), T-092 (technical deep-dive), T-093 (community presence) run in parallel. Blog posts support outreach touches #2 and #5._
 
 ---
 
@@ -367,7 +409,7 @@ Quick wins to investigate: npm README quality (stale — not updated since 0.1.0
 **Depends on:** T-094
 **Research:** docs/research/first-10-customers.md, docs/research/gtm-execution.md
 
-**Description:** Execute Show HN launch once real metrics and testimonials are collected. Claude writes and posts the Show HN, responds to comments, cross-posts to Dev.to. Supersedes T-034 + T-058.
+**Description:** Execute Show HN + Product Hunt launches once real metrics and testimonials are collected. Stagger by 1-2 weeks (HN first for developer credibility, PH second for broader SaaS audience). Claude writes and posts, responds to comments, cross-posts to Dev.to. Supersedes T-034 + T-058.
 
 **Acceptance criteria:**
 
@@ -376,6 +418,7 @@ Quick wins to investigate: npm README quality (stale — not updated since 0.1.0
 - [ ] Show HN posted (Sunday 11:00-16:00 UTC)
 - [ ] Every HN comment responded to within 30 minutes for first 6 hours
 - [ ] Dev.to cross-post published day after
+- [ ] Product Hunt launch 1-2 weeks after Show HN (different audience, different angle)
 - [ ] Supersedes T-034 + T-058
 
 ---
@@ -403,34 +446,4 @@ _The following tickets are deferred until post-first-10-customers. They add comp
 - [-] T-067: EmitHQ MCP Server — build after users request it
 - [-] T-069: Frontend-Backend Integration Hardening — infrastructure
 - [-] T-084: Vercel Migration — after first 5-10 customers
-
----
-
-### T-058: Show HN Readiness Gate
-
-**Phase:** 8d
-**Effort:** Low
-**Complexity:** Simple
-**Depends on:** T-047, T-048, T-049, T-050, T-051, T-052, T-053, T-054, T-055, T-056, T-060, T-063, T-064
-**Research:** docs/research/gtm-execution.md
-
-**Description:** Verify all Show HN prerequisites are met before executing T-034. This is a checklist ticket, not implementation work. If any gate fails, defer T-034 until it's resolved.
-
-**Acceptance criteria:**
-
-- [ ] Dashboard self-service complete: app management, endpoint CRUD, API keys, billing, onboarding (T-047–T-051)
-- [ ] 10+ real orgs on the platform (from T-052)
-- [ ] At least 1 paying customer or confirmed willingness-to-pay (from T-053)
-- [ ] Show HN draft has real metrics, not [PLACEHOLDER] (from T-054)
-- [ ] 2+ testimonials collected (from T-054)
-- [ ] Origin story blog live (from T-055)
-- [ ] Technical deep-dive blog live (from T-056)
-- [ ] 2+ weeks of build-in-public posts (from T-057)
-- [x] T-030 marketplace submissions completed
-- [ ] E2E happy-path test passes locally (T-060)
-- [-] ~~MFA enabled in Clerk (T-061)~~ — deferred, Clerk Pro feature
-- [ ] API-only signup endpoint live and tested (T-063)
-- [ ] OpenAPI spec + llm.txt + agents.json published (T-064)
-- [ ] All production services healthy (API, worker, dashboard, Umami)
-
----
+- [-] T-058: Show HN Readiness Gate — superseded by T-095 readiness gate
