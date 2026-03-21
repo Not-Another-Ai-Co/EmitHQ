@@ -539,7 +539,7 @@ _Research: docs/research/payload-transform-dashboard-ux.md. Julian decided: Star
 
 ---
 
-### T-101: Transform Rule Editor UI — Endpoint Create/Edit
+### T-101: Transform Rule Editor UI — Endpoint Create/Edit [x] [verified]
 
 **Phase:** 13a
 **Effort:** Medium
@@ -551,15 +551,15 @@ _Research: docs/research/payload-transform-dashboard-ux.md. Julian decided: Star
 
 **Acceptance criteria:**
 
-- [ ] "Transform Rules" collapsible section on endpoint create and edit forms
-- [ ] Rule row: Source Path (text, `$.` prefix hint), Target Field (text), Template (optional text)
-- [ ] Add Rule / Remove Rule (×) buttons, max 20 rules enforced in UI
-- [ ] Inline validation: invalid JSONPath, empty required fields, duplicate target fields
-- [ ] Existing rules pre-populated when editing an endpoint
-- [ ] Removing all rules saves as `null` (passthrough mode)
-- [ ] Empty state: "No transform rules — payload forwarded as-is"
-- [ ] Function reference tooltip: formatDate, uppercase, lowercase, concat with examples
-- [ ] Mobile: rules stack vertically, remove button is tappable (44×44px)
+- [x] "Transform Rules" collapsible section on endpoint create and edit forms
+- [x] Rule row: Source Path (text, `$.` prefix hint), Target Field (text), Template (optional text)
+- [x] Add Rule / Remove Rule (×) buttons, max 20 rules enforced in UI
+- [x] Inline validation: invalid JSONPath, empty required fields, duplicate target fields
+- [x] Existing rules pre-populated when editing an endpoint
+- [x] Removing all rules saves as `null` (passthrough mode)
+- [x] Empty state: "No transform rules — payload forwarded as-is"
+- [x] Function reference tooltip: formatDate, uppercase, lowercase, concat with examples
+- [x] Mobile: rules stack vertically, remove button is tappable (44×44px)
 
 **Gherkin scenarios (selected):**
 

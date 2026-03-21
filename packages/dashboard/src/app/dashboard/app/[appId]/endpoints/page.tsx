@@ -7,6 +7,12 @@ import { StatusBadge } from '@/components/status-badge';
 import { Modal } from '@/components/modal';
 import { SkeletonEndpointCard } from '@/components/skeleton';
 import { toast } from 'sonner';
+import {
+  TransformRuleEditor,
+  hasTransformErrors,
+  cleanRules,
+  type TransformRule,
+} from '@/components/transform-rule-editor';
 
 interface Endpoint {
   id: string;
@@ -17,6 +23,7 @@ interface Endpoint {
   disabledReason: string | null;
   failureCount: number;
   eventTypeFilter: string[] | null;
+  transformRules: TransformRule[] | null;
   rateLimit: number | null;
   createdAt: string;
 }
@@ -52,6 +59,7 @@ export default function EndpointsPage() {
   const [createUrl, setCreateUrl] = useState('');
   const [createDesc, setCreateDesc] = useState('');
   const [createFilter, setCreateFilter] = useState('');
+  const [createTransformRules, setCreateTransformRules] = useState<TransformRule[]>([]);
   const [creating, setCreating] = useState(false);
 
   // Secret modal (shown after create)
@@ -62,6 +70,7 @@ export default function EndpointsPage() {
   const [editUrl, setEditUrl] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [editFilter, setEditFilter] = useState('');
+  const [editTransformRules, setEditTransformRules] = useState<TransformRule[]>([]);
   const [saving, setSaving] = useState(false);
 
   // Delete confirm modal
@@ -119,6 +128,8 @@ export default function EndpointsPage() {
           .map((s) => s.trim())
           .filter(Boolean);
       }
+      const transformRules = cleanRules(createTransformRules);
+      if (transformRules) body.transformRules = transformRules;
       const res = await apiFetch(`/api/v1/app/${APP_ID}/endpoint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -133,6 +144,7 @@ export default function EndpointsPage() {
       setCreateUrl('');
       setCreateDesc('');
       setCreateFilter('');
+      setCreateTransformRules([]);
       setShowCreate(false);
       await fetchEndpoints();
       toast.success('Endpoint created');
@@ -149,6 +161,7 @@ export default function EndpointsPage() {
     setEditUrl(ep.url);
     setEditDesc(ep.description ?? '');
     setEditFilter(ep.eventTypeFilter?.join(', ') ?? '');
+    setEditTransformRules(ep.transformRules ?? []);
   }
 
   async function handleSave(epId: string) {
@@ -166,6 +179,11 @@ export default function EndpointsPage() {
       const currentFilter = current?.eventTypeFilter ?? [];
       if (JSON.stringify(newFilter) !== JSON.stringify(currentFilter)) {
         body.eventTypeFilter = newFilter.length > 0 ? newFilter : null;
+      }
+      const newTransformRules = cleanRules(editTransformRules);
+      const currentTransformRules = current?.transformRules ?? null;
+      if (JSON.stringify(newTransformRules) !== JSON.stringify(currentTransformRules)) {
+        body.transformRules = newTransformRules;
       }
       if (Object.keys(body).length === 0) {
         setEditingId(null);
@@ -346,9 +364,22 @@ export default function EndpointsPage() {
               className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none"
             />
           </div>
+          <details className="mb-4">
+            <summary className="cursor-pointer text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+              Transform Rules
+              {createTransformRules.length > 0 ? ` (${createTransformRules.length})` : ''}
+            </summary>
+            <div className="mt-3">
+              <TransformRuleEditor
+                rules={createTransformRules}
+                onChange={setCreateTransformRules}
+                disabled={creating}
+              />
+            </div>
+          </details>
           <button
             type="submit"
-            disabled={creating || !createUrl.trim()}
+            disabled={creating || !createUrl.trim() || hasTransformErrors(createTransformRules)}
             className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent)]/80 disabled:opacity-50"
           >
             {creating ? 'Creating...' : 'Create Endpoint'}
@@ -444,6 +475,15 @@ export default function EndpointsPage() {
                   </div>
                 )}
 
+                {ep.transformRules && ep.transformRules.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      Transform: {ep.transformRules.length} rule
+                      {ep.transformRules.length !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                )}
+
                 {/* Edit form (inline) */}
                 {isEditing ? (
                   <div className="mb-3 space-y-3 border-t border-[var(--color-border)] pt-3">
@@ -481,10 +521,23 @@ export default function EndpointsPage() {
                         className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                       />
                     </div>
+                    <details open={editTransformRules.length > 0}>
+                      <summary className="cursor-pointer text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+                        Transform Rules
+                        {editTransformRules.length > 0 ? ` (${editTransformRules.length})` : ''}
+                      </summary>
+                      <div className="mt-3">
+                        <TransformRuleEditor
+                          rules={editTransformRules}
+                          onChange={setEditTransformRules}
+                          disabled={saving}
+                        />
+                      </div>
+                    </details>
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleSave(ep.id)}
-                        disabled={saving}
+                        disabled={saving || hasTransformErrors(editTransformRules)}
                         className="rounded-lg bg-[var(--color-accent)] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[var(--color-accent)]/80 disabled:opacity-50"
                       >
                         {saving ? 'Saving...' : 'Save'}
