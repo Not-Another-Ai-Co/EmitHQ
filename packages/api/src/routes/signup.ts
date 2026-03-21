@@ -132,6 +132,18 @@ signupRoutes.post('/', async (c) => {
         409,
       );
     }
+    // Surface Clerk validation errors (password/email) as 400 instead of 500
+    const validationError = clerkErr.errors?.find(
+      (e) => e.code?.startsWith('form_password_') || e.code?.startsWith('form_email_'),
+    );
+    if (validationError) {
+      return c.json(
+        {
+          error: { code: 'validation_error', message: validationError.message ?? 'Invalid input' },
+        },
+        400,
+      );
+    }
     console.error('Clerk createUser failed:', JSON.stringify(clerkErr.errors ?? err));
     return c.json({ error: { code: 'signup_failed', message: 'Failed to create account' } }, 500);
   }

@@ -20,6 +20,10 @@ UPSTASH_REDIS_PASSWORD=op://EmitHQ/redis/password
 CLERK_SECRET_KEY=op://EmitHQ/clerk/secret-key
 CLERK_PUBLISHABLE_KEY=op://EmitHQ/clerk/publishable-key
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=op://EmitHQ/clerk/publishable-key
+NEXT_PUBLIC_CLERK_SIGN_IN_URL=/sign-in
+NEXT_PUBLIC_CLERK_SIGN_UP_URL=/sign-up
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL=/dashboard
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL=/dashboard
 
 # Payments (Stripe)
 STRIPE_SECRET_KEY=op://EmitHQ/stripe/secret-key
