@@ -52,6 +52,7 @@ export default function EndpointsPage() {
 
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [healthMap, setHealthMap] = useState<Record<string, EndpointHealth>>({});
+  const [tier, setTier] = useState<string>('free');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -87,9 +88,10 @@ export default function EndpointsPage() {
 
   const fetchEndpoints = useCallback(async () => {
     try {
-      const [epRes, healthRes] = await Promise.all([
+      const [epRes, healthRes, subRes] = await Promise.all([
         apiFetch(`/api/v1/app/${APP_ID}/endpoint?limit=100`),
         apiFetch(`/api/v1/app/${APP_ID}/endpoint-health`),
+        apiFetch('/api/v1/billing/subscription'),
       ]);
       if (epRes.ok) {
         const epJson = await epRes.json();
@@ -102,6 +104,10 @@ export default function EndpointsPage() {
           map[h.id] = h;
         }
         setHealthMap(map);
+      }
+      if (subRes.ok) {
+        const subJson = await subRes.json();
+        setTier(subJson.data?.tier ?? 'free');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load endpoints');
@@ -365,20 +371,34 @@ export default function EndpointsPage() {
               className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-accent)] focus:outline-none"
             />
           </div>
-          <details className="mb-4">
-            <summary className="cursor-pointer text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-              Transform Rules
-              {createTransformRules.length > 0 ? ` (${createTransformRules.length})` : ''}
-            </summary>
-            <div className="mt-3">
-              <TransformRuleEditor
-                rules={createTransformRules}
-                onChange={setCreateTransformRules}
-                disabled={creating}
-              />
-              <TransformPreview rules={createTransformRules} apiFetch={apiFetch} />
+          {tier === 'free' ? (
+            <div className="mb-4 rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-center">
+              <p className="mb-2 text-sm text-[var(--color-text-muted)]">
+                Payload transforms are available on Starter and above.
+              </p>
+              <a
+                href="/dashboard/settings?tab=billing"
+                className="inline-block rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[var(--color-accent)]/80"
+              >
+                Upgrade to Starter — $49/mo
+              </a>
             </div>
-          </details>
+          ) : (
+            <details className="mb-4">
+              <summary className="cursor-pointer text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+                Transform Rules
+                {createTransformRules.length > 0 ? ` (${createTransformRules.length})` : ''}
+              </summary>
+              <div className="mt-3">
+                <TransformRuleEditor
+                  rules={createTransformRules}
+                  onChange={setCreateTransformRules}
+                  disabled={creating}
+                />
+                <TransformPreview rules={createTransformRules} apiFetch={apiFetch} />
+              </div>
+            </details>
+          )}
           <button
             type="submit"
             disabled={creating || !createUrl.trim() || hasTransformErrors(createTransformRules)}
@@ -523,20 +543,34 @@ export default function EndpointsPage() {
                         className="w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] focus:border-[var(--color-accent)] focus:outline-none"
                       />
                     </div>
-                    <details open={editTransformRules.length > 0}>
-                      <summary className="cursor-pointer text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
-                        Transform Rules
-                        {editTransformRules.length > 0 ? ` (${editTransformRules.length})` : ''}
-                      </summary>
-                      <div className="mt-3">
-                        <TransformRuleEditor
-                          rules={editTransformRules}
-                          onChange={setEditTransformRules}
-                          disabled={saving}
-                        />
-                        <TransformPreview rules={editTransformRules} apiFetch={apiFetch} />
+                    {tier === 'free' ? (
+                      <div className="rounded-lg border border-[var(--color-border)] bg-[var(--color-surface)] p-3 text-center">
+                        <p className="text-xs text-[var(--color-text-muted)]">
+                          Payload transforms are available on Starter and above.
+                        </p>
+                        <a
+                          href="/dashboard/settings?tab=billing"
+                          className="mt-2 inline-block rounded px-3 py-1 text-xs text-[var(--color-accent)] hover:bg-[var(--color-accent)]/10"
+                        >
+                          Upgrade to Starter
+                        </a>
                       </div>
-                    </details>
+                    ) : (
+                      <details open={editTransformRules.length > 0}>
+                        <summary className="cursor-pointer text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]">
+                          Transform Rules
+                          {editTransformRules.length > 0 ? ` (${editTransformRules.length})` : ''}
+                        </summary>
+                        <div className="mt-3">
+                          <TransformRuleEditor
+                            rules={editTransformRules}
+                            onChange={setEditTransformRules}
+                            disabled={saving}
+                          />
+                          <TransformPreview rules={editTransformRules} apiFetch={apiFetch} />
+                        </div>
+                      </details>
+                    )}
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleSave(ep.id)}

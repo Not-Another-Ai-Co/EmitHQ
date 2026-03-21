@@ -628,7 +628,7 @@ Scenario: Missing path shows inline warning
 
 ---
 
-### T-103: Transform Tier Gating UI
+### T-103: Transform Tier Gating UI [x] [verified]
 
 **Phase:** 13a
 **Effort:** Low
@@ -640,10 +640,10 @@ Scenario: Missing path shows inline warning
 
 **Acceptance criteria:**
 
-- [ ] Free tier: transform section replaced with upgrade prompt ("Payload transforms available on Starter+")
-- [ ] Upgrade button links to billing checkout (Starter tier)
-- [ ] Starter/Growth/Scale: full transform editor visible and interactive
-- [ ] After upgrading mid-session and returning to page, editor appears (no reload required if possible)
+- [x] Free tier: transform section replaced with upgrade prompt ("Payload transforms available on Starter+")
+- [x] Upgrade button links to billing checkout (Starter tier) — links to /dashboard/settings?tab=billing
+- [x] Starter/Growth/Scale: full transform editor visible and interactive
+- [x] After upgrading mid-session and returning to page, editor appears — tier re-fetched on page load
 
 **Gherkin scenarios (selected):**
 
