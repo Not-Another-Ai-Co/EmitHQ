@@ -470,7 +470,7 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 ---
 
-### T-098: T-090 Unit Test Infrastructure
+### T-098: T-090 Unit Test Infrastructure [x] [verified]
 
 **Phase:** 11 (pre-T-090)
 **Effort:** Medium
@@ -482,11 +482,11 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 **Acceptance criteria:**
 
-- [ ] `packages/api/src/routes/inbound.test.ts` — tests for `/api/v1/inbound/reply` handler: valid reply payload → classified correctly, missing fields → 400, invalid signature → 401, suppressed sender → auto-handled
-- [ ] `packages/api/src/routes/inbound.test.ts` — tests for `/api/v1/inbound/resend-events` handler: `email.bounced` → marks target as bounced, `email.delivered` → logs delivery, `email.complained` → adds to suppression list, duplicate event ID → idempotent
-- [ ] `scripts/__tests__/reply-classifier.test.ts` — tests for all 12 reply categories: `interested`, `meeting_request`, `question`, `not_interested`, `wrong_person`, `angry`, `unsubscribe`, `out_of_office`, `bounced_hard`, `bounced_soft`, `spam_complaint`, `competitor`
-- [ ] `scripts/__tests__/campaign-state.test.ts` — tests for campaign.json read/write: add target, record touch, update status, append event to events.jsonl, check suppression list
-- [ ] All tests initially fail (no implementation yet) — verified with `vitest run --reporter=verbose`
+- [x] `packages/api/src/routes/inbound.test.ts` — tests for `/api/v1/inbound/reply` handler: valid reply payload → classified correctly, missing fields → 400, invalid signature → 401, suppressed sender → auto-handled
+- [x] `packages/api/src/routes/inbound.test.ts` — tests for `/api/v1/inbound/resend-events` handler: `email.bounced` → marks target as bounced, `email.delivered` → logs delivery, `email.complained` → adds to suppression list, duplicate event ID → idempotent
+- [x] `scripts/__tests__/reply-classifier.test.ts` — tests for all 12 reply categories: `interested`, `meeting_request`, `question`, `not_interested`, `wrong_person`, `angry`, `unsubscribe`, `out_of_office`, `bounced_hard`, `bounced_soft`, `spam_complaint`, `competitor`
+- [x] `scripts/__tests__/campaign-state.test.ts` — tests for campaign.json read/write: add target, record touch, update status, append event to events.jsonl, check suppression list
+- [x] All tests initially fail (no implementation yet) — verified with `vitest run --reporter=verbose`
 
 ---
 
