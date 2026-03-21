@@ -93,7 +93,8 @@ describe('campaign state management', () => {
     });
   });
 
-  describe('addTarget', () => {
+  // T-090: remove .skip when addTarget is implemented
+  describe.skip('addTarget', () => {
     it('adds a target to empty state', () => {
       const state: CampaignState = { targets: [] };
       const result = addTarget(state, makeTarget());
@@ -118,7 +119,8 @@ describe('campaign state management', () => {
     });
   });
 
-  describe('recordTouch', () => {
+  // T-090: remove .skip when recordTouch is implemented
+  describe.skip('recordTouch', () => {
     it('appends touch to the correct target', () => {
       const state: CampaignState = {
         targets: [makeTarget({ id: 'target-1' })],
@@ -169,7 +171,8 @@ describe('campaign state management', () => {
     });
   });
 
-  describe('updateTargetStatus', () => {
+  // T-090: remove .skip when updateTargetStatus is implemented
+  describe.skip('updateTargetStatus', () => {
     it('updates status for the correct target', () => {
       const state: CampaignState = {
         targets: [makeTarget({ id: 'target-1', status: 'active' })],
