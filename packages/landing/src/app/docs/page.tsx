@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Documentation — EmitHQ',
   description:
     'EmitHQ documentation — complete guide to sending webhooks, managing endpoints, API keys, retries, and billing.',
+  alternates: { canonical: '/docs' },
 };
 
 function CodeBlock({ children }: { children: string }) {

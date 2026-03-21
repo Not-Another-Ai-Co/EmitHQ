@@ -4,6 +4,7 @@ import { Footer } from '@/components/footer';
 import './globals.css';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://emithq.com'),
   title: {
     default: 'EmitHQ — Reliable Webhooks, Fair Pricing',
     template: '%s | EmitHQ',
@@ -28,6 +29,7 @@ export const metadata: Metadata = {
     title: 'EmitHQ — Reliable Webhooks, Fair Pricing',
     description:
       'Open-source webhook infrastructure from $49/mo. Not $490. Standard Webhooks signing, configurable retries, real-time dashboard.',
+    url: 'https://emithq.com',
   },
   twitter: {
     card: 'summary_large_image',

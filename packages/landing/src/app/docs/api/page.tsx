@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'API Reference',
   description: 'EmitHQ REST API reference — all endpoints with request/response examples.',
+  alternates: { canonical: '/docs/api' },
 };
 
 const SECTIONS = [

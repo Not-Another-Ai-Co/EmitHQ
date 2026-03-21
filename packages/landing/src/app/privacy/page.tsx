@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Privacy Policy',
   description:
     'EmitHQ Privacy Policy — what data we collect, how we process it, GDPR and CCPA compliance.',
+  alternates: { canonical: '/privacy' },
 };
 
 export default function PrivacyPage() {

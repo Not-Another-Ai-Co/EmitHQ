@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'SDK Guide',
   description: 'EmitHQ TypeScript SDK guide — methods, error handling, webhook verification.',
+  alternates: { canonical: '/docs/sdk' },
 };
 
 export default function SdkGuidePage() {

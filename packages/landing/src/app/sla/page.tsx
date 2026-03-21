@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Service Level Agreement',
   description: 'EmitHQ SLA — uptime commitments, service credits, and exclusions by tier.',
+  alternates: { canonical: '/sla' },
 };
 
 export default function SlaPage() {

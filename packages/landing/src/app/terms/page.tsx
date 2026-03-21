@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Terms of Service',
   description:
     'EmitHQ Terms of Service — service description, acceptable use, liability, and data handling.',
+  alternates: { canonical: '/terms' },
 };
 
 export default function TermsPage() {

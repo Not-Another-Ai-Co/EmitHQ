@@ -4,6 +4,7 @@ export const metadata: Metadata = {
   title: 'Data Processing Agreement',
   description:
     'EmitHQ DPA — GDPR Article 28 compliant data processing agreement for enterprise customers.',
+  alternates: { canonical: '/dpa' },
 };
 
 export default function DpaPage() {
