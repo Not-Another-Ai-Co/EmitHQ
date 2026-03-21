@@ -1,0 +1,233 @@
+# EmitHQ — Complete Documentation
+
+> Open-source webhook infrastructure for SaaS teams. Send and receive webhooks with Standard Webhooks signing, automatic retries, and a real-time dashboard. AGPL-3.0 server + MIT SDKs. From $49/mo — filling the gap between free tiers and $490+ enterprise platforms.
+
+## Company
+
+EmitHQ is a product of NotAnotherAiCo LLC. Website: https://emithq.com. GitHub: https://github.com/Not-Another-Ai-Co/EmitHQ. License: AGPL-3.0 (server), MIT (SDKs).
+
+## What EmitHQ Does
+
+EmitHQ handles both outbound (sending webhooks to your customers' endpoints) and inbound (receiving webhooks from providers like Stripe/GitHub). Your app says "invoice.paid happened" → EmitHQ reliably delivers that to every registered URL, retries on failure, signs with HMAC-SHA256, and lets you monitor delivery status.
+
+### Core Features
+
+- **Outbound Delivery**: Send webhooks to customer endpoints with automatic retries, exponential backoff + jitter, and circuit breakers
+- **Inbound Reception**: Receive webhooks from Stripe, GitHub, Shopify, Slack with provider-specific signature verification
+- **Smart Retries**: Configurable per endpoint, up to 50 attempts with exponential backoff + jitter. Non-retriable: 400, 401, 403, 404, 410
+- **Standard Webhooks Signing**: HMAC-SHA256 per the Standard Webhooks spec. Per-endpoint signing secrets (whsec_ prefix)
+- **Real-Time Dashboard**: Monitor deliveries, inspect payloads, track endpoint health, replay failed events
+- **Payload Transformation**: JSONPath extraction + template expressions. No code required. Available on Starter+ plans ($49/mo)
+- **Multi-Tenant Security**: PostgreSQL Row-Level Security for tenant isolation. Per-endpoint signing secrets. API keys with zero-downtime rotation
+- **Dead Letter Queue**: After all retries exhausted, messages move to DLQ for manual replay
+- **Circuit Breaker**: Per endpoint — 10 consecutive failures auto-disables the endpoint
+
+## Quick Start (API-only, no browser required)
+
+1. Create an account:
+   curl -X POST https://api.emithq.com/api/v1/signup \
+     -H "Content-Type: application/json" \
+     -d '{"email": "you@example.com", "password": "your-password", "orgName": "Your Company"}'
+   # Returns: { data: { orgId, apiKey, userId, tier, eventLimit, credential_storage_hint } }
+   # Rate limit: 3 signups per IP per 24 hours
+
+2. Create an application:
+   curl -X POST https://api.emithq.com/api/v1/app \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "my-app"}'
+
+3. Create an endpoint (where webhooks will be delivered):
+   curl -X POST https://api.emithq.com/api/v1/app/APP_ID/endpoint \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://your-server.com/webhooks"}'
+   # Returns signing secret (whsec_...) — save it for verification
+
+4. Send a webhook event:
+   curl -X POST https://api.emithq.com/api/v1/app/APP_ID/msg \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"eventType": "invoice.paid", "payload": {"amount": 9900}}'
+
+5. Check delivery status:
+   curl https://api.emithq.com/api/v1/app/APP_ID/msg/MSG_ID \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY"
+
+## Authentication
+
+All API requests use Bearer token authentication:
+  Authorization: Bearer emhq_YOUR_API_KEY
+
+API keys are created during signup (POST /api/v1/signup) or via the API key management endpoints.
+Keys use the `emhq_` prefix. Store securely — plaintext is shown once at creation.
+
+## API Reference
+
+Base URL: https://api.emithq.com
+OpenAPI Spec: https://emithq.com/openapi.json
+
+### Signup
+POST /api/v1/signup — Create account, org, and API key in one request. No browser required.
+  Body: { "email": "...", "password": "...", "orgName": "..." }
+  Returns: { data: { orgId, apiKey, userId, tier, eventLimit, credential_storage_hint } }
+  Rate limit: 3/IP/day. Disposable emails blocked.
+
+### Applications
+POST /api/v1/app — Create application
+GET  /api/v1/app — List applications
+GET  /api/v1/app/:appId — Get application
+
+### Endpoints
+POST   /api/v1/app/:appId/endpoint — Create endpoint
+GET    /api/v1/app/:appId/endpoint — List endpoints
+GET    /api/v1/app/:appId/endpoint/:epId — Get endpoint
+PUT    /api/v1/app/:appId/endpoint/:epId — Update endpoint
+DELETE /api/v1/app/:appId/endpoint/:epId — Soft-delete endpoint
+POST   /api/v1/app/:appId/endpoint/:epId/test — Send test webhook
+
+### Messages
+POST /api/v1/app/:appId/msg — Send message (triggers delivery to all matching endpoints)
+GET  /api/v1/app/:appId/msg — List messages
+GET  /api/v1/app/:appId/msg/:msgId — Get message + delivery attempts
+
+### Replay
+POST /api/v1/app/:appId/msg/:msgId/replay — Replay a failed message to all or specific endpoints
+  Body: { "endpointIds": ["ep-1"] } (optional — omit to replay to all)
+
+### API Key Management
+POST   /api/v1/auth/keys — Create a new API key
+GET    /api/v1/auth/keys — List active keys (metadata only)
+POST   /api/v1/auth/keys/:keyId/rotate — Rotate key with grace period (default: 60 min)
+DELETE /api/v1/auth/keys/:keyId — Revoke key immediately
+
+### Billing
+GET  /api/v1/billing/subscription — Current plan and usage
+POST /api/v1/billing/checkout — Create Stripe checkout session
+POST /api/v1/billing/portal — Stripe customer portal URL
+
+### Transform Preview
+POST /api/v1/transform/preview — Test payload transformations without persisting
+  Body: { "payload": {...}, "rules": [...] }
+
+## Error Codes
+
+All errors: { error: { code: string, message: string } }
+
+| Code | HTTP | Meaning |
+|------|------|---------|
+| validation_error | 400 | Invalid or missing request fields |
+| unauthorized | 401 | Missing or invalid API key |
+| forbidden | 403 | Feature requires upgrade (e.g., transforms on free tier) |
+| not_found | 404 | Resource does not exist |
+| conflict | 409 | Resource already exists |
+| rate_limited | 429 | Too many requests |
+| quota_exceeded | 429 | Monthly event limit reached |
+| signup_failed | 500 | Account creation failed |
+
+## Retry Strategy
+
+Failed deliveries retry with exponential backoff + full jitter:
+  Attempt 1: immediate
+  Attempt 2: ~30s
+  Attempt 3: ~2m
+  Attempt 4: ~15m
+  Attempt 5: ~1h
+  Attempt 6: ~4h
+  Attempt 7: ~12h
+  Attempt 8: ~12h
+
+Algorithm: delay = random(0, min(cap, initialDelay × 2^retry))
+Non-retriable status codes: 400, 401, 403, 404, 410
+After all retries exhausted: moved to dead-letter queue
+
+## Webhook Signing (Standard Webhooks)
+
+Outbound webhooks are signed per the Standard Webhooks spec:
+  Headers: webhook-id, webhook-timestamp, webhook-signature
+  Signed content: {webhook-id}.{webhook-timestamp}.{raw_body}
+  Algorithm: HMAC-SHA256, base64-encoded
+  Secret format: whsec_{base64_random}
+
+Verification: use crypto.timingSafeEqual — never string equality.
+
+## Quota Headers
+
+Every authenticated response includes:
+  X-EmitHQ-Quota-Limit: 100000
+  X-EmitHQ-Quota-Used: 50000
+  X-EmitHQ-Quota-Remaining: 50000
+  X-EmitHQ-Quota-Reset: 2026-04-01T00:00:00.000Z
+  X-EmitHQ-Tier: free
+
+At 80% usage: X-EmitHQ-Quota-Warning: approaching_limit
+At 95% usage: X-EmitHQ-Quota-Warning: critical_limit
+
+## Pricing
+
+| Tier | Events/mo | Price | Endpoints | Retention | Retries |
+|------|-----------|-------|-----------|-----------|---------|
+| Free | 100,000 | $0 | 10 | 3 days | 5 (fixed) |
+| Starter | 500,000 | $49/mo | 50 | 14 days | 10 (configurable) |
+| Growth | 2,000,000 | $149/mo | 250 | 30 days | 20 (configurable) |
+| Scale | 10,000,000 | $349/mo | Unlimited | 90 days | 50 (configurable) |
+
+Payload transformation available on Starter+ tiers.
+Free tier hard-blocks at quota. Paid tiers allow overage (metered by Stripe).
+
+## TypeScript SDK
+
+npm install @emithq/sdk
+
+```typescript
+import { EmitHQ } from '@emithq/sdk';
+
+const emithq = new EmitHQ('emhq_your_api_key');
+
+// Send a webhook event
+await emithq.sendEvent('app_id', {
+  eventType: 'invoice.paid',
+  payload: { amount: 9900, currency: 'usd' },
+});
+
+// Create an endpoint
+const endpoint = await emithq.createEndpoint('app_id', {
+  url: 'https://example.com/webhooks',
+});
+
+// Verify inbound webhook signature
+import { verifyWebhook } from '@emithq/sdk';
+const isValid = await verifyWebhook(rawBody, headers, 'whsec_your_secret');
+```
+
+SDK features: zero dependencies, fetch-based, typed errors, auto-retry on 5xx/408/429, WebCrypto verification (works in Node, browsers, edge runtimes).
+
+## Comparison with Alternatives
+
+### vs Svix ($0 / $490+ / Custom)
+- EmitHQ: $49/mo for 500K events. Svix: $490/mo minimum paid tier.
+- EmitHQ: JSONPath + template transforms (no-code). Svix: JavaScript code editor (Pro+ only).
+- Both use Standard Webhooks spec for signing.
+- EmitHQ: AGPL-3.0. Svix: MIT (limited).
+
+### vs Hookdeck ($0 / $39 / $499+ / Custom)
+- EmitHQ: Inbound + outbound in one platform. Hookdeck: Inbound-focused (Outpost for outbound, separate).
+- EmitHQ: 50 evt/s default throughput (Starter). Hookdeck: 5 evt/s (all tiers), throughput scaling is a paid add-on.
+- EmitHQ: Standard Webhooks signing. Hookdeck: Custom headers (x-hookdeck-*).
+
+### vs Building Your Own
+- Webhook delivery requires: retry queue, exponential backoff, signing, circuit breakers, dead letter queue, delivery dashboard, rate limiting, tenant isolation
+- Estimated build time: 8-12 weeks of senior engineering
+- EmitHQ provides all of this from $49/mo
+
+## Links
+
+Website: https://emithq.com
+Dashboard: https://app.emithq.com
+GitHub: https://github.com/Not-Another-Ai-Co/EmitHQ
+API Docs: https://emithq.com/docs/api
+SDK Docs: https://emithq.com/docs/sdk
+OpenAPI: https://emithq.com/openapi.json
+Pricing: https://emithq.com/pricing
+Compare: https://emithq.com/compare
+npm: https://www.npmjs.com/package/@emithq/sdk

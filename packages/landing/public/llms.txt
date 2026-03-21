@@ -1,0 +1,156 @@
+# EmitHQ — Webhook Infrastructure Platform
+
+> Open-source webhook infrastructure for SaaS teams. Send and receive webhooks with Standard Webhooks signing, automatic retries, and a real-time dashboard. From $49/mo.
+
+## Quick Start (API-only, no browser required)
+
+1. Create an account:
+   curl -X POST https://api.emithq.com/api/v1/signup \
+     -H "Content-Type: application/json" \
+     -d '{"email": "you@example.com", "password": "your-password", "orgName": "Your Company"}'
+   # Returns: { data: { orgId, apiKey, userId, tier, eventLimit, credential_storage_hint } }
+   # Rate limit: 3 signups per IP per 24 hours
+
+2. Create an application:
+   curl -X POST https://api.emithq.com/api/v1/app \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"name": "my-app"}'
+
+3. Create an endpoint (where webhooks will be delivered):
+   curl -X POST https://api.emithq.com/api/v1/app/APP_ID/endpoint \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://your-server.com/webhooks"}'
+   # Returns signing secret (whsec_...) — save it for verification
+
+4. Send a webhook event:
+   curl -X POST https://api.emithq.com/api/v1/app/APP_ID/msg \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"eventType": "invoice.paid", "payload": {"amount": 9900}}'
+
+5. Check delivery status:
+   curl https://api.emithq.com/api/v1/app/APP_ID/msg/MSG_ID \
+     -H "Authorization: Bearer emhq_YOUR_API_KEY"
+
+## Authentication
+
+All API requests use Bearer token authentication:
+  Authorization: Bearer emhq_YOUR_API_KEY
+
+API keys are created during signup (POST /api/v1/signup) or via the API key management endpoints below.
+Keys use the `emhq_` prefix. Store securely — plaintext is shown once at creation.
+
+The signup response includes a `credential_storage_hint` field with recommended storage methods (environment variable name and 1Password CLI command).
+
+## API Key Management
+
+Create, list, rotate, and revoke API keys. All endpoints require org:admin or org:owner role.
+
+Create a new key:
+  curl -X POST https://api.emithq.com/api/v1/auth/keys \
+    -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"name": "CI/CD Pipeline"}'
+  # Returns: { data: { id, key, name, createdAt } }
+
+List active keys (metadata only — no secrets):
+  curl https://api.emithq.com/api/v1/auth/keys \
+    -H "Authorization: Bearer emhq_YOUR_API_KEY"
+  # Returns: { data: [{ id, name, lastUsedAt, expiresAt, createdAt }] }
+
+Rotate a key (zero-downtime — old key stays valid during grace period):
+  curl -X POST https://api.emithq.com/api/v1/auth/keys/KEY_ID/rotate \
+    -H "Authorization: Bearer emhq_YOUR_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{"gracePeriodMinutes": 60}'
+  # Returns: { data: { id, key, name, rotatedFrom, oldKeyExpiresAt } }
+  # Default grace period: 60 minutes. Range: 0-1440 (0 = immediate revocation).
+
+Revoke a key:
+  curl -X DELETE https://api.emithq.com/api/v1/auth/keys/KEY_ID \
+    -H "Authorization: Bearer emhq_YOUR_API_KEY"
+  # Returns: { data: { id, revoked: true } }
+
+## API Base URL
+
+Production: https://api.emithq.com
+Local dev:  http://localhost:4000
+
+## OpenAPI Spec
+
+Machine-readable API specification: https://emithq.com/openapi.json
+
+## Key Concepts
+
+- **Application**: A logical grouping (usually one per customer of yours)
+- **Endpoint**: A URL where webhooks are delivered, with its own signing secret
+- **Message**: A webhook event sent to all matching endpoints
+- **Delivery Attempt**: One HTTP POST to one endpoint for one message
+- **Signing**: Standard Webhooks spec (HMAC-SHA256). Headers: webhook-id, webhook-timestamp, webhook-signature
+
+## Error Codes
+
+All errors follow this format: { error: { code: string, message: string } }
+
+| Code | HTTP Status | Meaning |
+|------|-------------|---------|
+| validation_error | 400 | Invalid or missing request fields |
+| unauthorized | 401 | Missing or invalid API key |
+| not_found | 404 | Resource does not exist |
+| conflict | 409 | Resource already exists (e.g., duplicate email on signup) |
+| rate_limited | 429 | Too many requests (signup: 3/IP/day) |
+| quota_exceeded | 429 | Monthly event limit reached — see upgrade options in response |
+| signup_failed | 500 | Account creation failed |
+
+## Retry Strategy
+
+Failed deliveries retry with exponential backoff + jitter:
+Attempt 1: immediate, 2: ~30s, 3: ~2m, 4: ~15m, 5: ~1h, 6: ~4h, 7: ~12h, 8: ~12h
+Non-retriable: 400, 401, 403, 404, 410
+After all retries exhausted: moved to dead-letter queue
+
+## Quota Headers
+
+Every authenticated response includes:
+  X-EmitHQ-Quota-Limit: 100000
+  X-EmitHQ-Quota-Used: 50000
+  X-EmitHQ-Quota-Remaining: 50000
+  X-EmitHQ-Quota-Reset: 2026-04-01T00:00:00.000Z
+  X-EmitHQ-Tier: free
+
+At 80% usage: X-EmitHQ-Quota-Warning: approaching_limit
+At 95% usage: X-EmitHQ-Quota-Warning: critical_limit
+
+When quota is exceeded (429), the response includes upgrade options:
+  { error: { code: "quota_exceeded", quota: {...}, action: { type: "upgrade", tiers: [...] } } }
+
+## Pricing
+
+Free: 100K events/mo, $0
+Starter: 500K events/mo, $49/mo
+Growth: 2M events/mo, $149/mo
+Scale: 10M events/mo, $349/mo
+
+## Billing
+
+GET  /api/v1/billing/subscription — current plan and usage
+POST /api/v1/billing/checkout — create Stripe checkout session
+POST /api/v1/billing/portal — Stripe customer portal URL
+
+## TypeScript SDK
+
+npm install @emithq/sdk
+
+import { EmitHQ } from '@emithq/sdk';
+const emithq = new EmitHQ('emhq_your_api_key');
+await emithq.sendEvent('app_id', { eventType: 'invoice.paid', payload: { amount: 9900 } });
+
+## Links
+
+Website: https://emithq.com
+GitHub: https://github.com/Not-Another-Ai-Co/EmitHQ
+API Docs: https://emithq.com/docs/api
+SDK Docs: https://emithq.com/docs/sdk
+OpenAPI: https://emithq.com/openapi.json
