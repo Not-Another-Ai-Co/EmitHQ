@@ -7,7 +7,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed 
 
 ## Recently Completed
 
-### T-104: API-Level Tier Enforcement for Payload Transforms
+### T-104: API-Level Tier Enforcement for Payload Transforms [x] [verified]
 
 **Phase:** 10
 **Effort:** Low
@@ -24,7 +24,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed 
 - [x] PUT `/:appId/endpoint/:epId` returns 403 when free tier sets `transformRules`
 - [x] `transformRules: null` on PUT (clearing rules) allowed on any tier
 - [x] Error response: `{ code: 'forbidden', action: { type: 'upgrade' } }`
-- [x] 4 contract tests added to `endpoints.test.ts`
+- [x] 5 contract tests added to `endpoints.test.ts`
 
 ---
 
