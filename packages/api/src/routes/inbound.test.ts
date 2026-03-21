@@ -46,6 +46,7 @@ let inboundResendEventsRoute: Hono;
 
 try {
   // T-090 will export these from ./inbound.ts
+  // @ts-expect-error — module does not exist yet (test-first; T-090 creates it)
   const mod = await import('./inbound');
   inboundReplyRoute = mod.inboundReplyRoute;
   inboundResendEventsRoute = mod.inboundResendEventsRoute;
