@@ -7,7 +7,7 @@ Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed 
 
 ## Recently Completed
 
-### T-104: API-Level Tier Enforcement for Payload Transforms [x] [verified]
+### T-104: API-Level Tier Enforcement for Payload Transforms [x] [verified] [audited]
 
 **Phase:** 10
 **Effort:** Low
