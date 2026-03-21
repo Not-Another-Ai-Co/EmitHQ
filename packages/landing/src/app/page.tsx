@@ -1,9 +1,86 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CtaLink } from '@/components/cta-link';
+
+export const metadata: Metadata = {
+  alternates: { canonical: '/' },
+};
+
+const JSONLD_ORG = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'EmitHQ',
+  legalName: 'NotAnotherAiCo LLC',
+  url: 'https://emithq.com',
+  sameAs: [
+    'https://github.com/Not-Another-Ai-Co/EmitHQ',
+    'https://www.npmjs.com/package/@emithq/sdk',
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '187 E. Warm Springs Road, Suite B - NV189',
+    addressLocality: 'Las Vegas',
+    addressRegion: 'NV',
+    postalCode: '89119',
+    addressCountry: 'US',
+  },
+};
+
+const JSONLD_APP = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'EmitHQ',
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: 'Cloud',
+  url: 'https://emithq.com',
+  description:
+    'Open-source webhook infrastructure for SaaS teams. Send and receive webhooks with Standard Webhooks signing, automatic retries, and a real-time dashboard.',
+  license: 'https://www.gnu.org/licenses/agpl-3.0.html',
+  offers: [
+    {
+      '@type': 'Offer',
+      name: 'Free',
+      price: '0',
+      priceCurrency: 'USD',
+      description: '100,000 events/mo',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Starter',
+      price: '49',
+      priceCurrency: 'USD',
+      description: '500,000 events/mo',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Growth',
+      price: '149',
+      priceCurrency: 'USD',
+      description: '2,000,000 events/mo',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Scale',
+      price: '349',
+      priceCurrency: 'USD',
+      description: '10,000,000 events/mo',
+    },
+  ],
+  featureList:
+    'Outbound Delivery, Inbound Reception, Smart Retries, Real-Time Dashboard, Payload Transformation, Multi-Tenant Security, Dead Letter Queue, Circuit Breaker',
+};
 
 export default function HomePage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD_ORG) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD_APP) }}
+      />
       {/* Hero */}
       <section className="relative overflow-hidden py-20 sm:py-32">
         <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
