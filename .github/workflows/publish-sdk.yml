@@ -57,6 +57,9 @@ jobs:
         run: cd packages/sdk && npm pack --dry-run
 
       - name: Publish to npm
-        run: npm publish --access public --workspace packages/sdk
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > packages/sdk/.npmrc
+          cd packages/sdk && npm publish --access public
+          rm -f packages/sdk/.npmrc
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
