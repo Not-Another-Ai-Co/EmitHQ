@@ -314,8 +314,7 @@ export function TransformPreview({ rules, apiFetch }: TransformPreviewProps) {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [samplePayload, JSON.stringify(validRules)]);
+  }, [samplePayload, JSON.stringify(validRules), runPreview]);
 
   return (
     <div className="mt-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] p-3">
