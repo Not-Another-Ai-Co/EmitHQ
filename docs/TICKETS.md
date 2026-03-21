@@ -308,6 +308,19 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 **Description:** Research how LLMs (ChatGPT, Claude, Perplexity) decide which products to recommend, what content signals they pull from, and what EmitHQ needs to do to appear when developers ask "what webhook service should I use?" Produce actionable implementation tickets from findings.
 
+**Reference data (from real test — friend asked Claude about @emithq/sdk 2026-03-21):**
+Claude's response was technically fair but lukewarm. Key trust gaps it flagged:
+
+- "7 days old — no track record whatsoever"
+- "0 stars, 0 forks, 36 downloads — you'd be the guinea pig"
+- "Single maintainer — if they lose interest, you're stuck"
+- "No SLA, no status page, no public postmortems — unclear reliability story"
+- "Unknown org — Not Another AI Co has no public reputation"
+- Recommendation: "build-vs-buy math favors buying" but with heavy caveats
+- Full discussion saved at `/home/jfinnegan0/emithq-sdk-discussion.md`
+
+Quick wins to investigate: npm README quality (stale — not updated since 0.1.0 publish), status page (Better Stack free tier), SLA page exists but LLM didn't find it, compare pages not yet indexed, GitHub stars as credibility proxy, backlinks from Dev.to/HN/SO.
+
 **Acceptance criteria:**
 
 - [ ] Research: how do LLMs select products to recommend? (training data, web crawl recency, structured data, llms.txt, citations)
