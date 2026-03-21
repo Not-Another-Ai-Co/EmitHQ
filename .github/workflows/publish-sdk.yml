@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - 'packages/sdk/package.json'
+  workflow_dispatch:
 
 jobs:
   check-version:
