@@ -3,7 +3,8 @@
   "workspaces": {
     "packages/core": {},
     "packages/api": {
-      "ignoreDependencies": ["stripe", "drizzle-orm"]
+      "ignoreDependencies": ["stripe", "drizzle-orm"],
+      "ignore": ["src/routes/inbound.test.ts"]
     },
     "packages/dashboard": {
       "ignoreDependencies": ["postcss", "postcss-load-config", "@clerk/testing", "@playwright/test"]
