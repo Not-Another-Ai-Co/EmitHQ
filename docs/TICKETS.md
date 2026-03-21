@@ -511,6 +511,153 @@ _Establish Playwright MCP baseline and T-090 test infrastructure before building
 
 ---
 
+## Payload Transformation Dashboard — 2026-03-21
+
+_Research: docs/research/payload-transform-dashboard-ux.md. Julian decided: Starter+ tier, build now, fix pricing._
+
+---
+
+### T-100: Fix Pricing Inconsistency — Transforms Available Starter+ [x] [verified]
+
+**Phase:** 13a
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** none
+**Research:** docs/research/payload-transform-dashboard-ux.md
+
+**Description:** Landing site pricing page shows transforms as Growth+ only. Compare pages say "all tiers." API has no tier enforcement. Fix all three to align: transforms available on Starter+ ($49/mo). Free tier excluded.
+
+**Acceptance criteria:**
+
+- [x] Pricing page: "Payload transformations" checkmark on Starter, Growth, Scale tiers (not Free)
+- [x] Compare page (/compare): EmitHQ row already shows boolean ✓ — no tier-specific text needed
+- [x] Compare/svix page: update "all tiers" to "Starter+ ($49/mo)" for transforms
+- [x] Compare/build-vs-buy page: no tier mentioned — "No-code JSONPath + templates" is tier-agnostic
+- [x] Verify: no API-level tier enforcement needed yet (transforms already work on any tier via API)
+- [x] Homepage: added "Payload transformation" to Starter tier features list
+- [x] Dashboard billing: already lists transforms on Starter — no change needed
+
+---
+
+### T-101: Transform Rule Editor UI — Endpoint Create/Edit
+
+**Phase:** 13a
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-100
+**Research:** docs/research/payload-transform-dashboard-ux.md
+
+**Description:** Add a visual form-based transform rule editor to the endpoint create/edit page. Each rule is a row of 3 inputs (Source Path, Target Field, optional Template) with add/remove buttons. Maps 1:1 to existing `TransformRule[]` model. No code editor. Collapsible section, hidden by default.
+
+**Acceptance criteria:**
+
+- [ ] "Transform Rules" collapsible section on endpoint create and edit forms
+- [ ] Rule row: Source Path (text, `$.` prefix hint), Target Field (text), Template (optional text)
+- [ ] Add Rule / Remove Rule (×) buttons, max 20 rules enforced in UI
+- [ ] Inline validation: invalid JSONPath, empty required fields, duplicate target fields
+- [ ] Existing rules pre-populated when editing an endpoint
+- [ ] Removing all rules saves as `null` (passthrough mode)
+- [ ] Empty state: "No transform rules — payload forwarded as-is"
+- [ ] Function reference tooltip: formatDate, uppercase, lowercase, concat with examples
+- [ ] Mobile: rules stack vertically, remove button is tappable (44×44px)
+
+**Gherkin scenarios (selected):**
+
+```gherkin
+Scenario: Add a single transform rule and save
+  Given the SaaS Developer is on the endpoint create page (Starter+ tier)
+  When they click "Add Rule"
+  And enter "$.user.email" as Source Path and "customer_email" as Target Field
+  And click "Save Endpoint"
+  Then the endpoint is saved with one transform rule
+  And navigating back shows the rule pre-populated
+
+Scenario: Invalid JSONPath shows inline error
+  Given the developer has added a rule row
+  When they enter "user..email" as Source Path and tab away
+  Then an inline error appears: "Invalid JSONPath expression"
+  And the Save button is disabled
+
+Scenario: Exceeding 20 rules disables Add Rule
+  Given the developer has added 20 rule rows
+  Then the Add Rule button is disabled
+  And helper text reads "Maximum of 20 transform rules per endpoint"
+
+Scenario: Remove all rules reverts to passthrough
+  Given an endpoint has one transform rule
+  When the developer removes it
+  Then the section shows "No transform rules — payload forwarded as-is"
+  And saving persists null transformRules
+```
+
+---
+
+### T-102: Live Transform Preview Panel
+
+**Phase:** 13a
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-101
+**Research:** docs/research/payload-transform-dashboard-ux.md
+
+**Description:** Add a live preview panel to the transform editor. User pastes a sample JSON payload, sees transformed output in real-time. Calls existing `POST /api/v1/transform/preview` endpoint (debounced). Side-by-side on desktop, tabbed on mobile.
+
+**Acceptance criteria:**
+
+- [ ] Preview panel below the rules editor: "Sample Payload" input (textarea) → "Transformed Output" (read-only)
+- [ ] Calls `POST /api/v1/transform/preview` on keystrokes (debounced 300ms)
+- [ ] Invalid JSON input shows "Invalid JSON" message, no API call
+- [ ] Empty rules show passthrough: input === output with "Passthrough" label
+- [ ] Source path not found in payload shows inline warning per rule
+- [ ] Mobile: tabbed layout ("Rules" | "Preview") instead of side-by-side
+- [ ] No preview API call when no rules exist
+
+**Gherkin scenarios (selected):**
+
+```gherkin
+Scenario: Live preview shows transformed output
+  Given the developer has a rule: $.user.email → customer_email
+  When they paste {"user": {"email": "jane@test.com"}} into the preview input
+  Then the output shows {"customer_email": "jane@test.com"}
+
+Scenario: Missing path shows inline warning
+  Given the developer has a rule: $.user.phone → phone
+  When they paste {"user": {"email": "jane@test.com"}}
+  Then the rule shows warning: "Path '$.user.phone' not found in sample payload"
+```
+
+---
+
+### T-103: Transform Tier Gating UI
+
+**Phase:** 13a
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-101
+**Research:** docs/research/payload-transform-dashboard-ux.md
+
+**Description:** Free tier users see an upgrade prompt instead of the transform editor. Starter+ users see the full editor. No API-level enforcement — UI-only gating.
+
+**Acceptance criteria:**
+
+- [ ] Free tier: transform section replaced with upgrade prompt ("Payload transforms available on Starter+")
+- [ ] Upgrade button links to billing checkout (Starter tier)
+- [ ] Starter/Growth/Scale: full transform editor visible and interactive
+- [ ] After upgrading mid-session and returning to page, editor appears (no reload required if possible)
+
+**Gherkin scenarios (selected):**
+
+```gherkin
+Scenario: Free tier sees upgrade prompt
+  Given the developer is on the Free tier
+  When they navigate to endpoint create/edit
+  Then the transform section shows "Payload transforms are available on Starter and above"
+  And a button reads "Upgrade to Starter — $49/mo"
+  And no rule inputs are rendered
+```
+
+---
+
 ### T-058: Show HN Readiness Gate
 
 **Phase:** 8d

@@ -30,7 +30,7 @@ const TIERS = [
     retention: '14 days',
     throughput: '50 evt/s',
     retries: '10 (configurable)',
-    transform: false,
+    transform: true,
     support: 'Email (48h)',
     cta: 'Start free',
     href: 'https://app.emithq.com',

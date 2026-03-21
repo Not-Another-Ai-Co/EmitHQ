@@ -212,7 +212,13 @@ const TIERS = [
     price: '$49',
     events: '500,000 events/mo',
     popular: false,
-    features: ['50 endpoints', '14-day retention', '10 retries (configurable)', 'Email support'],
+    features: [
+      '50 endpoints',
+      '14-day retention',
+      '10 retries (configurable)',
+      'Payload transformation',
+      'Email support',
+    ],
   },
   {
     name: 'Growth',

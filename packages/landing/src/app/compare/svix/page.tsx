@@ -21,7 +21,7 @@ const ROWS = [
   { label: 'Retry strategy', emithq: 'Configurable per endpoint', svix: 'Fixed 8 attempts' },
   {
     label: 'Payload transformations',
-    emithq: 'JSONPath + templates (all tiers)',
+    emithq: 'JSONPath + templates (Starter+, $49/mo)',
     svix: 'JavaScript (Pro+ only)',
   },
   { label: 'Signing spec', emithq: 'Standard Webhooks', svix: 'Standard Webhooks' },

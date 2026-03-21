@@ -1,7 +1,26 @@
 # Decisions — EmitHQ
 
-> Last verified: 2026-03-19
+> Last verified: 2026-03-21
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
+
+## DEC-034 | 2026-03-21 | Transforms Available Starter+ ($49) with Visual Form UI
+
+**Status:** Active
+**Linked to:** T-100, T-101, T-102, T-103
+
+**Context:** Payload transforms were marketed as Growth+ ($149) on the pricing page but "all tiers" on compare pages. The API has no tier enforcement — any tier can set `transformRules` today. Competitors (Svix, Hookdeck) use JavaScript code editors. EmitHQ uses a JSONPath + template model that maps to a visual form.
+
+**Decision:** Make transforms available on all paid tiers (Starter+, $49/mo). Build a visual form-based editor (not a code editor) in the dashboard. Free tier sees an upgrade prompt. No API-level tier enforcement for now. This positions EmitHQ as "no-code payload transforms at $49/mo" vs Svix's "$490+ JavaScript editor."
+
+**Alternatives considered:**
+
+- Growth+ only ($149) — weaker competitive positioning, no pricing advantage over Hookdeck (free tier transforms)
+- JavaScript code editor — wrong direction; abandons the simpler JSONPath model, adds security complexity (sandboxed eval), competes on Svix/Hookdeck's terms
+- API-only (no dashboard UI) — pricing page claims a feature users can't configure; damages trust
+
+**Consequences:** Landing site pricing/compare pages updated. 4 tickets (T-100 through T-103) to implement. Compare page messaging changes from "all tiers" to "Starter+."
+
+---
 
 ## DEC-018 | 2026-03-13 | Legal Entity: NotAnotherAiCo LLC (Multi-Product Umbrella)
 
