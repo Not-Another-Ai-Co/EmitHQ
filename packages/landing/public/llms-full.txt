@@ -4,7 +4,7 @@
 
 ## Company
 
-EmitHQ is a product of NotAnotherAiCo LLC. Website: https://emithq.com. GitHub: https://github.com/Not-Another-Ai-Co/EmitHQ. License: AGPL-3.0 (server), MIT (SDKs).
+Website: https://emithq.com. GitHub: https://github.com/Not-Another-Ai-Co/EmitHQ. License: AGPL-3.0 (server), MIT (SDKs). Contact: support@emithq.com.
 
 ## What EmitHQ Does
 

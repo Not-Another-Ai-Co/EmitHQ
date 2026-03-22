@@ -23,8 +23,8 @@ Use consistent messaging across all platforms:
 **npm:** https://www.npmjs.com/package/@emithq/sdk
 **Competitors:** Svix, Hookdeck, Convoy
 **Pricing:** Free ($0, 100K events), Starter ($49/mo, 500K), Growth ($149/mo, 2M), Scale ($349/mo, 10M)
-**Contact:** julian@naac.ai
-**Company:** NotAnotherAiCo LLC
+**Contact:** support@emithq.com
+**Company:** EmitHQ
 
 ---
 
@@ -54,7 +54,7 @@ Use consistent messaging across all platforms:
 - Website: https://emithq.com
 - Category: Webhook Delivery / API Management
 - Description: (use long description above)
-- Contact: julian@naac.ai
+- Contact: support@emithq.com
 
 **Notes:** 3-5 business day review. Free basic listing. Need 1+ review to appear in search — ask early users.
 
@@ -67,7 +67,7 @@ Use consistent messaging across all platforms:
 **URL:** https://www.crunchbase.com (sign in → "Add to Crunchbase" or search for auto-generated profile)
 **Fields:**
 
-- Company name: NotAnotherAiCo LLC
+- Company name: EmitHQ
 - Product: EmitHQ
 - Website: https://emithq.com
 - Founded: 2026

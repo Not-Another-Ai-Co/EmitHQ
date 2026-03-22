@@ -10,7 +10,7 @@ const JSONLD_ORG = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'EmitHQ',
-  legalName: 'NotAnotherAiCo LLC',
+  legalName: 'EmitHQ',
   url: 'https://emithq.com',
   sameAs: [
     'https://github.com/Not-Another-Ai-Co/EmitHQ',
