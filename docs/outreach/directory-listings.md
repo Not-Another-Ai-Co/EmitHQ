@@ -4,10 +4,10 @@
 
 ## Completed
 
-| Platform           | Status                      | URL                                                                     |
-| ------------------ | --------------------------- | ----------------------------------------------------------------------- |
-| awesome-selfhosted | PR submitted                | https://github.com/awesome-selfhosted/awesome-selfhosted-data/pull/2200 |
-| SaaSHub            | Submitted, pending approval | https://www.saashub.com/emithq/added                                    |
+| Platform           | Status                                                                            | URL                                                                     |
+| ------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| awesome-selfhosted | PR #2200 closed (too new — resubmit after 4+ months of commit history)            | https://github.com/awesome-selfhosted/awesome-selfhosted-data/pull/2200 |
+| SaaSHub            | Submitted, pending approval. Update contact to support@emithq.com after approval. | https://www.saashub.com/emithq/added                                    |
 
 ## Needs Manual Submission
 
