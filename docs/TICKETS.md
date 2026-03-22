@@ -173,7 +173,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 **Phase:** 11
 **Effort:** Large
 **Complexity:** Complex
-**Depends on:** T-088, T-089
+**Depends on:** T-088, T-089, T-107, T-109
 **Research:** docs/research/first-10-customers.md, docs/tmp/build-explore-outreach-loop.md, docs/tmp/build-explore-outreach-best-practices.md, docs/tmp/build-explore-tooling-audit.md, docs/tmp/build-explore-resend-capabilities.md
 
 **Description:** Build and run a fully autonomous cold outreach campaign. Claude sends initial emails, monitors for bounces/replies, classifies responses, auto-responds to low-risk categories, flags high-value replies for Julian, and sends scheduled follow-ups with different angles per touch. Continuous GitHub mining refills the prospect pipeline. System designed for future migration into Index-based workflow engine.
@@ -240,64 +240,21 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-091: Origin Story Blog Post
+### T-091: Origin Story Blog Post [-]
 
-**Phase:** 11
-**Effort:** Medium
-**Complexity:** Simple
-**Depends on:** none
-**Research:** docs/research/content-distribution-strategy.md
-
-**Description:** Write and publish "Why We Built EmitHQ: The $49-$490 Webhook Pricing Gap" on emithq.com/blog. Supports outreach emails as credibility piece. Claude writes in Julian's voice based on the pricing research and competitive analysis already completed. Supersedes T-055.
-
-**Acceptance criteria:**
-
-- [ ] Blog post written: origin story, pricing gap discovery, what EmitHQ does differently
-- [ ] Published on emithq.com/blog/why-we-built-emithq (new /blog route on landing site)
-- [ ] SEO meta tags: title, description, OG image targeting "webhook service" and "webhook platform"
-- [ ] Cross-postable format for Dev.to
-- [ ] Supersedes T-055
+Superseded by T-109.
 
 ---
 
-### T-092: Technical Deep-Dive Blog Post
+### T-092: Technical Deep-Dive Blog Post [-]
 
-**Phase:** 11
-**Effort:** Medium
-**Complexity:** Simple
-**Depends on:** none
-**Research:** docs/research/content-distribution-strategy.md
-
-**Description:** Write and publish "Webhook Delivery Architecture: How We Achieve 99.99% Reliability." Establishes technical credibility for HN audience. Covers persist-before-enqueue, BullMQ retry with jitter, circuit breakers, Standard Webhooks signing. Supersedes T-056.
-
-**Acceptance criteria:**
-
-- [ ] Blog post written: architecture overview, delivery flow, retry strategy, signing, circuit breaker
-- [ ] Published on emithq.com/blog/webhook-delivery-architecture
-- [ ] Includes architecture diagram (text-based)
-- [ ] Code snippets showing signing implementation and retry logic
-- [ ] SEO meta tags targeting "webhook delivery reliability" and "webhook retry logic"
-- [ ] Supersedes T-056
+Superseded by T-110.
 
 ---
 
-### T-093: Community Presence + Build-in-Public
+### T-093: Community Presence + Build-in-Public [-]
 
-**Phase:** 11
-**Effort:** Low
-**Complexity:** Simple
-**Depends on:** none
-**Research:** docs/research/first-10-customers.md
-
-**Description:** Establish EmitHQ presence on community platforms. Post build-in-public updates. Set up alerts for webhook/svix/hookdeck mentions to join relevant conversations. Supersedes T-057.
-
-**Acceptance criteria:**
-
-- [ ] Create EmitHQ accounts on: Dev.to, Indie Hackers (or use Julian's if he has them)
-- [ ] Draft first 5 build-in-public posts: technical decisions, pricing research, architecture choices
-- [ ] Set up F5Bot or similar alert service for mentions of "webhook service", "svix", "hookdeck"
-- [ ] Post first update on each platform
-- [ ] Supersedes T-057
+Superseded by T-107 + T-111.
 
 ---
 
@@ -373,9 +330,132 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### Phase 11b: Outreach + Content (parallel)
+### Phase 11b: Content + Social Foundation — 2026-03-22
 
-_T-090 (cold outreach), T-091 (origin story blog), T-092 (technical deep-dive), T-093 (community presence) run in parallel. Blog posts support outreach touches #2 and #5._
+_Research: docs/research/social-community-strategy.md. Postiz (self-hosted) provides API-based posting to X/LinkedIn/Reddit. Blog posts support outreach touches #2 and #5. Social profiles must look active before cold outreach starts._
+
+---
+
+### T-107: Postiz Self-Hosted Setup + Social Account Creation [ ]
+
+**Phase:** 11b-1
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** docs/research/social-community-strategy.md
+
+**Description:** Deploy Postiz (open-source social scheduling tool) on miniPC via Docker Compose. Julian creates social accounts manually (bot protection blocks automated creation). Connect X, LinkedIn, Reddit via Postiz OAuth. Set up Postiz MCP server for Claude integration. Configure mention monitoring. Julian starts HN/Reddit karma building immediately — both platforms require 2+ weeks of organic comment history before any self-promotion.
+
+**Acceptance criteria:**
+
+- [ ] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN (verify existing)
+- [ ] Julian creates X developer app (free tier — ~500 posts/mo) and LinkedIn Community Management API app (dev tier — 500 calls/day, free)
+- [ ] Postiz Docker Compose deployed on miniPC (own PostgreSQL + Redis, ports avoiding registry conflicts)
+- [ ] X, LinkedIn, Reddit connected to Postiz via OAuth
+- [ ] Postiz MCP server installed and accessible to Claude
+- [ ] Dev.to API key generated and stored in 1Password EmitHQ vault
+- [ ] F5Bot configured: "emithq", "webhook platform", "svix alternative", "hookdeck alternative", "webhook service"
+- [ ] Google Alerts + Talkwalker Alerts configured for "emithq", "webhook infrastructure"
+- [ ] Julian starts HN/Reddit commenting (karma building — 3-5 comments/week, no self-promotion for 2+ weeks)
+- [ ] Update port registry in `~/.claude/CLAUDE.md` with Postiz ports
+- [ ] Supersedes T-044
+
+---
+
+### T-108: Blog Infrastructure on Landing Site [x]
+
+**Phase:** 11b-1
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Research:** docs/research/social-community-strategy.md
+
+**Description:** Add /blog route to Next.js landing site with MDX or markdown rendering. Blog listing page, individual post layout, article JSON-LD, OG meta, and RSS feed. This is the prerequisite for all blog content — T-091/T-092 were missing this infrastructure.
+
+**Acceptance criteria:**
+
+- [x] `/blog` listing page with post cards (title, date, excerpt)
+- [x] `/blog/[slug]` dynamic route rendering MDX or markdown content
+- [x] Blog post layout: title, date, reading time, content, author
+- [x] Article JSON-LD schema per post (headline, datePublished, author, publisher)
+- [x] OG meta tags per post (title, description, image)
+- [x] RSS feed at `/feed.xml` (static route handler, `force-static`)
+- [x] At least one placeholder post to verify rendering
+- [x] SEO: canonical URLs follow existing `metadataBase` pattern from T-105
+
+---
+
+### T-109: Origin Story Blog Post + Distribution [ ]
+
+**Phase:** 11b-2
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-108, T-107
+**Research:** docs/research/social-community-strategy.md, docs/research/content-distribution-strategy.md
+
+**Description:** Write "Why We Built EmitHQ: The $49-$490 Webhook Pricing Gap." Publish on emithq.com/blog. Cross-post to Dev.to via API with canonical URL. Distribute excerpts to Twitter/X and LinkedIn via Postiz. Supports outreach touch #5 (resource share). Supersedes T-091.
+
+**Acceptance criteria:**
+
+- [ ] Blog post written: origin story, pricing gap discovery, what EmitHQ does differently
+- [ ] Published on emithq.com/blog/why-we-built-emithq
+- [ ] Cross-posted to Dev.to via API with canonical URL pointing to emithq.com
+- [ ] 3-5 excerpt posts scheduled on Twitter/X via Postiz (spread over 1 week)
+- [ ] 1 LinkedIn post via Postiz (narrative format)
+- [ ] SEO meta tags targeting "webhook service" and "webhook platform"
+- [ ] Supersedes T-091
+
+---
+
+### T-110: Technical Deep-Dive Blog Post + Distribution [ ]
+
+**Phase:** 11b-2
+**Effort:** Medium
+**Complexity:** Simple
+**Depends on:** T-108, T-107
+**Research:** docs/research/social-community-strategy.md, docs/research/content-distribution-strategy.md
+
+**Description:** Write "Webhook Delivery Architecture: How We Achieve 99.99% Reliability." Publish on emithq.com/blog. Cross-post to Dev.to. Distribute via Postiz. Supports outreach touch #2 (architecture story) and Show HN supporting content. Supersedes T-092.
+
+**Acceptance criteria:**
+
+- [ ] Blog post written: architecture overview, delivery flow, retry strategy, signing, circuit breaker
+- [ ] Published on emithq.com/blog/webhook-delivery-architecture
+- [ ] Includes architecture diagram (text-based)
+- [ ] Code snippets showing signing implementation and retry logic
+- [ ] Cross-posted to Dev.to via API with canonical URL
+- [ ] 3-5 excerpt posts scheduled on Twitter/X via Postiz
+- [ ] 1 LinkedIn post via Postiz
+- [ ] SEO meta tags targeting "webhook delivery reliability" and "webhook retry logic"
+- [ ] Supersedes T-092
+
+---
+
+### T-111: Social Content Seeding + Automation [ ]
+
+**Phase:** 11b-3
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-107, T-109
+**Research:** docs/research/social-community-strategy.md
+
+**Description:** Seed all social profiles with initial content so they look active when cold outreach recipients Google "EmitHQ." Set up recurring content cadence that Claude maintains via Postiz MCP. Supersedes T-093.
+
+**Acceptance criteria:**
+
+- [ ] Twitter/X has 5+ posts (technical insights, architecture decisions — not promotional)
+- [ ] LinkedIn company page has description, logo, website link, and 2+ posts
+- [ ] Reddit: 1 post to r/selfhosted ("I built an open-source webhook platform") — only if Julian has 2+ weeks of comment history
+- [ ] Dev.to has 2 cross-posted articles (from T-109, T-110)
+- [ ] Content calendar template in `docs/outreach/content-calendar.md` (what to post, where, weekly cadence)
+- [ ] Cron script or addition to T-090 crons: weekly social content drafting via Claude, scheduled via Postiz
+- [ ] Supersedes T-093
+
+---
+
+### Phase 11c: Cold Outreach (after social foundation)
+
+_T-090 starts after T-107 (social accounts exist) + T-109 (first blog post live). Blog posts support outreach touches #2 and #5._
 
 ---
 
@@ -436,13 +516,13 @@ _The following tickets are deferred until post-first-10-customers. They add comp
 - [-] T-038: CI Integration Tests — infrastructure, not user-facing
 - [-] T-039: Cloudflare Workers Edge Layer — no inbound webhook demand yet
 - [-] T-043: Infrastructure Cost Monitoring — premature at $15/mo
-- [-] T-044: Automated Social Media — manual posting is fine
+- [-] T-044: Automated Social Media — superseded by T-107 (Postiz)
 - [-] T-046: Cold Outreach Campaign — merged into T-088+T-090
 - [-] T-052: Cold Outreach First 10 — merged into T-090
 - [-] T-053: Pricing Validation Interviews — after 5+ users
-- [-] T-055: Origin Story Blog — superseded by T-091
-- [-] T-056: Technical Deep-Dive — superseded by T-092
-- [-] T-057: Build-in-Public — superseded by T-093
+- [-] T-055: Origin Story Blog — superseded by T-109
+- [-] T-056: Technical Deep-Dive — superseded by T-110
+- [-] T-057: Build-in-Public — superseded by T-107 + T-111
 - [-] T-065: Payment-Gated Abuse Prevention — zero users to abuse
 - [-] T-066: API Key Scoping — nice-to-have post-launch
 - [-] T-067: EmitHQ MCP Server — build after users request it

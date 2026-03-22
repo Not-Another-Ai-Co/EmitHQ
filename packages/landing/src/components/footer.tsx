@@ -23,6 +23,11 @@ export function Footer() {
                   Documentation
                 </Link>
               </li>
+              <li>
+                <Link href="/blog" className="hover:text-[var(--color-text)]">
+                  Blog
+                </Link>
+              </li>
             </ul>
           </div>
           <div>
