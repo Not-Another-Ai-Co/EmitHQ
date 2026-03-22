@@ -1,6 +1,6 @@
 # Decisions — EmitHQ
 
-> Last verified: 2026-03-21
+> Last verified: 2026-03-22
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
 
 ## DEC-036 | 2026-03-21 | SDK Auto-Publish via GitHub Actions

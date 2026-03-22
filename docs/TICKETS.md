@@ -1,6 +1,6 @@
 # Tickets — Webhook Infrastructure SaaS
 
-> Last verified: 2026-03-21
+> Last verified: 2026-03-22
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed quality gates | `[x] [verified] [audited] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
@@ -301,7 +301,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-096: Research — LLM & SEO Discovery Optimization [x] [verified]
+### T-096: Research — LLM & SEO Discovery Optimization [x] [verified] [audited]
 
 **Phase:** 11 (research-only)
 **Effort:** Medium
@@ -327,7 +327,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-105: Technical SEO & LLM Discovery Foundations [x] [verified]
+### T-105: Technical SEO & LLM Discovery Foundations [x] [verified] [audited]
 
 **Phase:** 11a
 **Effort:** Medium
