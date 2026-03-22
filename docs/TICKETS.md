@@ -326,7 +326,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-105: Technical SEO & LLM Discovery Foundations [x]
+### T-105: Technical SEO & LLM Discovery Foundations [x] [verified]
 
 **Phase:** 11a
 **Effort:** Medium
