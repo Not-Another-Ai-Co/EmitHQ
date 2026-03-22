@@ -8,6 +8,10 @@
 | ------------------ | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | awesome-selfhosted | PR #2200 closed (too new — resubmit after 4+ months of commit history)            | https://github.com/awesome-selfhosted/awesome-selfhosted-data/pull/2200 |
 | SaaSHub            | Submitted, pending approval. Update contact to support@emithq.com after approval. | https://www.saashub.com/emithq/added                                    |
+| G2                 | Submitted 2026-03-22, 3-day review                                                | https://sell.g2.com                                                     |
+| Crunchbase         | Submitted 2026-03-22                                                              | https://www.crunchbase.com                                              |
+| StackShare         | Submitted 2026-03-22                                                              | https://stackshare.io                                                   |
+| Capterra/Gartner   | Submitted 2026-03-22, 1-2 day review                                              | https://www.capterra.com                                                |
 
 ## Needs Manual Submission
 
