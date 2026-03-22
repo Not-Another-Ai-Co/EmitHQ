@@ -345,7 +345,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 - [x] `/llms.txt` (plural, spec-compliant) — copy/redirect from existing `/llm.txt`
 - [x] `/llms-full.txt` — complete docs content in one Markdown file (product overview, API reference, SDK guide, pricing, error codes, retry strategy)
 - [x] Canonical URLs: add `metadataBase` to root layout, `alternates.canonical` per page
-- [ ] Google Search Console: DNS TXT verification via Cloudflare API, submit sitemap — waiting on Julian to generate verification token from GSC
+- [x] Google Search Console: DNS TXT verification via Cloudflare API, sitemap submitted (13 URLs, 0 errors)
 
 ---
 
