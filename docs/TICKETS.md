@@ -349,7 +349,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 ---
 
-### T-106: Third-Party Directory Listings
+### T-106: Third-Party Directory Listings [x]
 
 **Phase:** 11a
 **Effort:** Low
@@ -361,12 +361,13 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 
 **Acceptance criteria:**
 
-- [ ] AlternativeTo: listed as alternative to Svix, Hookdeck, Convoy
-- [ ] G2: free profile created (needs 1+ review to appear in listings — ask early users)
-- [ ] Crunchbase: basic company profile (NotAnotherAiCo LLC, product: EmitHQ)
-- [ ] SaaSHub: listed under webhook/API infrastructure
-- [ ] StackShare: tool profile with tech stack details
-- [ ] awesome-selfhosted: PR submitted to GitHub list (AGPL qualifies)
+- [ ] AlternativeTo: listed as alternative to Svix, Hookdeck, Convoy — cheat sheet at docs/outreach/directory-listings.md (bot-blocked, needs manual)
+- [ ] G2: free profile created — cheat sheet ready (needs manual)
+- [ ] Crunchbase: basic company profile — cheat sheet ready (needs manual)
+- [x] SaaSHub: submitted, pending approval (categories: API, Webhooks, Developer Tools; competitors: Svix, Hookdeck, Convoy)
+- [ ] StackShare: tool profile — cheat sheet ready (needs manual)
+- [x] awesome-selfhosted: PR #2200 submitted (same tag as Svix: Software Development - API Management)
+- [ ] Capterra: vendor signup — cheat sheet ready (needs manual)
 - [ ] Julian manually claims/verifies any profiles requiring email confirmation
 
 ---
