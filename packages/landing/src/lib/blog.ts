@@ -5,7 +5,7 @@ import readingTime from 'reading-time';
 
 const CONTENT_DIR = path.join(process.cwd(), 'content/blog');
 
-export interface PostMeta {
+interface PostMeta {
   slug: string;
   title: string;
   date: string;
@@ -15,7 +15,7 @@ export interface PostMeta {
   readingTime: string;
 }
 
-export interface Post extends PostMeta {
+interface Post extends PostMeta {
   content: string;
 }
 
