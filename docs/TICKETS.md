@@ -228,6 +228,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 - [ ] `scripts/outreach-loop.sh` morning cron (send follow-ups, check bounces)
 - [ ] `scripts/outreach-digest.sh` evening cron (daily digest, flag alerts)
 - [ ] `scripts/outreach-prospect.sh` weekly cron (GitHub mining for new targets)
+- [ ] `scripts/infra-health.sh` weekly cron — check Neon CU-hours/storage, Redis memory, Railway usage, event counts vs tier limits. Email julian@naac.ai if any service >70% of free tier limit
 - [ ] Follow-up templates for touches 2–6 (different angle each)
 - [ ] Reply classifier prompt + auto-response templates
 - [ ] Suppression list handling
