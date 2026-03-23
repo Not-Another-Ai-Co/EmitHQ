@@ -362,7 +362,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-108: Blog Infrastructure on Landing Site [x]
+### T-108: Blog Infrastructure on Landing Site [x] [verified]
 
 **Phase:** 11b-1
 **Effort:** Medium
@@ -385,7 +385,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-109: Origin Story Blog Post + Distribution [ ]
+### T-109: Origin Story Blog Post + Distribution [x]
 
 **Phase:** 11b-2
 **Effort:** Medium
@@ -397,13 +397,13 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [ ] Blog post written: origin story, pricing gap discovery, what EmitHQ does differently
-- [ ] Published on emithq.com/blog/why-we-built-emithq
-- [ ] Cross-posted to Dev.to via API with canonical URL pointing to emithq.com
-- [ ] 3-5 excerpt posts scheduled on Twitter/X via Postiz (spread over 1 week)
-- [ ] 1 LinkedIn post via Postiz (narrative format)
-- [ ] SEO meta tags targeting "webhook service" and "webhook platform"
-- [ ] Supersedes T-091
+- [x] Blog post written: origin story, pricing gap discovery, what EmitHQ does differently
+- [x] Published on emithq.com/blog/why-we-built-emithq
+- [ ] Cross-posted to Dev.to via API with canonical URL pointing to emithq.com (deferred to T-107)
+- [ ] 3-5 excerpt posts scheduled on Twitter/X via Postiz (deferred to T-107/T-111)
+- [ ] 1 LinkedIn post via Postiz (deferred to T-107/T-111)
+- [x] SEO meta tags targeting "webhook service" and "webhook platform"
+- [x] Supersedes T-091
 
 ---
 

@@ -1,0 +1,102 @@
+---
+title: 'Why We Built EmitHQ: The $49–$490 Webhook Pricing Gap'
+date: '2026-03-22'
+excerpt: "Svix charges $490/mo for its first paid tier. Hookdeck jumps to $499. Between the free tier and enterprise pricing, there's nothing. We built EmitHQ — an open-source webhook platform starting at $49/mo under AGPL."
+author: 'Julian Finnegan'
+tags:
+  - webhooks
+  - pricing
+  - open-source
+  - architecture
+---
+
+I was building a SaaS product that needed to send webhooks to customers. The kind of thing where your billing system fires `invoice.paid` and three different customer endpoints — their CRM, their Slack bot, their data pipeline — all need to receive it reliably.
+
+So I looked at the existing webhook platforms.
+
+## The Pricing Cliff
+
+The free tiers are generous. Svix gives you [50,000 messages a month](https://www.svix.com/pricing/). Hookdeck offers [10,000 events](https://hookdeck.com/pricing). Plenty to build against.
+
+But then you need to go paid.
+
+Svix's first paid tier is **$490/month**. There is no $50 plan. No $100 plan. You go from free to $490 in one step.
+
+Hookdeck has a $39/month Team plan, but it caps default throughput at 5 events per second. Their next real tier is Growth at $499/month. Need more throughput? That's an add-on at roughly $1 per event per second — so 50 evt/s costs an extra ~$45/month on top of your plan.
+
+Convoy starts at $99/month, which is more reasonable. But their [Elastic License v2.0](https://www.elastic.co/licensing/elastic-license) restricts offering it as a managed service. If you're just using Convoy to send your own webhooks, the license is fine. If you want to embed webhook delivery into a platform you sell to others, you'll need to look elsewhere.
+
+That leaves a gap. A SaaS team doing 200K events a month — past the free tier, nowhere near enterprise — has no good option between building it themselves and paying $490.
+
+## Why the Gap Exists
+
+These aren't bad companies. Svix created the [Standard Webhooks](https://www.standardwebhooks.com/) specification, now adopted by companies including Zapier, Twilio, Kong, ngrok, and Supabase. That's a genuine contribution — dozens of companies ship interoperable webhook signatures because of that work. Hookdeck has processed over [100 billion webhooks](https://hookdeck.com/blog/webhooks-at-scale). Convoy pioneered open-source webhook delivery.
+
+But they've raised venture capital. Svix took [$13M in funding led by a16z](https://www.svix.com/blog/series-a/). When your investors expect 10x returns, you optimize for enterprise contracts, not $49/month plans. The pricing reflects the business model, not the cost of delivery.
+
+Webhook infrastructure is cheap to run. At 50 million events per month — enough to serve 400+ customers — here's what the infrastructure actually costs:
+
+| Service            | Monthly Cost |
+| ------------------ | ------------ |
+| Cloudflare Workers | ~$3          |
+| Neon PostgreSQL    | ~$15         |
+| Upstash Redis      | ~$200        |
+| Railway            | ~$100        |
+| QStash             | ~$100        |
+| **Total**          | **~$418**    |
+
+That's a 99%+ gross margin at scale. The $490 price tag isn't about infrastructure costs. It's about market positioning.
+
+## The DIY Trap
+
+So teams try to build their own webhook service from scratch. An HTTP POST with a JSON body. The first version takes a day. The production-ready version takes three months.
+
+You need HMAC-SHA256 signing with timing-safe comparison — string equality is vulnerable to timing attacks. You need exponential backoff with jitter, not fixed intervals, because thundering herd problems will take down your customer's endpoints and yours. You need per-endpoint circuit breakers that auto-disable after consecutive failures. Idempotency keys so duplicate deliveries don't double-charge someone. A dead-letter queue with manual replay. Multi-tenant isolation that doesn't rely on WHERE clauses alone.
+
+Figure six weeks for a senior engineer to get it production-ready. That's before the first outage teaches you what you missed. And then you maintain it forever — every infrastructure change is a change to your delivery system, every on-call engineer needs to understand it.
+
+## What We Built
+
+EmitHQ is an open-source webhook platform built for SaaS teams that have outgrown free tiers but can't justify enterprise pricing. It handles outbound delivery to customer endpoints and inbound reception from providers like Stripe and GitHub, starting at $49/month with no throughput add-ons.
+
+Three paid tiers:
+
+- **Starter:** $49/month — 500K events, 50 evt/s, configurable retries
+- **Growth:** $149/month — 2M events, 200 evt/s
+- **Scale:** $349/month — 10M events, 1,000 evt/s
+
+Retries don't count against your quota — penalizing retries would punish you for your customers' downtime. Overage on paid tiers is $0.50/K (Starter), $0.40/K (Growth), or $0.30/K (Scale), billed at the end of the month.
+
+We use the same [Standard Webhooks spec](https://www.standardwebhooks.com/) that Svix created for outbound signing — the same `webhook-id`, `webhook-timestamp`, `webhook-signature` headers, the same HMAC-SHA256 algorithm. If your customers already verify Standard Webhooks signatures, switching to EmitHQ requires zero changes to their verification code. Migration cost is zero on their side.
+
+## How It Works
+
+Two architectural decisions define EmitHQ's reliability, and both are visible in the [source code](https://github.com/Not-Another-Ai-Co/EmitHQ).
+
+### Persist Before Enqueue
+
+Every message is written to PostgreSQL before it enters the Redis delivery queue. If the queue loses a job — Redis restart, memory pressure, network partition — the database still has the message. This is the difference between "we'll try to deliver it" and "we guarantee we recorded it."
+
+### Full-Jitter Exponential Backoff
+
+Failed deliveries retry with randomized delays: ~30 seconds, then ~2 minutes, then ~15 minutes, scaling up to ~12 hours. Eight attempts over a 29-hour window. The jitter prevents synchronized retries from overwhelming a recovering endpoint. Each endpoint gets its own retry schedule — one failing endpoint doesn't affect the others.
+
+### Per-Endpoint Circuit Breakers
+
+After 10 consecutive failures, EmitHQ auto-disables the endpoint and sends you an operational webhook (`endpoint.disabled`) so you know about it. A half-open probe resumes delivery automatically after a 30-second cooldown. Both thresholds — failure count and cooldown period — are configurable per endpoint.
+
+### Tenant Isolation
+
+PostgreSQL Row-Level Security enforces isolation at the database level. Every query runs with `SET LOCAL app.current_tenant` set by middleware before any data access. Even a bug in application code can't cross tenant boundaries — the database rejects the query before it executes.
+
+## Open Source
+
+EmitHQ's server is [AGPL-3.0](https://github.com/Not-Another-Ai-Co/EmitHQ). The SDKs are MIT. You can read every line of delivery logic, retry calculation, and signing implementation.
+
+You can self-host it. No phone-home, no license keys, no feature gates. AGPL means if you modify the server and offer it as a service, you share your changes. But running it for your own infrastructure? No restrictions.
+
+This matters because webhook delivery is a trust decision. You're routing your customers' data through someone else's infrastructure. Knowing exactly how that infrastructure works — and having the option to run it yourself — isn't a feature. It's a prerequisite.
+
+## Try It
+
+The code is on [GitHub](https://github.com/Not-Another-Ai-Co/EmitHQ). Read the delivery worker, the retry logic, the signing implementation. If it holds up, [sign up at emithq.com](https://emithq.com) — one API call, no credit card, no sales demo. If it doesn't, the [issue tracker](https://github.com/Not-Another-Ai-Co/EmitHQ/issues) is open.
