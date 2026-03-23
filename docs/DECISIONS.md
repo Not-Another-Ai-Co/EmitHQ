@@ -1,7 +1,27 @@
 # Decisions — EmitHQ
 
-> Last verified: 2026-03-22
+> Last verified: 2026-03-23
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
+
+## DEC-037 | 2026-03-23 | Social Media Automation via Self-Hosted Postiz
+
+**Status:** Active
+**Linked to:** T-107, T-111
+
+**Context:** EmitHQ needs social media presence across Twitter/X, LinkedIn, and Reddit before cold outreach starts (T-090). Claude cannot create accounts (bot protection) but needs to post/schedule content autonomously. Direct platform APIs are either expensive (X API $100/mo) or require complex OAuth token management. Scheduling tools like Buffer have limited free tiers and no MCP integration.
+
+**Decision:** Self-host Postiz (open-source, AGPL) on the miniPC via Docker Compose. Postiz handles OAuth token management, multi-platform posting, and scheduling. Its built-in MCP server (HTTP Streamable transport at `/api/mcp`) gives Claude direct tool access to schedule posts. Julian creates social accounts manually (bot protection blocks automation), creates developer apps (X Native App with OAuth 1.0a, LinkedIn Community Management API, Reddit web app), and connects them via Postiz OAuth flow. Dev.to uses its own REST API directly (not through Postiz).
+
+**Alternatives considered:**
+
+- Direct X API ($100/mo) — too expensive at zero revenue for 2-3 posts/week
+- Buffer free tier (3 channels, 10 posts each) — no MCP integration, GraphQL API in beta, limited volume
+- Typefully ($19/mo Creator) — good API but paid, no Reddit support
+- Manual posting only — not sustainable, makes Claude-maintained content impossible
+
+**Consequences:** Postiz adds ~2GB RAM to miniPC Docker footprint (9 containers including Temporal, Elasticsearch). Ports 4007, 7233, 8080, 8969 added to registry. Social API keys stored in Postiz's `.env` (outside EmitHQ repo). LinkedIn Advertising API approval may take days. X developer app must be "Native App" type (not "Web App") for OAuth 1.0a image upload support.
+
+---
 
 ## DEC-036 | 2026-03-21 | SDK Auto-Publish via GitHub Actions
 

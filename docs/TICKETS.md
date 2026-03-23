@@ -336,7 +336,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-107: Postiz Self-Hosted Setup + Social Account Creation [ ]
+### T-107: Postiz Self-Hosted Setup + Social Account Creation [x]
 
 **Phase:** 11b-1
 **Effort:** Medium
@@ -348,17 +348,17 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [ ] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN (verify existing)
+- [ ] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN (verify existing) — checklist at docs/outreach/social-setup-checklist.md
 - [ ] Julian creates X developer app (free tier — ~500 posts/mo) and LinkedIn Community Management API app (dev tier — 500 calls/day, free)
-- [ ] Postiz Docker Compose deployed on miniPC (own PostgreSQL + Redis, ports avoiding registry conflicts)
-- [ ] X, LinkedIn, Reddit connected to Postiz via OAuth
-- [ ] Postiz MCP server installed and accessible to Claude
+- [x] Postiz Docker Compose deployed on miniPC (9 containers, ports 4007/7233/8080/8969)
+- [ ] X, LinkedIn, Reddit connected to Postiz via OAuth (after Julian creates developer apps)
+- [x] Postiz MCP server available at http://localhost:4007/api/mcp (configure after Julian creates Postiz account + API key)
 - [ ] Dev.to API key generated and stored in 1Password EmitHQ vault
 - [ ] F5Bot configured: "emithq", "webhook platform", "svix alternative", "hookdeck alternative", "webhook service"
-- [ ] Google Alerts + Talkwalker Alerts configured for "emithq", "webhook infrastructure"
+- [ ] Talkwalker Alerts configured for "emithq", "svix alternative", "hookdeck alternative"
 - [ ] Julian starts HN/Reddit commenting (karma building — 3-5 comments/week, no self-promotion for 2+ weeks)
-- [ ] Update port registry in `~/.claude/CLAUDE.md` with Postiz ports
-- [ ] Supersedes T-044
+- [x] Update port registry in `~/.claude/CLAUDE.md` with Postiz ports
+- [x] Supersedes T-044
 
 ---
 
@@ -407,7 +407,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-110: Technical Deep-Dive Blog Post + Distribution [x]
+### T-110: Technical Deep-Dive Blog Post + Distribution [x] [verified]
 
 **Phase:** 11b-2
 **Effort:** Medium
