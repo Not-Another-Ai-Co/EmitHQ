@@ -385,7 +385,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-109: Origin Story Blog Post + Distribution [x]
+### T-109: Origin Story Blog Post + Distribution [x] [verified]
 
 **Phase:** 11b-2
 **Effort:** Medium
@@ -407,7 +407,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-110: Technical Deep-Dive Blog Post + Distribution [ ]
+### T-110: Technical Deep-Dive Blog Post + Distribution [x]
 
 **Phase:** 11b-2
 **Effort:** Medium
@@ -419,15 +419,15 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [ ] Blog post written: architecture overview, delivery flow, retry strategy, signing, circuit breaker
-- [ ] Published on emithq.com/blog/webhook-delivery-architecture
-- [ ] Includes architecture diagram (text-based)
-- [ ] Code snippets showing signing implementation and retry logic
-- [ ] Cross-posted to Dev.to via API with canonical URL
-- [ ] 3-5 excerpt posts scheduled on Twitter/X via Postiz
-- [ ] 1 LinkedIn post via Postiz
-- [ ] SEO meta tags targeting "webhook delivery reliability" and "webhook retry logic"
-- [ ] Supersedes T-092
+- [x] Blog post written: architecture overview, delivery flow, retry strategy, signing, circuit breaker
+- [x] Published on emithq.com/blog/webhook-delivery-architecture
+- [x] Includes architecture diagram (text-based)
+- [x] Code snippets showing signing implementation and retry logic
+- [ ] Cross-posted to Dev.to via API with canonical URL (deferred to T-107)
+- [ ] 3-5 excerpt posts scheduled on Twitter/X via Postiz (deferred to T-107/T-111)
+- [ ] 1 LinkedIn post via Postiz (deferred to T-107/T-111)
+- [x] SEO meta tags targeting "webhook delivery reliability" and "webhook retry logic"
+- [x] Supersedes T-092
 
 ---
 

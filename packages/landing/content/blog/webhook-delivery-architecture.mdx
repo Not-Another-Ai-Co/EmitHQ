@@ -1,0 +1,186 @@
+---
+title: 'Webhook Delivery Architecture: How We Built for Reliability'
+date: '2026-03-23'
+excerpt: 'Most webhook architecture posts describe what to build. This one shows the code — persist-before-enqueue, HMAC-SHA256 signing, full-jitter retry, circuit breakers, and SSRF protection, straight from the EmitHQ codebase.'
+author: 'Julian Finnegan'
+tags:
+  - architecture
+  - webhooks
+  - reliability
+  - typescript
+---
+
+Webhook delivery looks simple. POST a JSON body to a URL, check for a 2xx, move on.
+
+Then your Redis instance restarts and you lose 4,000 queued deliveries. A customer's endpoint goes down for six hours and your retry logic hammers it 50 times a second. Someone registers `http://169.254.169.254/latest/meta-data/` as their endpoint URL and starts reading your cloud metadata.
+
+These are the problems that determine webhook delivery reliability — and they only show up in production. Here's how EmitHQ handles each one, with the actual TypeScript from our [open-source codebase](https://github.com/Not-Another-Ai-Co/EmitHQ).
+
+## The Architecture
+
+```
+Customer API call
+       │
+       ▼
+  ┌─────────┐     ┌────────────┐     ┌──────────────┐
+  │ Hono API │────▶│ PostgreSQL │────▶│ BullMQ Queue │
+  │ (verify  │     │ (persist   │     │ (deliver     │
+  │  auth,   │     │  message + │     │  to endpoint,│
+  │  RLS)    │     │  attempts) │     │  retry, DLQ) │
+  └─────────┘     └────────────┘     └──────────────┘
+                        ▲                    │
+                        │                    ▼
+                   Source of truth    Customer endpoint
+```
+
+The arrow from PostgreSQL to BullMQ is one-way on purpose. The database is the source of truth. The queue is a best-effort delivery mechanism. If the queue loses a job, the database still has the message and every pending delivery attempt.
+
+## Persist Before Enqueue
+
+When a customer sends a webhook message through the API, we write it to PostgreSQL inside a transaction — along with one `delivery_attempt` row per active endpoint — before touching the queue:
+
+```typescript
+// messages.ts — inside a tenant-scoped transaction
+const [message] = await tx
+  .insert(messages)
+  .values({ appId, eventType, payload, eventId })
+  .onConflictDoNothing() // UNIQUE(app_id, event_id)
+  .returning();
+
+if (!message) {
+  // Idempotency hit — this event_id was already processed
+  const existing = await tx.query.messages.findFirst({
+    where: and(eq(messages.appId, appId), eq(messages.eventId, eventId)),
+  });
+  return existing; // 200, not 202
+}
+
+// Fan out: one delivery attempt per active endpoint
+await tx.insert(deliveryAttempts).values(attemptRows);
+
+// Queue is best-effort — failure here is non-fatal
+await enqueueDelivery(attemptRows).catch(() => {});
+```
+
+The `onConflictDoNothing()` on `UNIQUE(app_id, event_id)` gives us database-level idempotency. If the same event arrives twice — network retry, client bug, load balancer replay — the second insert silently skips and we return the original message.
+
+The `catch(() => {})` on `enqueueDelivery` is deliberate. If Redis is down, the message and its delivery attempts are already in PostgreSQL. A recovery process can re-enqueue pending attempts from the database.
+
+## Standard Webhooks Signing
+
+Every outbound delivery is signed using the [Standard Webhooks](https://www.standardwebhooks.com/) specification — the same HMAC-SHA256 scheme used by Zapier, Twilio, and Supabase:
+
+```typescript
+// webhook-signer.ts
+export function signWebhook(
+  webhookId: string,
+  timestamp: number,
+  payload: string,
+  secret: string,
+): string {
+  const rawSecret = Buffer.from(secret.startsWith('whsec_') ? secret.slice(6) : secret, 'base64');
+  const toSign = `${webhookId}.${timestamp}.${payload}`;
+  return `v1,${createHmac('sha256', rawSecret).update(toSign).digest('base64')}`;
+}
+```
+
+Three headers go out with every delivery: `webhook-id` (message ID), `webhook-timestamp` (Unix seconds), and `webhook-signature` (the `v1,{base64}` HMAC).
+
+Secrets use the `whsec_` prefix format — the prefix is stripped, and the remainder is base64-decoded to raw key bytes. Each endpoint gets its own signing secret. Independent rotation, no cross-endpoint impact.
+
+On the verification side, we use `crypto.timingSafeEqual` — never string equality. String comparison leaks timing information that can be used to forge signatures byte by byte. Verification also rejects timestamps outside a 5-minute tolerance window, preventing replay attacks.
+
+## Webhook Retry Logic: Full Jitter
+
+When a delivery fails with a 5xx, timeout, or connection error, the webhook retry logic kicks in. But we don't use simple exponential backoff — we use full jitter:
+
+```typescript
+// backoff.ts
+const RETRY_DELAYS_MS = [
+  5_000, // ~5s
+  30_000, // ~30s
+  120_000, // ~2m
+  900_000, // ~15m
+  3_600_000, // ~1h
+  14_400_000, // ~4h
+  86_400_000, // ~24h
+];
+
+export function computeBackoffDelay(attemptsMade: number): number {
+  const index = Math.min(attemptsMade - 1, RETRY_DELAYS_MS.length - 1);
+  const cap = RETRY_DELAYS_MS[index];
+  return Math.floor(Math.random() * cap);
+}
+```
+
+The delay is `random(0, cap)` — not `cap + random jitter`. This is full jitter as described in the [AWS architecture blog](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/). Standard exponential backoff with decorrelated jitter still clusters retries near the cap. Full jitter spreads them uniformly across the entire window. The result: a recovering endpoint gets a steady trickle of retries instead of a synchronized burst.
+
+Eight attempts over a ~29-hour window. After that, the message moves to the dead-letter queue.
+
+Not everything gets retried. Status codes 400, 401, 403, 404, and 410 are permanent failures — the endpoint rejected the request for a reason that won't fix itself:
+
+```typescript
+// delivery-worker.ts
+const NON_RETRIABLE_CODES = new Set([400, 401, 403, 404, 410]);
+
+if (NON_RETRIABLE_CODES.has(result.statusCode)) {
+  throw new UnrecoverableError(`Non-retriable status ${result.statusCode}`);
+}
+```
+
+BullMQ's `UnrecoverableError` bypasses the entire retry schedule and moves the job straight to failed. No wasted retries against a 404.
+
+## Circuit Breaker and Dead-Letter Queue
+
+If an endpoint fails 10 times consecutively, we stop hitting it:
+
+```typescript
+// delivery-worker.ts
+const CIRCUIT_BREAKER_THRESHOLD = 10;
+
+const currentFailures = (endpoint.failureCount ?? 0) + 1;
+if (currentFailures >= CIRCUIT_BREAKER_THRESHOLD) {
+  await adminDb.update(endpoints).set({
+    disabled: true,
+    disabledReason: 'circuit_breaker: consecutive failure threshold reached',
+    failureCount: currentFailures,
+  });
+  // Operational webhook sent: endpoint.disabled
+}
+```
+
+Any successful delivery resets `failureCount` to 0. The circuit breaker is per-endpoint — one failing endpoint doesn't affect the others. Disabled endpoints can be re-enabled through the API or dashboard, which resets the failure counter and resumes delivery.
+
+When all 8 retry attempts are exhausted, the delivery attempt is marked `exhausted` and lands in the dead-letter queue. From there, it can be replayed through the API or dashboard:
+
+```typescript
+// replay.ts
+export async function replayDelivery(attemptId: string) {
+  await adminDb.update(deliveryAttempts).set({
+    status: 'pending',
+    attemptNumber: 1,
+    nextAttemptAt: new Date(),
+  });
+  await deliveryQueue.add('deliver', jobData, {
+    jobId: `replay:${attemptId}:${Date.now()}`,
+  });
+}
+```
+
+The `replay:` prefix and timestamp in the job ID prevent BullMQ deduplication from ignoring the re-enqueued job.
+
+## SSRF Protection
+
+Customers provide their own endpoint URLs. Without validation, an attacker could register `http://169.254.169.254/latest/meta-data/` — the AWS metadata endpoint — and have your delivery worker fetch their cloud credentials.
+
+Blocking the IP at registration time isn't enough. DNS rebinding attacks work by having a hostname resolve to a public IP during validation, then switching to an internal IP before the actual delivery request.
+
+EmitHQ validates at both points. At endpoint creation, we resolve the hostname and check the IP against blocked ranges (RFC 1918, loopback, link-local, cloud metadata). At delivery time, we resolve again and re-check — catching any DNS rebinding that happened between registration and delivery.
+
+Blocked ranges include `169.254.169.254`, `metadata.google.internal`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, and `127.0.0.0/8`.
+
+## Read the Code
+
+The code is at [github.com/Not-Another-Ai-Co/EmitHQ](https://github.com/Not-Another-Ai-Co/EmitHQ) under AGPL-3.0. Start with `packages/core/src/workers/delivery-worker.ts` — it ties together every pattern in this post. The signing is at `packages/core/src/signing/webhook-signer.ts`, the retry schedule at `packages/core/src/queue/backoff.ts`.
+
+If something doesn't hold up, [open an issue](https://github.com/Not-Another-Ai-Co/EmitHQ/issues). If it does, [emithq.com](https://emithq.com) — one API call to sign up, no credit card.
