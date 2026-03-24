@@ -1,0 +1,8 @@
+# Gitleaks allowlist — suppress false positives from test fixtures and docs
+
+[allowlist]
+  paths = [
+    '''\.test\.(ts|js)$''',
+    '''packages/landing/(public|src)/.*(llm|docs).*\.(txt|tsx)$''',
+    '''docs/research/.*\.md$''',
+  ]
