@@ -337,7 +337,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-107: Postiz Self-Hosted Setup + Social Account Creation [x]
+### T-107: Postiz Self-Hosted Setup + Social Account Creation [ ]
 
 **Phase:** 11b-1
 **Effort:** Medium
