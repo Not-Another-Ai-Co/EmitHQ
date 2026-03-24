@@ -2,43 +2,53 @@
 
 Postiz is running at http://100.82.36.13:4007 (miniPC). Complete these steps to connect social accounts.
 
-## 1. Create Postiz Account
+All accounts are **EmitHQ-branded** (not personal). Secrets go into 1Password `EmitHQ/postiz-config`, then injected via `op inject`.
 
-1. Go to http://100.82.36.13:4007
-2. Register (first user becomes admin)
-3. Go to Settings → Developers → Public API → copy your API key
-4. Save the API key to 1Password: `EmitHQ/postiz/api-key`
+**After adding any secret to 1Password, regenerate the env and restart:**
 
-## 2. Twitter/X — @EmitHQ
+```
+cd ~/postiz && op inject -f -i .env.tpl -o .env && docker compose up -d
+```
 
-### Create Account
+## 1. Create Postiz Account [x]
 
-1. Go to https://twitter.com/signup
-2. Create @EmitHQ account
-3. Add bio: "Open-source webhook infrastructure for SaaS teams. $49/mo — not $490. AGPL-3.0."
-4. Link: https://emithq.com
-5. Profile image: EmitHQ logo
+1. ~~Go to http://100.82.36.13:4007~~
+2. ~~Register (first user becomes admin)~~
+3. ~~Go to Settings → Developers → Public API → copy your API key~~
+4. ~~Save the API key to 1Password: `EmitHQ/postiz-config/api_key`~~
 
-### Create Developer App
+Done. Postiz login fixed (NOT_SECURED=true for HTTP over Tailscale). Creds in 1Password `Postiz - Local Hosted`.
 
-1. Go to https://developer.twitter.com/en/portal/dashboard
-2. Sign in with @EmitHQ account
-3. Create a new app
-4. **App type: Native App** (NOT "Web App" — this causes error code 32)
-5. **Permissions: Read and Write**
-6. **OAuth 1.0a: Enable**
-7. Callback URL: `http://100.82.36.13:4007/integrations/social/x`
-8. Copy API Key and API Secret
-9. Save to 1Password: `EmitHQ/twitter-x-dev/api-key` and `EmitHQ/twitter-x-dev/api-secret`
-10. Edit `~/postiz/.env` — set `X_API_KEY` and `X_API_SECRET`
-11. Restart: `cd ~/postiz && docker compose down && docker compose up -d`
+## 2. Twitter/X — @EmitHQ [x]
 
-### Connect in Postiz
+### Create Account [x]
 
-1. Go to http://100.82.36.13:4007 → Integrations → Add X/Twitter
-2. Authorize the OAuth flow
+1. ~~Go to https://twitter.com/signup~~
+2. ~~Create @EmitHQ account~~ — created, handle may need renaming (rate-limited on first attempt, retry later)
+3. ~~Add bio: "Open-source webhook infrastructure for SaaS teams. $49/mo — not $490. AGPL-3.0."~~
+4. ~~Link: https://emithq.com~~
+5. Profile image: EmitHQ logo — TODO (can generate via Postiz AI later)
+6. Header image: TODO (generate via Postiz AI later)
 
-## 3. LinkedIn — EmitHQ Company Page
+### Create Developer App [x]
+
+1. ~~Go to https://developer.twitter.com/en/portal/dashboard~~
+2. ~~Sign in with @EmitHQ account~~
+3. ~~Create a new app~~
+4. ~~**App type: Native App** (NOT "Web App" — this causes error code 32)~~
+5. ~~**Permissions: Read and Write**~~
+6. ~~**OAuth 1.0a: Enable**~~
+7. ~~Callback URL: `http://100.82.36.13:4007/integrations/social/x`~~
+8. ~~Copy API Key and API Secret~~
+9. ~~Update in 1Password: `op item edit postiz-config --vault EmitHQ "x_api_key=<value>" "x_api_secret=<value>"`~~
+10. ~~Regenerate env + restart~~
+
+### Connect in Postiz [x]
+
+1. ~~Go to http://100.82.36.13:4007 → Add Channel → X~~
+2. ~~Authorize the OAuth flow~~ — connected 2026-03-24
+
+## 3. LinkedIn — EmitHQ Company Page ← RESUME HERE
 
 ### Create Company Page
 
@@ -56,9 +66,8 @@ Postiz is running at http://100.82.36.13:4007 (miniPC). Complete these steps to 
 3. Under Products tab, request **Advertising API** access (needed for token refresh)
 4. OAuth 2.0 redirect URL: `http://100.82.36.13:4007/integrations/social/linkedin-page`
 5. Copy Client ID and Client Secret
-6. Save to 1Password: `EmitHQ/linkedin-dev/client-id` and `EmitHQ/linkedin-dev/client-secret`
-7. Edit `~/postiz/.env` — set `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET`
-8. Restart: `cd ~/postiz && docker compose down && docker compose up -d`
+6. Update in 1Password: `op item edit postiz-config --vault EmitHQ "linkedin_client_id=<value>" "linkedin_client_secret=<value>"`
+7. Regenerate env + restart (see command at top)
 
 ### Connect in Postiz
 
@@ -70,7 +79,7 @@ Postiz is running at http://100.82.36.13:4007 (miniPC). Complete these steps to 
 ### Create Account
 
 1. Go to https://www.reddit.com/register
-2. Username: something professional (your name or emithq-related)
+2. Username: EmitHQ (or emithq\_ if taken)
 3. Join: r/selfhosted, r/SaaS, r/webdev, r/node, r/devops
 
 ### Create Developer App
@@ -80,9 +89,8 @@ Postiz is running at http://100.82.36.13:4007 (miniPC). Complete these steps to 
 3. **Type: web app**
 4. Redirect URI: `http://100.82.36.13:4007/integrations/social/reddit`
 5. Copy Client ID (under app name) and Client Secret
-6. Save to 1Password: `EmitHQ/reddit-dev/client-id` and `EmitHQ/reddit-dev/client-secret`
-7. Edit `~/postiz/.env` — set `REDDIT_CLIENT_ID` and `REDDIT_CLIENT_SECRET`
-8. Restart: `cd ~/postiz && docker compose down && docker compose up -d`
+6. Update in 1Password: `op item edit postiz-config --vault EmitHQ "reddit_client_id=<value>" "reddit_client_secret=<value>"`
+7. Regenerate env + restart (see command at top)
 
 ### Connect in Postiz
 
@@ -94,10 +102,10 @@ Postiz is running at http://100.82.36.13:4007 (miniPC). Complete these steps to 
 ### Create Account
 
 1. Go to https://dev.to/enter
-2. Sign up (can use GitHub OAuth)
+2. Sign up as EmitHQ (can use GitHub OAuth with Not-Another-Ai-Co org)
 3. Go to Settings → Extensions → DEV Community API Keys
 4. Generate a new API key, name it "EmitHQ Postiz"
-5. Save to 1Password: `EmitHQ/devto/api-key`
+5. Save to 1Password: `op item edit postiz-config --vault EmitHQ "devto_api_key=<value>"`
 
 ### No OAuth needed for Postiz
 
@@ -142,6 +150,6 @@ Dev.to cross-posting uses the REST API directly (not through Postiz). The API ke
 
 ## After All Accounts Are Created
 
-1. Restart Postiz with all API keys: `cd ~/postiz && docker compose down && docker compose up -d`
+1. Regenerate env + restart: `cd ~/postiz && op inject -f -i .env.tpl -o .env && docker compose up -d`
 2. Connect all accounts in Postiz UI
 3. Tell Claude — I'll configure the MCP server and verify all integrations work

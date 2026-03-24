@@ -3,6 +3,24 @@
 > Last verified: 2026-03-23
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
 
+## DEC-038 | 2026-03-23 | Restrict Umami Analytics to Tailscale
+
+**Status:** Active
+**Linked to:** T-090
+
+**Context:** Umami analytics (`analytics.emithq.com`) was publicly exposed via a Cloudflare tunnel (`cloudflared-umami.service`). Docker-compose had a hardcoded Postgres password (since rotated, stored in 1Password). No ticket or cron currently consumes Umami data — it was collecting pageviews without a feedback loop. All Julian's devices are on Tailscale, so public access adds attack surface with no benefit.
+
+**Decision:** Stop and disable the `cloudflared-umami.service` tunnel. Access Umami only via Tailscale at `100.82.36.13:3100`. Add Umami API queries to T-090's evening digest cron so the data actually informs outreach decisions. If public sharing is ever needed (e.g., build-in-public stats page), re-add the tunnel.
+
+**Alternatives considered:**
+
+- Keep public + harden — unnecessary exposure for a single-user analytics tool
+- Remove Umami entirely — still useful once the feedback loop is wired up in T-090
+
+**Consequences:** `analytics.emithq.com` no longer resolves. Umami accessible at `100.82.36.13:3100` only. DNS record can stay (tunnel is just offline). T-090 evening digest will close the feedback loop by querying Umami API for traffic data after outreach sends.
+
+---
+
 ## DEC-037 | 2026-03-23 | Social Media Automation via Self-Hosted Postiz
 
 **Status:** Active

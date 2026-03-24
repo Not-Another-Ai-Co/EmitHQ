@@ -229,6 +229,7 @@ _Product is live. Stripe is live. Zero customers. Claude drives all execution. R
 - [ ] `scripts/outreach-digest.sh` evening cron (daily digest, flag alerts)
 - [ ] `scripts/outreach-prospect.sh` weekly cron (GitHub mining for new targets)
 - [ ] `scripts/infra-health.sh` weekly cron — check Neon CU-hours/storage, Redis memory, Railway usage, event counts vs tier limits. Email julian@naac.ai if any service >70% of free tier limit
+- [ ] Evening digest queries Umami API for landing page traffic (referrer sources, page hits) — correlate with outreach sends to measure which angles drive visits
 - [ ] Follow-up templates for touches 2–6 (different angle each)
 - [ ] Reply classifier prompt + auto-response templates
 - [ ] Suppression list handling
@@ -348,11 +349,13 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [ ] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN (verify existing) — checklist at docs/outreach/social-setup-checklist.md
-- [ ] Julian creates X developer app (free tier — ~500 posts/mo) and LinkedIn Community Management API app (dev tier — 500 calls/day, free)
+- [ ] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN (verify existing) — checklist at docs/outreach/social-setup-checklist.md — **X done, LinkedIn next**
+- [x] Julian creates X developer app (free tier — ~500 posts/mo) — done 2026-03-24
+- [ ] Julian creates LinkedIn Community Management API app (dev tier — 500 calls/day, free)
 - [x] Postiz Docker Compose deployed on miniPC (9 containers, ports 4007/7233/8080/8969)
-- [ ] X, LinkedIn, Reddit connected to Postiz via OAuth (after Julian creates developer apps)
+- [ ] X, LinkedIn, Reddit connected to Postiz via OAuth — **X connected, LinkedIn/Reddit pending**
 - [x] Postiz MCP server available at http://localhost:4007/api/mcp (configure after Julian creates Postiz account + API key)
+- [x] Postiz secrets migrated to 1Password `.env.tpl` + `op inject` flow (DEC-038 session)
 - [ ] Dev.to API key generated and stored in 1Password EmitHQ vault
 - [ ] F5Bot configured: "emithq", "webhook platform", "svix alternative", "hookdeck alternative", "webhook service"
 - [ ] Talkwalker Alerts configured for "emithq", "svix alternative", "hookdeck alternative"
