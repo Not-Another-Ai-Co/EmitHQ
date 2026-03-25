@@ -1,8 +1,16 @@
 {
-  "comments": [],
+  "comments": [
+    {
+      "thread_id": "47453738",
+      "thread_title": "You can run a DNS server (2025)",
+      "comment_preview": "One thing worth noting if you're using your own DNS for Let's Encrypt DNS-01 challenges: make su",
+      "posted_at": "2026-03-25T04:55:00Z",
+      "topic_tags": ["infrastructure", "self-hosted", "devops"]
+    }
+  ],
   "skipped_days": [],
-  "last_run": null,
-  "total_comments": 0,
+  "last_run": "2026-03-25",
+  "total_comments": 1,
   "config": {
     "post_probability": 0.6,
     "max_comments_per_day": 2,

@@ -42,37 +42,69 @@ Write a comment that:
 
 ## Step 5: Post the Comment
 
-Use the Bash tool to post via curl:
+Use the Bash tool to run a Python script that handles cookie auth, HMAC extraction, URL encoding, and posting. Python avoids all shell escaping issues with special characters in comment text.
+
+For each comment you want to post, run this via the Bash tool — replacing STORY_ID_HERE with the actual story ID and COMMENT_TEXT_HERE with the drafted comment text (triple-quoted, so quotes/apostrophes are safe):
 
 ```bash
-# Load cookie from local file (cookie saved from browser session, chmod 600)
-HN_COOKIE=$(cat /home/jfinnegan0/.hn-cookie)
+python3 << 'PYEOF'
+import urllib.request
+import urllib.parse
+import re
+import sys
 
-# Verify cookie is still valid (check for logout link = logged in)
-LOGGED_IN=$(curl -s -b "user=${HN_COOKIE}" "https://news.ycombinator.com/news" | grep -c 'logout')
-if [ "$LOGGED_IN" -eq 0 ]; then
-  echo "ERROR: HN cookie expired. Julian needs to re-export from browser."
-  exit 1
-fi
+COOKIE = open("/home/jfinnegan0/.hn-cookie").read().strip()
+STORY_ID = "STORY_ID_HERE"
+COMMENT = """COMMENT_TEXT_HERE"""
 
-# For top-level comments: extract hmac from the story's item page
-# For replies to comments: extract hmac from the reply page
-# Top-level:
-HMAC=$(curl -s -b "user=${HN_COOKIE}" "https://news.ycombinator.com/item?id={STORY_ID}" | grep -o 'name="hmac" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"//')
-# Reply to comment:
-# HMAC=$(curl -s -b "user=${HN_COOKIE}" "https://news.ycombinator.com/reply?id={COMMENT_ID}" | grep -o 'name="hmac" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"//')
+headers = {"Cookie": f"user={COOKIE}"}
+
+# Verify cookie is still valid
+req = urllib.request.Request("https://news.ycombinator.com/news", headers=headers)
+page = urllib.request.urlopen(req).read().decode()
+if "logout" not in page:
+    print("ERROR: HN cookie expired. Julian needs to re-export from browser.")
+    sys.exit(1)
+
+# Get hmac from story page
+req = urllib.request.Request(f"https://news.ycombinator.com/item?id={STORY_ID}", headers=headers)
+page = urllib.request.urlopen(req).read().decode()
+match = re.search(r'name="hmac" value="([^"]+)"', page)
+if not match:
+    print("ERROR: Could not extract hmac token from story page.")
+    sys.exit(1)
+hmac_val = match.group(1)
 
 # Post the comment
-curl -s -b "user=${HN_COOKIE}" \
-  -d "parent={PARENT_ID}&hmac=${HMAC}&text={URL_ENCODED_COMMENT}&goto=item%3Fid%3D{STORY_ID}" \
-  "https://news.ycombinator.com/comment"
+data = urllib.parse.urlencode({
+    "parent": STORY_ID,
+    "hmac": hmac_val,
+    "text": COMMENT,
+    "goto": f"item?id={STORY_ID}"
+}).encode()
+req = urllib.request.Request("https://news.ycombinator.com/comment", data=data, headers=headers)
+try:
+    resp = urllib.request.urlopen(req)
+    print(f"SUCCESS: Posted to story {STORY_ID} (HTTP {resp.status})")
+except urllib.error.HTTPError as e:
+    if e.code == 302:
+        print(f"SUCCESS: Posted to story {STORY_ID} (HTTP 302 redirect)")
+    else:
+        print(f"ERROR: HTTP {e.code} — {e.reason}")
+        sys.exit(1)
+
+# Verify comment appears on profile
+req = urllib.request.Request("https://news.ycombinator.com/threads?id=emithq", headers=headers)
+threads = urllib.request.urlopen(req).read().decode()
+preview = COMMENT[:50].replace("'", "&#x27;")
+if preview in threads or COMMENT[:30] in threads:
+    print("VERIFIED: Comment appears on profile.")
+else:
+    print("WARNING: Could not verify comment on profile (may take a moment to appear).")
+PYEOF
 ```
 
-Replace `{PARENT_ID}` with the story ID (to comment on the story directly) or a comment ID (to reply). Replace `{STORY_ID}` with the story ID. URL-encode the comment text.
-
-After posting, verify the comment appears by fetching the user's profile page: `curl -s -b "user=${HN_COOKIE}" "https://news.ycombinator.com/threads?id=emithq"` and check that your comment text appears.
-
-No temp files to clean up — all done inline with curl.
+Replace `STORY_ID_HERE` and `COMMENT_TEXT_HERE` with the actual values. The heredoc with `'PYEOF'` (quoted) prevents bash from interpolating anything — the Python script handles all encoding safely.
 
 ## Step 6: Update State
 
