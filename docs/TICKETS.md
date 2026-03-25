@@ -359,7 +359,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 - [x] Dev.to API key generated and stored in 1Password EmitHQ vault — done 2026-03-25
 - [x] F5Bot configured: "emithq", "webhook platform", "svix alternative", "hookdeck alternative", "webhook service" — done 2026-03-25
 - [x] Talkwalker Alerts configured for "emithq", "svix alternative", "hookdeck alternative" — done 2026-03-25
-- [ ] Julian starts HN/Reddit commenting (karma building — 3-5 comments/week, no self-promotion for 2+ weeks) — HN account created 2026-03-25, start commenting
+- [x] HN karma building automated — cron at `scripts/hn-karma.sh` posts 0-2 comments/day via `claude -p` + content skill. Manual comments also encouraged. Started 2026-03-25
 - [x] Update port registry in `~/.claude/CLAUDE.md` with Postiz ports
 - [x] Supersedes T-044
 
@@ -498,6 +498,7 @@ _T-090 starts after T-107 (social accounts exist) + T-109 (first blog post live)
 
 **Acceptance criteria:**
 
+- [ ] HN karma ≥50 before posting — automated cron building karma daily (`scripts/hn-karma.sh`, 0-2 comments/day on infra/devtools threads, started 2026-03-25)
 - [ ] Show HN draft finalized with real metrics (no [PLACEHOLDER] slots)
 - [ ] Readiness gate passed: 5+ real users, 1+ paying or committed, 1+ testimonial
 - [ ] Show HN posted (Sunday 11:00-16:00 UTC)
