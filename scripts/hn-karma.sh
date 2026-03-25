@@ -14,7 +14,8 @@ CLAUDE="/home/jfinnegan0/.local/bin/claude"
 mkdir -p "$LOG_DIR"
 
 # Export 1Password token for the claude -p subprocess
-export OP_SERVICE_ACCOUNT_TOKEN="$(grep OP_SERVICE_ACCOUNT_TOKEN ~/.bashrc | cut -d'"' -f2)"
+export OP_CONNECT_HOST="http://localhost:8888"
+export OP_CONNECT_TOKEN="$(grep OP_CONNECT_TOKEN ~/.bashrc | cut -d'"' -f2)"
 
 # Full PATH for claude subprocess tools (node, curl, python3, op)
 export PATH="/home/jfinnegan0/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
