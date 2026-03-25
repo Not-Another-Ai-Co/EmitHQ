@@ -6,11 +6,18 @@
       "comment_preview": "One thing worth noting if you're using your own DNS for Let's Encrypt DNS-01 challenges: make su",
       "posted_at": "2026-03-25T04:55:00Z",
       "topic_tags": ["infrastructure", "self-hosted", "devops"]
+    },
+    {
+      "thread_id": "47475888",
+      "thread_title": "Trivy under attack again: Widespread GitHub Actions tag compromise secrets",
+      "comment_preview": "SHA pinning solves the mutability problem but you end up dependent on tooling like Dependabot to",
+      "posted_at": "2026-03-25T16:00:00Z",
+      "topic_tags": ["devops", "infrastructure", "open source"]
     }
   ],
   "skipped_days": [],
   "last_run": "2026-03-25",
-  "total_comments": 1,
+  "total_comments": 2,
   "config": {
     "post_probability": 0.6,
     "max_comments_per_day": 2,
