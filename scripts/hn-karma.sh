@@ -36,7 +36,7 @@ export PATH="/home/jfinnegan0/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 # Bash: curl for posting, op for credentials
 # Read/Write: state file
 "$CLAUDE" -p --model sonnet \
-  --allowed-tools "Bash,WebFetch,Read,Write" \
+  --allowed-tools "Bash,WebFetch,Read,Write,Skill" \
   "$(cat "$PROMPT_FILE")"
 
 echo "$(date -Iseconds) | hn-karma | done"

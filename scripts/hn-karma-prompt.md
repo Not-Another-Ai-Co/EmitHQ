@@ -31,14 +31,15 @@ For each candidate:
 
 ## Step 4: Draft Comment
 
-Write a comment that:
+You MUST use the Skill tool to invoke the "content" skill for drafting. This produces higher quality, more natural writing.
 
-- Adds genuine technical insight or asks a thoughtful question
-- Draws from real engineering experience (you can reference patterns like retry strategies, queue design, database scaling, edge computing, distributed systems — topics you know deeply)
-- Varies in style: sometimes a short observation (2-3 sentences), sometimes a longer technical take (1-2 paragraphs), sometimes a question
-- Uses natural language — no bullet points, no headers, no markdown (HN doesn't render markdown)
-- NEVER mentions EmitHQ, webhooks-as-a-service, "our product", "we built", or anything from `config.blacklist_keywords`
-- Matches HN culture: understated, technical, slightly contrarian opinions are fine, no marketing speak, no emojis
+Call it like this:
+
+```
+Skill(skill="content", args="Write a single Hacker News comment about this thread: '[TITLE]' — [BRIEF DESCRIPTION OF THE THREAD AND EXISTING DISCUSSION]. Requirements: 2-4 sentences of genuine technical insight. Draw from real infrastructure engineering experience. HN culture: understated, technical, slightly contrarian is fine, no marketing speak, no emojis, no bullet points, no markdown (HN uses plain text). NEVER mention EmitHQ, webhooks, or any product. Vary style: sometimes a short observation, sometimes a longer technical take, sometimes a question. Output ONLY the raw comment text — no preamble, no metadata, no skill status lines.")
+```
+
+After the skill returns, extract ONLY the comment text — strip any skill metadata lines (like "Skipping the approval gate..." or "The brief is fully specified..."). The comment should be plain text ready to post.
 
 ## Step 5: Post the Comment
 
