@@ -59,8 +59,9 @@
 ## Sending Command
 
 ```bash
-export OP_SERVICE_ACCOUNT_TOKEN="$(grep OP_SERVICE_ACCOUNT_TOKEN ~/.bashrc | cut -d'"' -f2)"
-export RESEND_API_KEY=$(op item get resend --vault EmitHQ --fields api-key --reveal | tr -d '\n\r')
+export OP_CONNECT_HOST="http://localhost:8888"
+export OP_CONNECT_TOKEN="$(grep OP_CONNECT_TOKEN ~/.bashrc | cut -d'"' -f2)"
+export RESEND_API_KEY=$(op read "op://EmitHQ/resend/api-key" | tr -d '\n\r')
 npx tsx scripts/send-email.ts \
   --to "target@example.com" \
   --subject "re: svix at company" \

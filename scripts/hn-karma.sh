@@ -23,7 +23,7 @@ export PATH="/home/jfinnegan0/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
 notify_failure() {
   local msg="$1"
   echo "$(date -Iseconds) | hn-karma | FAILED: $msg"
-  RESEND_KEY=$(op item get "resend" --vault EmitHQ --fields "api-key" --reveal 2>/dev/null)
+  RESEND_KEY=$(op read "op://EmitHQ/resend/api-key" 2>/dev/null)
   if [ -n "$RESEND_KEY" ]; then
     curl -s -X POST "https://api.resend.com/emails" \
       -H "Authorization: Bearer ${RESEND_KEY}" \
