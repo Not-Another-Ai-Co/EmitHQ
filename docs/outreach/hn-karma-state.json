@@ -1,0 +1,35 @@
+{
+  "comments": [],
+  "skipped_days": [],
+  "last_run": null,
+  "total_comments": 0,
+  "config": {
+    "post_probability": 0.6,
+    "max_comments_per_day": 2,
+    "min_hours_between_comments": 3,
+    "blacklist_keywords": ["emithq", "emit", "our product", "we built", "my startup"],
+    "target_topics": [
+      "webhooks",
+      "api",
+      "infrastructure",
+      "devops",
+      "typescript",
+      "nodejs",
+      "open source",
+      "saas pricing",
+      "developer tools",
+      "self-hosted",
+      "redis",
+      "postgres",
+      "queue",
+      "retry",
+      "microservices",
+      "cloudflare workers",
+      "serverless",
+      "startup",
+      "side project",
+      "reliability",
+      "monitoring"
+    ]
+  }
+}
