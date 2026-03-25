@@ -48,7 +48,7 @@ Done. Postiz login fixed (NOT_SECURED=true for HTTP over Tailscale). Creds in 1P
 1. ~~Go to http://100.82.36.13:4007 → Add Channel → X~~
 2. ~~Authorize the OAuth flow~~ — connected 2026-03-24
 
-## 3. LinkedIn — EmitHQ Company Page ← RESUME HERE
+## 3. LinkedIn — EmitHQ Company Page [~] waiting on API approval
 
 ### Create Company Page
 

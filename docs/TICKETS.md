@@ -349,17 +349,17 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [ ] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN (verify existing) — checklist at docs/outreach/social-setup-checklist.md — **X done, LinkedIn next**
+- [x] Julian creates accounts: Twitter/X (@EmitHQ), LinkedIn company page, Reddit, Dev.to, HN — checklist at docs/outreach/social-setup-checklist.md — all created 2026-03-25
 - [x] Julian creates X developer app (free tier — ~500 posts/mo) — done 2026-03-24
-- [ ] Julian creates LinkedIn Community Management API app (dev tier — 500 calls/day, free)
+- [~] Julian creates LinkedIn Community Management API app — app created 2026-03-25, Community Management API approval pending (submitted form)
 - [x] Postiz Docker Compose deployed on miniPC (9 containers, ports 4007/7233/8080/8969)
-- [ ] X, LinkedIn, Reddit connected to Postiz via OAuth — **X connected, LinkedIn/Reddit pending**
+- [~] X, LinkedIn, Reddit connected to Postiz via OAuth — X connected; LinkedIn waiting on API approval; Reddit waiting on API pre-approval (submitted 2026-03-25, ~7 day turnaround)
 - [x] Postiz MCP server available at http://localhost:4007/api/mcp (configure after Julian creates Postiz account + API key)
 - [x] Postiz secrets migrated to 1Password `.env.tpl` + `op inject` flow (DEC-038 session)
-- [ ] Dev.to API key generated and stored in 1Password EmitHQ vault
-- [ ] F5Bot configured: "emithq", "webhook platform", "svix alternative", "hookdeck alternative", "webhook service"
-- [ ] Talkwalker Alerts configured for "emithq", "svix alternative", "hookdeck alternative"
-- [ ] Julian starts HN/Reddit commenting (karma building — 3-5 comments/week, no self-promotion for 2+ weeks)
+- [x] Dev.to API key generated and stored in 1Password EmitHQ vault — done 2026-03-25
+- [x] F5Bot configured: "emithq", "webhook platform", "svix alternative", "hookdeck alternative", "webhook service" — done 2026-03-25
+- [x] Talkwalker Alerts configured for "emithq", "svix alternative", "hookdeck alternative" — done 2026-03-25
+- [ ] Julian starts HN/Reddit commenting (karma building — 3-5 comments/week, no self-promotion for 2+ weeks) — HN account created 2026-03-25, start commenting
 - [x] Update port registry in `~/.claude/CLAUDE.md` with Postiz ports
 - [x] Supersedes T-044
 
