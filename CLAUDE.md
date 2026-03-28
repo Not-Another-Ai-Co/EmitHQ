@@ -31,7 +31,7 @@ See @docs/research/technical-architecture.md for full details.
 - @docs/TICKETS.md — Current work tracking
 - @docs/CONVENTIONS.md — Coding patterns and conventions
 
-**Environment context:** This machine uses 1Password Connect Server on miniPC (`localhost:8888`). Uses `OP_CONNECT_HOST` + `OP_CONNECT_TOKEN` in `~/.bashrc`. SSH key is configured for GitHub (`ssh -T git@github.com` works). Git remote protocol is HTTPS (via `gh`); SSH also available. EmitHQ vault verified (5 items, vault ID `xs5ek3axtys2twnjpniwmczbyi`).
+**Environment context:** This machine uses 1Password Connect Server on miniPC (`localhost:8888`). Uses `OP_CONNECT_HOST` + `OP_CONNECT_TOKEN` in `~/.bashrc`. SSH key is configured for GitHub (`ssh -T git@github.com` works). Git remote protocol is HTTPS (via `gh`); SSH also available.
 
 ## Monorepo Structure
 

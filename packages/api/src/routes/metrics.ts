@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { sql } from 'drizzle-orm';
+import { timingSafeEqual } from 'node:crypto';
 import {
   adminDb,
   adminPool,
@@ -16,12 +17,28 @@ const metricsRoutes = new Hono();
 /**
  * Middleware: protect /metrics with a shared secret.
  * Not behind Clerk (external monitors need access), not public.
+ * Uses timing-safe comparison. Fails closed when secret is unconfigured.
  */
 metricsRoutes.use('*', async (c, next) => {
   const secret = process.env.METRICS_SECRET;
-  if (secret && c.req.header('x-metrics-secret') !== secret) {
+  if (!secret) {
+    return c.json(
+      { error: { code: 'server_error', message: 'Metrics secret not configured' } },
+      500,
+    );
+  }
+
+  const provided = c.req.header('x-metrics-secret');
+  if (!provided) {
     return c.json({ error: { code: 'unauthorized', message: 'Invalid metrics secret' } }, 401);
   }
+
+  const secretBuf = Buffer.from(secret);
+  const providedBuf = Buffer.from(provided);
+  if (secretBuf.length !== providedBuf.length || !timingSafeEqual(secretBuf, providedBuf)) {
+    return c.json({ error: { code: 'unauthorized', message: 'Invalid metrics secret' } }, 401);
+  }
+
   await next();
 });
 

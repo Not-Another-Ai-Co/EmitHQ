@@ -41,32 +41,33 @@ describe('metrics secret middleware (real handler)', () => {
     expect(res.status).toBe(200);
   });
 
-  it('allows requests when no secret configured', async () => {
+  it('returns 500 when no secret configured (fail closed)', async () => {
     const app = createMetricsApp();
-    const { adminDb } = await import('@emithq/core');
-    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      rows: [{ success_rate: '100', p95_ms: '0' }],
-    });
 
     const res = await app.request('/metrics/slo');
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(500);
+    const json = await res.json();
+    expect(json.error.code).toBe('server_error');
   });
 });
 
 describe('GET /metrics/slo (real handler)', () => {
+  const TEST_SECRET = 'test-metrics-secret';
+  const authHeaders = { 'x-metrics-secret': TEST_SECRET };
+
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.METRICS_SECRET;
   });
 
   it('returns pass when all SLOs met', async () => {
-    const app = createMetricsApp();
+    const app = createMetricsApp(TEST_SECRET);
     const { adminDb } = await import('@emithq/core');
     (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       rows: [{ success_rate: '99.95', p95_ms: '180' }],
     });
 
-    const res = await app.request('/metrics/slo');
+    const res = await app.request('/metrics/slo', { headers: authHeaders });
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.allPassing).toBe(true);
@@ -75,13 +76,13 @@ describe('GET /metrics/slo (real handler)', () => {
   });
 
   it('fails when success rate below 99.9%', async () => {
-    const app = createMetricsApp();
+    const app = createMetricsApp(TEST_SECRET);
     const { adminDb } = await import('@emithq/core');
     (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       rows: [{ success_rate: '98.50', p95_ms: '100' }],
     });
 
-    const res = await app.request('/metrics/slo');
+    const res = await app.request('/metrics/slo', { headers: authHeaders });
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.allPassing).toBe(false);
@@ -89,20 +90,20 @@ describe('GET /metrics/slo (real handler)', () => {
   });
 
   it('fails when p95 latency above 500ms', async () => {
-    const app = createMetricsApp();
+    const app = createMetricsApp(TEST_SECRET);
     const { adminDb } = await import('@emithq/core');
     (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       rows: [{ success_rate: '99.95', p95_ms: '750' }],
     });
 
-    const res = await app.request('/metrics/slo');
+    const res = await app.request('/metrics/slo', { headers: authHeaders });
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.slos[1].pass).toBe(false);
   });
 
   it('marks queue unavailable and fails when Redis is down', async () => {
-    const app = createMetricsApp();
+    const app = createMetricsApp(TEST_SECRET);
     const { adminDb, getDeliveryQueue } = await import('@emithq/core');
     (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
       rows: [{ success_rate: '99.95', p95_ms: '100' }],
@@ -111,7 +112,7 @@ describe('GET /metrics/slo (real handler)', () => {
       getJobCounts: vi.fn().mockRejectedValue(new Error('ECONNREFUSED')),
     });
 
-    const res = await app.request('/metrics/slo');
+    const res = await app.request('/metrics/slo', { headers: authHeaders });
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.slos[2].unavailable).toBe(true);

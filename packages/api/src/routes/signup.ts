@@ -144,7 +144,10 @@ signupRoutes.post('/', async (c) => {
         400,
       );
     }
-    console.error('Clerk createUser failed:', JSON.stringify(clerkErr.errors ?? err));
+    console.error(
+      'Clerk createUser failed:',
+      JSON.stringify(clerkErr.errors?.map((e) => e.code) ?? 'unknown'),
+    );
     return c.json({ error: { code: 'signup_failed', message: 'Failed to create account' } }, 500);
   }
 
@@ -156,7 +159,10 @@ signupRoutes.post('/', async (c) => {
     });
   } catch (err: unknown) {
     const clerkErr = err as { errors?: Array<{ code?: string; message?: string }> };
-    console.error('Clerk createOrganization failed:', JSON.stringify(clerkErr.errors ?? err));
+    console.error(
+      'Clerk createOrganization failed:',
+      JSON.stringify(clerkErr.errors?.map((e) => e.code) ?? 'unknown'),
+    );
     // Clerk user created but org creation failed — user can still sign in via dashboard
     return c.json(
       {

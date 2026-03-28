@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import { clerk } from './middleware/auth';
 import { quotaHeaders } from './middleware/quota';
 import { signupRoutes } from './routes/signup';
@@ -45,6 +46,26 @@ app.use(
     ],
     credentials: true,
     maxAge: 86400,
+  }),
+);
+
+// Security headers — applied to all responses
+app.use(
+  '*',
+  secureHeaders({
+    xFrameOptions: 'DENY',
+    xContentTypeOptions: 'nosniff',
+    strictTransportSecurity: 'max-age=63072000; includeSubDomains',
+    referrerPolicy: 'strict-origin-when-cross-origin',
+    // Disable defaults that could break CORS or API clients
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    originAgentCluster: false,
+    xDnsPrefetchControl: false,
+    xDownloadOptions: false,
+    xPermittedCrossDomainPolicies: false,
+    xXssProtection: false,
   }),
 );
 

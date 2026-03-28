@@ -1,12 +1,13 @@
 import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
+import { timingSafeEqual } from 'node:crypto';
 import { adminDb, organizations } from '@emithq/core';
 
 export const adminRoutes = new Hono();
 
 /**
  * Admin middleware — requires ADMIN_SECRET header.
- * Same pattern as /metrics endpoint.
+ * Uses timing-safe comparison to prevent timing oracle attacks.
  */
 adminRoutes.use('*', async (c, next) => {
   const secret = process.env.ADMIN_SECRET ?? process.env.METRICS_SECRET;
@@ -15,7 +16,13 @@ adminRoutes.use('*', async (c, next) => {
   }
 
   const provided = c.req.header('x-admin-secret') ?? c.req.header('x-metrics-secret');
-  if (provided !== secret) {
+  if (!provided) {
+    return c.json({ error: { code: 'unauthorized', message: 'Invalid admin secret' } }, 401);
+  }
+
+  const secretBuf = Buffer.from(secret);
+  const providedBuf = Buffer.from(provided);
+  if (secretBuf.length !== providedBuf.length || !timingSafeEqual(secretBuf, providedBuf)) {
     return c.json({ error: { code: 'unauthorized', message: 'Invalid admin secret' } }, 401);
   }
 

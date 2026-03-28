@@ -199,8 +199,6 @@ billingWebhookRoute.post('/webhook', async (c) => {
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('Stripe webhook signature verification failed:', msg);
-    console.error('Signature header:', signature?.slice(0, 30) + '...');
-    console.error('Webhook secret starts with:', webhookSecret?.slice(0, 10) + '...');
     console.error('Raw body length:', rawBody?.length);
     return c.json({ error: { code: 'unauthorized', message: 'Invalid webhook signature' } }, 401);
   }
@@ -242,18 +240,8 @@ billingWebhookRoute.post('/webhook', async (c) => {
     }
   } catch (handlerErr) {
     const errMsg = handlerErr instanceof Error ? handlerErr.message : String(handlerErr);
-    const errStack =
-      handlerErr instanceof Error ? handlerErr.stack?.split('\n').slice(0, 3).join(' | ') : '';
     console.error(`Webhook handler error for ${event.type}:`, errMsg);
-    // Return 500 with error details so Stripe dashboard shows what failed
-    return c.json(
-      {
-        error: errMsg,
-        stack: errStack,
-        eventType: event.type,
-      },
-      500,
-    );
+    return c.json({ error: 'Webhook processing failed' }, 500);
   }
 
   // Update billing_events with the actual org_id now that we've processed it

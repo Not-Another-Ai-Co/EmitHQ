@@ -509,6 +509,228 @@ _T-090 starts after T-107 (social accounts exist) + T-109 (first blog post live)
 
 ---
 
+## Codebase Health Refactoring — 2026-03-28
+
+_Research: ~/.claude/tmp/research-emithq-codebase-audit.md. 6-agent audit found 4 critical issues, ~10 high-severity gaps, and structural debt. Phased to not block outreach (T-090). Anti-pattern KB coverage waived (all 5 domains — straightforward fixes, not novel design)._
+
+### Phase 13a: Critical Fixes
+
+---
+
+### T-112: Security Hardening — Timing-Safe Comparisons, Headers, Leak Cleanup [x]
+
+**Phase:** 13a
+**Effort:** Low
+**Complexity:** Moderate
+**Depends on:** none
+**Test strategy:** unit
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Fix 2 timing-unsafe secret comparisons (HIGH severity), add security headers to API and dashboard, clean up secret/stack leaks in error responses and logs. All changes are in the API and dashboard packages — no business logic changes.
+
+**Acceptance criteria:**
+
+- [ ] `admin.ts`: replace `provided !== secret` with `crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(secret))` (with length guard returning 401 on mismatch)
+- [ ] `metrics.ts`: same timing-safe fix for `METRICS_SECRET` comparison
+- [ ] `billing.ts` webhook error handler: remove `stack` field from 500 response — return only `{ error: 'Webhook processing failed' }`
+- [ ] `billing.ts`: remove `console.error` that logs first 10 chars of webhook secret (lines 201–204)
+- [ ] `signup.ts`: sanitize Clerk error logging — strip email from error object before `console.error`
+- [ ] `packages/api/src/index.ts`: add Hono `secureHeaders()` middleware — `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security: max-age=63072000; includeSubDomains`, `Referrer-Policy: strict-origin-when-cross-origin`
+- [ ] `packages/dashboard/next.config.ts`: add `headers()` function with security headers on `/(.*)` — use `X-Frame-Options: SAMEORIGIN` (not DENY) because Clerk's `<UserProfile>` renders in an iframe
+- [ ] Existing tests pass; add 2 tests to `auth.test.ts` or new `admin.test.ts`: verify 401 on wrong admin secret, verify 200 on correct admin secret
+
+---
+
+### T-113: Test Integrity — Fix Message Tests, Add Circuit Breaker + Billing Coverage [ ]
+
+**Phase:** 13a
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Test strategy:** unit
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Fix the critical gap where `messages.test.ts` reimplements the handler instead of importing the real route, then add tests for the 3 highest-risk untested paths: circuit breaker auto-disable, DLQ exhaustion handling, and Stripe webhook event processing.
+
+**Acceptance criteria:**
+
+- [ ] `messages.test.ts`: refactor to import and mount `messagesRoutes` from `routes/messages.ts` using `createTestApp()` pattern (matching how `signup.test.ts`, `api-keys.test.ts` test real handlers). All existing assertions preserved.
+- [ ] `delivery-worker.test.ts`: add circuit breaker test — simulate 10 consecutive failures on one endpoint, verify `disabled` is set to `true` and `disabledReason` contains `'circuit_breaker'`
+- [ ] `delivery-worker.test.ts`: add DLQ exhaustion test — verify `handleExhaustedDelivery` sets status to `'exhausted'` on the delivery attempt
+- [ ] `billing.test.ts`: add tests for 4 Stripe webhook event types: `checkout.session.completed` (creates subscription), `customer.subscription.updated` (updates tier), `customer.subscription.deleted` (downgrades to free), `invoice.payment_failed` (sets status to `past_due`). Use mocked Stripe event payloads.
+- [ ] All tests green: `npm test` passes with 0 failures
+
+---
+
+### Phase 13b: CI + Docs Alignment
+
+---
+
+### T-114: CI Hardening — Typecheck All Packages, Gate SDK Publish, Fix Coverage [ ]
+
+**Phase:** 13b
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Test strategy:** integration (CI pipeline)
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Close 3 CI blind spots: dashboard/landing are excluded from typecheck, SDK can publish without CI passing, and `@vitest/coverage-v8` is configured but not installed. Note: dashboard/landing have never been type-checked in CI — expect pre-existing type errors that need fixing before CI goes green.
+
+**Acceptance criteria:**
+
+- [ ] Add `typecheck:all` script to root `package.json` that runs `tsc --noEmit` on root config AND `tsc --noEmit -p packages/dashboard/tsconfig.json` AND `tsc --noEmit -p packages/landing/tsconfig.json`
+- [ ] Update `.github/workflows/ci.yml` to use `npm run typecheck:all` instead of `npm run typecheck`
+- [ ] `publish-sdk.yml`: add `needs: ci` dependency (or add a `ci-complete` job check) so SDK cannot publish when CI is red
+- [ ] Install `@vitest/coverage-v8` as root devDependency: `npm install -D @vitest/coverage-v8`
+- [ ] Remove stale `@types/ioredis` from root devDependencies (ioredis v5 ships own types)
+- [ ] Clean knip config: remove unnecessary `.next/**` and `out/**` ignore patterns, remove `@playwright/test` from dashboard `ignoreDependencies`
+- [ ] Fix any pre-existing type errors in dashboard/landing discovered by the new typecheck (may be non-trivial — these packages were never CI-checked)
+- [ ] CI passes on a push to master with the updated workflow
+
+---
+
+### T-115: Architecture Documentation Alignment [ ]
+
+**Phase:** 13b
+**Effort:** Low
+**Complexity:** Simple
+**Depends on:** T-113
+**Test strategy:** manual
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Update ARCHITECTURE.md to match what the code actually does. 3 claims are inaccurate: operational webhook on DLQ exhaustion (not implemented), quota increment "same transaction" (separate `adminDb` call), and API key verification via `timingSafeEqual` (middleware uses DB hash lookup). Also update SSRF description (uses full `validateEndpointUrl` at delivery, not `isObviouslyBlockedUrl`).
+
+**Acceptance criteria:**
+
+- [ ] ARCHITECTURE.md step 19: change "send operational webhook" to "mark status as exhausted in delivery_attempts table" — add note: "Operational webhook notification deferred (not yet implemented)"
+- [ ] ARCHITECTURE.md step 8: change "atomically in same transaction" to "via separate adminDb UPDATE (organizations table has no RLS, requires admin pool). Not in the same PostgreSQL transaction as message persist."
+- [ ] ARCHITECTURE.md Authentication section: change "verified with `crypto.timingSafeEqual`" to "looked up by SHA-256 hash via database equality (`WHERE keyHash = ?`). `verifyApiKey()` with `timingSafeEqual` exists in core but is not used in the production auth middleware path."
+- [ ] ARCHITECTURE.md step 12: update SSRF description to say `validateEndpointUrl` (async, DNS-resolving) is used at both endpoint creation AND delivery time. Remove any reference to `isObviouslyBlockedUrl` at delivery.
+- [ ] No code changes — documentation only
+
+---
+
+### Phase 13c: Dashboard Refactoring
+
+---
+
+### T-116: Dashboard Error Boundaries + Accessibility [ ]
+
+**Phase:** 13c
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** none
+**Test strategy:** e2e
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Add Next.js error boundaries (`error.tsx`) to all dashboard route segments so crashes show recovery UI instead of the default error screen. Fix critical accessibility gaps: make interactive elements keyboard-focusable, add ARIA attributes to modal and forms, add `aria-label` to icon-only buttons.
+
+**Acceptance criteria:**
+
+- [ ] `error.tsx` added to: `app/dashboard/`, `app/dashboard/app/[appId]/`, `app/dashboard/settings/`. Each shows error message + "Try again" button that calls `reset()`
+- [ ] `app/dashboard/app/[appId]/page.tsx` (server component): wrap `apiGet()` failure gracefully (already partially done — verify)
+- [ ] `DlqPage`: add `setError(null)` at start of `fetchDlq` to clear stale errors on refetch
+- [ ] `modal.tsx`: add `role="dialog"`, `aria-modal="true"`, `aria-labelledby` referencing the modal title element. Close button: add `aria-label="Close"`
+- [ ] App cards in `page.tsx`: change `<div onClick>` to `<button>` or add `tabIndex={0}`, `role="button"`, `onKeyDown` (Enter/Space triggers click)
+- [ ] Event log rows in `events/page.tsx`: add `tabIndex={0}`, `role="row"`, `onKeyDown` handler
+- [ ] All icon-only dismiss buttons (`×`): add `aria-label="Dismiss"` or `aria-label="Close"`
+- [ ] All form `<label>` elements: add `htmlFor` matching input `id` attributes (settings, endpoints, app create form)
+- [ ] `endpoints/page.tsx` `handleTest()`: add `if (!res.ok)` check before reading JSON — show error in test result panel on failure
+
+**Gherkin scenarios:**
+
+```gherkin
+Scenario: Error boundary catches component crash and shows recovery UI
+  Given the SaaS Developer is on the dashboard
+  When a child component throws an uncaught runtime error
+  Then the nearest error.tsx boundary renders with an error message and "Try again" button
+  And the navigation shell remains visible
+
+Scenario: Keyboard-only user can navigate app cards
+  Given the SaaS Developer is on the Applications list
+  When the user presses Tab to cycle through app cards
+  Then each card receives visible focus
+  When the user presses Enter on a focused card
+  Then the application detail view opens
+
+Scenario: Screen reader announces modal as dialog
+  When a modal is opened
+  Then the modal has role="dialog" and aria-modal="true"
+  And the screen reader announces the modal role and title
+```
+
+---
+
+### T-117: Settings + Endpoints Page Decomposition [ ]
+
+**Phase:** 13c
+**Effort:** Medium
+**Complexity:** Moderate
+**Depends on:** T-116
+**Test strategy:** e2e
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Split the 832-line settings page into separate tab files and decompose the 694-line endpoints page into focused components. Extract shared `ErrorBanner` component. This reduces cognitive overhead, enables independent testing, and eliminates duplicated UI patterns (error banners 5x, endpoint form 2x, tier upsell 2x).
+
+**Acceptance criteria:**
+
+- [ ] `settings/page.tsx` split: extract `ApiKeysTab` → `settings/tabs/api-keys-tab.tsx`, `BillingTab` → `settings/tabs/billing-tab.tsx`, `DangerZoneTab` → `settings/tabs/danger-zone-tab.tsx`. `SettingsTabBar`, `ProfileTab`, `SettingsContent`, `SettingsPage` stay in `page.tsx` (thin routing shell)
+- [ ] `endpoints/page.tsx` decomposed: extract `EndpointCard` component (view + health metrics + actions), `EndpointForm` component (shared between create and edit — single form, two modes), `EndpointHealthMetrics` component (2×4 metrics grid)
+- [ ] Shared `ErrorBanner` component extracted to `components/error-banner.tsx` — replaces 5+ inline error banner patterns. Props: `message: string`, `onDismiss: () => void`. Includes `role="alert"` for screen readers.
+- [ ] Endpoint create and edit forms use the same `EndpointForm` component (dedup URL/description/eventFilter/transformRules fields)
+- [ ] Tier upsell block extracted to shared component used by both create and edit modes in `EndpointForm`
+- [ ] `settings/page.tsx` is under 150 lines after extraction
+- [ ] `endpoints/page.tsx` is under 200 lines after extraction (state + orchestration only)
+- [ ] All existing functionality preserved — E2E browser journey passes without changes
+
+**Gherkin scenarios:**
+
+```gherkin
+Scenario: Settings tabs work after split
+  Given the SaaS Developer navigates to Settings
+  When clicking each tab (API Keys, Billing, Profile, Danger Zone)
+  Then each tab content renders independently without errors
+
+Scenario: Endpoint CRUD works after decomposition
+  Given the SaaS Developer is on the Endpoints page
+  When creating, editing, and deleting endpoints
+  Then all operations complete successfully via the decomposed components
+
+Scenario: Endpoint test failure shows error in correct card
+  Given multiple endpoints are visible
+  When a test delivery fails on the second endpoint
+  Then the ErrorBanner renders inside only that EndpointCard
+```
+
+---
+
+### Phase 13d: Structural Cleanup
+
+---
+
+### T-118: Code DRY + Type Safety — Extract Shared Utils, Fix AuthEnv Types [ ]
+
+**Phase:** 13d
+**Effort:** Low
+**Complexity:** Moderate
+**Depends on:** T-117
+**Test strategy:** unit
+**Research:** ~/.claude/tmp/research-emithq-codebase-audit.md
+
+**Description:** Extract duplicated utilities and fix the root cause of the `typedTx` cast pattern. Also extract shared tier feature flags to eliminate dashboard/landing duplication while keeping UI copy in each consumer (core exports data, not presentation).
+
+**Acceptance criteria:**
+
+- [ ] Extract `resolveApp(tx, appId)` to `packages/api/src/lib/resolve-app.ts` — remove duplicate definitions from `endpoints.ts` and `dashboard.ts`, import from shared location
+- [ ] Extract `UUID_RE` to `packages/api/src/lib/constants.ts` — remove 4 duplicate definitions from `applications.ts`, `endpoints.ts`, `messages.ts`, and import from shared location. (Keep the copy in `packages/core/src/db/tenant.ts` since core shouldn't depend on api.)
+- [ ] Fix `AuthEnv` in `packages/api/src/types.ts`: type `tx` as the Drizzle transaction type (not `unknown`). This eliminates the need for `const typedTx = tx as typeof import('@emithq/core').db` cast pattern. Remove all 14+ `typedTx` casts across route files.
+- [ ] Add `TIER_FEATURES` map to `packages/core/src/billing/tiers.ts` — boolean feature flags per tier (e.g., `{ transforms: boolean, prioritySupport: boolean }`). Export from core barrel. Dashboard and landing import feature flags and compose their own UI copy around them. Do NOT put UI description strings in core — core exports data, each consumer owns presentation.
+- [ ] `@emithq/core` barrel: replace `export * from './db/schema'` with explicit named exports for tables/types actually consumed by api routes
+- [ ] All tests pass, knip clean, no new lint errors
+
+---
+
 ### Deferred Tickets [-]
 
 _The following tickets are deferred until post-first-10-customers. They add complexity without value at zero users._
