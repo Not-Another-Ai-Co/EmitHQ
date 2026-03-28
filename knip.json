@@ -7,12 +7,12 @@
       "ignore": ["src/routes/inbound.test.ts"]
     },
     "packages/dashboard": {
-      "ignoreDependencies": ["postcss", "postcss-load-config", "@clerk/testing", "@playwright/test"]
+      "ignoreDependencies": ["postcss", "postcss-load-config", "@clerk/testing"]
     },
     "packages/landing": {
       "ignoreDependencies": ["postcss", "postcss-load-config"]
     }
   },
-  "ignore": ["**/.next/**", "**/out/**", "packages/sdk/**", "scripts/**", "**/e2e/**"],
-  "ignoreDependencies": ["tsx", "@eslint/js", "@vitest/coverage-v8", "resend"]
+  "ignore": ["packages/sdk/**", "scripts/**", "**/e2e/**"],
+  "ignoreDependencies": ["tsx", "@eslint/js", "resend"]
 }

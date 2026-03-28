@@ -566,7 +566,7 @@ _Research: ~/.claude/tmp/research-emithq-codebase-audit.md. 6-agent audit found 
 
 ---
 
-### T-114: CI Hardening — Typecheck All Packages, Gate SDK Publish, Fix Coverage [ ]
+### T-114: CI Hardening — Typecheck All Packages, Gate SDK Publish, Fix Coverage [x]
 
 **Phase:** 13b
 **Effort:** Medium

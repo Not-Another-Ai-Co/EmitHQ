@@ -36,8 +36,29 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
+
+      - name: Wait for CI to pass
+        run: |
+          echo "Checking CI status for commit $GITHUB_SHA..."
+          for i in $(seq 1 60); do
+            STATUS=$(gh run list --commit "$GITHUB_SHA" --workflow ci.yml --json conclusion --jq '.[0].conclusion // empty' 2>/dev/null || echo "")
+            if [ "$STATUS" = "success" ]; then
+              echo "CI passed — proceeding with publish"
+              exit 0
+            elif [ "$STATUS" = "failure" ] || [ "$STATUS" = "cancelled" ]; then
+              echo "CI $STATUS — aborting publish"
+              exit 1
+            fi
+            echo "CI still running (attempt $i/60)... waiting 15s"
+            sleep 15
+          done
+          echo "Timeout waiting for CI — aborting publish"
+          exit 1
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - uses: actions/setup-node@v4
         with:
