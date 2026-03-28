@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { coreMock, authMock, tenantMock } from '../test-helpers/mock-core';
 
 // Mock dependencies BEFORE importing the route
@@ -260,6 +260,209 @@ describe('billing routes (real handlers)', () => {
       }
       errorSpy.mockRestore();
       delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+  });
+});
+
+describe('webhook event handler integration (real handlers)', () => {
+  let webhookApp: Hono;
+
+  function makeWebhookRequest(event: Record<string, unknown>) {
+    return new Request('http://localhost/api/v1/billing/webhook', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain',
+        'stripe-signature': 't=1234,v1=abc123',
+      },
+      body: JSON.stringify(event),
+    });
+  }
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+
+    webhookApp = new Hono();
+    webhookApp.route('/api/v1/billing', billingWebhookRoute);
+
+    const { getStripe, adminDb } = await import('@emithq/core');
+    const stripe = (getStripe as ReturnType<typeof vi.fn>)();
+
+    // Mock constructEvent to return the event object passed in the request body
+    (stripe.webhooks.constructEvent as ReturnType<typeof vi.fn>).mockImplementation(
+      (rawBody: string) => JSON.parse(rawBody),
+    );
+
+    // Mock idempotency insert (billingEvents) — resolve successfully (not a duplicate)
+    (adminDb.insert as ReturnType<typeof vi.fn>).mockReturnValue({
+      values: vi.fn().mockResolvedValue(undefined),
+    });
+  });
+
+  afterEach(() => {
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+  });
+
+  it('checkout.session.completed sets org to active with correct tier', async () => {
+    const { getStripe, adminDb, tierFromPriceId } = await import('@emithq/core');
+    const stripe = (getStripe as ReturnType<typeof vi.fn>)();
+
+    // Mock stripe.subscriptions.retrieve
+    (stripe.subscriptions.retrieve as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      items: { data: [{ price: { id: 'price_test_m' } }] },
+      current_period_end: 1700000000,
+    });
+
+    (tierFromPriceId as ReturnType<typeof vi.fn>).mockReturnValueOnce('starter');
+
+    // Capture set() args
+    const setCalls: unknown[] = [];
+    (adminDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: vi.fn().mockImplementation((args: unknown) => {
+        setCalls.push(args);
+        return { where: vi.fn().mockResolvedValue(undefined) };
+      }),
+    });
+
+    const res = await webhookApp.request(
+      makeWebhookRequest({
+        id: 'evt_checkout_1',
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            metadata: { org_id: 'org_test' },
+            customer: 'cus_test',
+            subscription: 'sub_test',
+          },
+        },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(setCalls.length).toBeGreaterThanOrEqual(1);
+    const orgUpdate = setCalls.find(
+      (c) => typeof c === 'object' && c !== null && 'stripeCustomerId' in c,
+    );
+    expect(orgUpdate).toMatchObject({
+      stripeCustomerId: 'cus_test',
+      stripeSubscriptionId: 'sub_test',
+      subscriptionStatus: 'active',
+      tier: 'starter',
+    });
+  });
+
+  it('customer.subscription.updated updates tier and status', async () => {
+    const { adminDb, tierFromPriceId } = await import('@emithq/core');
+
+    (tierFromPriceId as ReturnType<typeof vi.fn>).mockReturnValueOnce('growth');
+
+    const setCalls: unknown[] = [];
+    (adminDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: vi.fn().mockImplementation((args: unknown) => {
+        setCalls.push(args);
+        return { where: vi.fn().mockResolvedValue(undefined) };
+      }),
+    });
+
+    const res = await webhookApp.request(
+      makeWebhookRequest({
+        id: 'evt_sub_upd_1',
+        type: 'customer.subscription.updated',
+        data: {
+          object: {
+            id: 'sub_test',
+            metadata: { org_id: 'org_test' },
+            status: 'active',
+            cancel_at_period_end: false,
+            current_period_end: 1700000000,
+            items: { data: [{ price: { id: 'price_test_growth' } }] },
+          },
+        },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const orgUpdate = setCalls.find(
+      (c) => typeof c === 'object' && c !== null && 'subscriptionStatus' in c,
+    );
+    expect(orgUpdate).toMatchObject({
+      subscriptionStatus: 'active',
+      tier: 'growth',
+    });
+  });
+
+  it('customer.subscription.deleted downgrades to free tier', async () => {
+    const { adminDb } = await import('@emithq/core');
+
+    const setCalls: unknown[] = [];
+    (adminDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: vi.fn().mockImplementation((args: unknown) => {
+        setCalls.push(args);
+        return { where: vi.fn().mockResolvedValue(undefined) };
+      }),
+    });
+
+    const res = await webhookApp.request(
+      makeWebhookRequest({
+        id: 'evt_sub_del_1',
+        type: 'customer.subscription.deleted',
+        data: {
+          object: {
+            id: 'sub_test',
+            metadata: { org_id: 'org_test' },
+          },
+        },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const orgUpdate = setCalls.find((c) => typeof c === 'object' && c !== null && 'tier' in c);
+    expect(orgUpdate).toMatchObject({
+      tier: 'free',
+      subscriptionStatus: 'free',
+      stripeSubscriptionId: null,
+      currentPeriodEnd: null,
+    });
+  });
+
+  it('invoice.payment_failed sets subscription status to past_due', async () => {
+    const { adminDb } = await import('@emithq/core');
+
+    // Mock org lookup by subscription ID
+    (adminDb.select as ReturnType<typeof vi.fn>).mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ id: 'org_test' }]),
+        }),
+      }),
+    });
+
+    const setCalls: unknown[] = [];
+    (adminDb.update as ReturnType<typeof vi.fn>).mockReturnValue({
+      set: vi.fn().mockImplementation((args: unknown) => {
+        setCalls.push(args);
+        return { where: vi.fn().mockResolvedValue(undefined) };
+      }),
+    });
+
+    const res = await webhookApp.request(
+      makeWebhookRequest({
+        id: 'evt_pay_fail_1',
+        type: 'invoice.payment_failed',
+        data: {
+          object: {
+            subscription: 'sub_test',
+          },
+        },
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    const orgUpdate = setCalls.find(
+      (c) => typeof c === 'object' && c !== null && 'subscriptionStatus' in c,
+    );
+    expect(orgUpdate).toMatchObject({
+      subscriptionStatus: 'past_due',
     });
   });
 });

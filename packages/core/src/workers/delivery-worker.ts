@@ -234,7 +234,7 @@ export async function processDeliveryJob(data: DeliveryJobData, attemptsMade = 0
  * Handle exhausted delivery attempts (all retries consumed).
  * Marks the delivery attempt as 'exhausted' in the database.
  */
-async function handleExhaustedDelivery(data: DeliveryJobData): Promise<void> {
+export async function handleExhaustedDelivery(data: DeliveryJobData): Promise<void> {
   await adminDb
     .update(deliveryAttempts)
     .set({

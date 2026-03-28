@@ -1,203 +1,106 @@
-import { describe, it, expect, vi } from 'vitest';
-import { Hono } from 'hono';
-import type { AuthEnv } from '../types';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { coreMock, authMock, tenantMock } from '../test-helpers/mock-core';
 
-// Mock @emithq/core
-vi.mock('@emithq/core', () => {
-  return {
-    adminDb: {
-      select: vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([{ tier: 'growth', eventCountMonth: 0 }]),
-          }),
-        }),
-      }),
-    },
-    db: {
-      transaction: vi.fn(),
-    },
-    withTenant: vi.fn(),
-    applications: {
-      id: 'id',
-      uid: 'uid',
-      orgId: 'org_id',
-    },
-    messages: {
-      id: 'id',
-      appId: 'app_id',
-      orgId: 'org_id',
-      eventId: 'event_id',
-      eventType: 'event_type',
-      payload: 'payload',
-      createdAt: 'created_at',
-    },
-    endpoints: {
-      id: 'id',
-      appId: 'app_id',
-      disabled: 'disabled',
-      eventTypeFilter: 'event_type_filter',
-    },
-    deliveryAttempts: {
-      id: 'id',
-      messageId: 'message_id',
-      endpointId: 'endpoint_id',
-      orgId: 'org_id',
-      attemptNumber: 'attempt_number',
-      status: 'status',
-    },
-    organizations: {
-      id: 'id',
-      tier: 'tier',
-      eventCountMonth: 'event_count_month',
-    },
-    apiKeys: {
-      orgId: 'org_id',
-      id: 'id',
-      keyHash: 'key_hash',
-      revokedAt: 'revoked_at',
-      expiresAt: 'expires_at',
-      lastUsedAt: 'last_used_at',
-    },
-    hashApiKey: vi.fn(),
-    isEmithqApiKey: (key: string) => key.startsWith('emhq_'),
-    enqueueDelivery: vi.fn().mockResolvedValue(undefined),
-  };
-});
-
-vi.mock('@hono/clerk-auth', () => ({
-  clerkMiddleware: () => vi.fn(async (_c: unknown, next: () => Promise<void>) => next()),
-  getAuth: vi.fn(),
+// Mock dependencies BEFORE importing the route
+vi.mock('@emithq/core', () => coreMock());
+vi.mock('../middleware/auth', () => authMock());
+vi.mock('../middleware/tenant', () => tenantMock());
+vi.mock('../middleware/quota', () => ({
+  quotaCheck: vi.fn(async (_c: unknown, next: () => Promise<void>) => next()),
+  quotaHeaders: vi.fn(async (_c: unknown, next: () => Promise<void>) => next()),
 }));
 
-// Helper to create a test app with pre-set auth context
-function createTestApp() {
-  const app = new Hono<AuthEnv>();
+import { messageRoutes } from './messages';
+import { Hono } from 'hono';
+import { createMiddleware } from 'hono/factory';
+import type { AuthEnv } from '../types';
 
-  // Simulate auth + tenant middleware
-  app.use('*', async (c, next) => {
+/** Create a mock tx that simulates Drizzle transaction operations */
+function createMockTx() {
+  const mockTx = {
+    select: vi.fn().mockReturnThis(),
+    from: vi.fn().mockReturnThis(),
+    where: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockResolvedValue([]),
+    insert: vi.fn().mockReturnThis(),
+    values: vi.fn().mockReturnThis(),
+    returning: vi.fn().mockResolvedValue([]),
+    onConflictDoNothing: vi.fn().mockReturnThis(),
+    orderBy: vi.fn().mockReturnThis(),
+  };
+  return mockTx;
+}
+
+/**
+ * Create a test app mounting the REAL messageRoutes with injected auth + tx context.
+ * The tenantMock passes through without setting tx, so we inject it explicitly.
+ */
+function createMessageApp(txOverrides?: ReturnType<typeof createMockTx>) {
+  const app = new Hono();
+  const mockTx = txOverrides ?? createMockTx();
+
+  // Inject auth context and mock tx (replaces what requireAuth + tenantScope would do)
+  const injectContext = createMiddleware<AuthEnv>(async (c, next) => {
     c.set('orgId', 'org-123');
     c.set('userId', null);
     c.set('authType', 'api_key');
-
-    // Create a mock transaction
-    const mockTx = createMockTx();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     c.set('tx', mockTx as any);
     await next();
   });
 
-  return { app, getMockTx: () => (globalThis as Record<string, unknown>).__lastMockTx };
+  app.use('/api/v1/app/*', injectContext);
+  app.route('/api/v1/app', messageRoutes);
+
+  return { app, mockTx };
 }
 
-function createMockTx() {
-  const mockExecute = vi.fn().mockResolvedValue(undefined);
-
-  const mockTx = {
-    select: vi.fn(),
-    insert: vi.fn(),
-    execute: mockExecute,
-  };
-
-  // Default: app found
-  mockTx.select.mockReturnValue({
-    from: vi.fn().mockReturnValue({
-      where: vi.fn().mockReturnValue({
-        limit: vi.fn().mockResolvedValue([{ id: 'app-uuid-123' }]),
-      }),
-    }),
+function jsonRequest(path: string, body: unknown, headers: Record<string, string> = {}): Request {
+  return new Request(`http://localhost${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...headers },
+    body: JSON.stringify(body),
   });
-
-  // Default: insert message succeeds
-  mockTx.insert.mockReturnValue({
-    values: vi.fn().mockReturnValue({
-      returning: vi.fn().mockResolvedValue([
-        {
-          id: 'msg-uuid-1',
-          eventType: 'invoice.paid',
-          eventId: null,
-          createdAt: '2026-03-13T00:00:00Z',
-        },
-      ]),
-    }),
-  });
-
-  (globalThis as Record<string, unknown>).__lastMockTx = mockTx;
-  return mockTx;
 }
 
-describe('POST /api/v1/app/:appId/msg', () => {
+describe('POST /api/v1/app/:appId/msg (real handler)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('returns 202 with message data for valid event', async () => {
-    createTestApp();
+    const { app, mockTx } = createMessageApp();
+    const { adminDb } = await import('@emithq/core');
 
-    // Import and mount the route handler directly (skip auth middleware)
-    const { Hono: H } = await import('hono');
-    const testApp = new H<AuthEnv>();
-
-    // Simulate the full middleware chain with mocks
-    testApp.use('*', async (c, next) => {
-      c.set('orgId', 'org-123');
-      c.set('authType', 'api_key');
-      c.set('userId', null);
-
-      const mockTx = createMockTx();
-
-      // Configure: app found, message inserted, no endpoints
-      const selectCalls: number[] = [];
-      mockTx.select.mockImplementation((_fields: unknown) => {
-        selectCalls.push(1);
-        const callNum = selectCalls.length;
-
-        if (callNum === 1) {
-          // App lookup
-          return {
-            from: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue([{ id: 'app-uuid-123' }]),
-              }),
-            }),
-          };
-        }
-        // Endpoint lookup — no active endpoints
-        return {
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([]),
-          }),
-        };
-      });
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      c.set('tx', mockTx as any);
-      await next();
+    // App lookup → found
+    let selectCall = 0;
+    mockTx.limit.mockImplementation(() => {
+      selectCall++;
+      if (selectCall === 1) return Promise.resolve([{ id: 'app-uuid-123' }]); // app
+      return Promise.resolve([]); // endpoints — none active
     });
 
-    // Mount message route handler directly
-    testApp.post('/:appId/msg', async (c) => {
-      const body = await c.req.json();
-      if (!body.eventType) {
-        return c.json(
-          { error: { code: 'validation_error', message: 'eventType is required' } },
-          400,
-        );
-      }
-      return c.json(
-        {
-          data: {
-            id: 'msg-uuid-1',
-            eventType: body.eventType,
-            eventId: body.eventId ?? null,
-            createdAt: '2026-03-13T00:00:00Z',
-          },
-        },
-        202,
-      );
+    // Message insert → returning message
+    mockTx.returning.mockResolvedValueOnce([
+      {
+        id: 'msg-uuid-1',
+        eventType: 'invoice.paid',
+        eventId: null,
+        createdAt: '2026-03-13T00:00:00Z',
+      },
+    ]);
+
+    // Quota increment
+    (adminDb.execute as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      rows: [{ event_count_month: 5 }],
     });
 
-    const res = await testApp.request('/app-123/msg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventType: 'invoice.paid', payload: { amount: 100 } }),
-    });
+    const res = await app.request(
+      jsonRequest('/api/v1/app/app-123/msg', {
+        eventType: 'invoice.paid',
+        payload: { amount: 100 },
+      }),
+    );
 
     expect(res.status).toBe(202);
     const json = await res.json();
@@ -206,54 +109,27 @@ describe('POST /api/v1/app/:appId/msg', () => {
   });
 
   it('returns 400 when eventType is missing', async () => {
-    const { Hono: H } = await import('hono');
-    const app = new H();
+    const { app } = createMessageApp();
 
-    app.post('/:appId/msg', async (c) => {
-      const body = await c.req.json();
-      if (!body.eventType || typeof body.eventType !== 'string' || body.eventType.trim() === '') {
-        return c.json(
-          { error: { code: 'validation_error', message: 'eventType is required' } },
-          400,
-        );
-      }
-      return c.json({ data: {} }, 202);
-    });
-
-    const res = await app.request('/app-123/msg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ payload: { foo: 'bar' } }),
-    });
+    const res = await app.request(
+      jsonRequest('/api/v1/app/app-123/msg', { payload: { foo: 'bar' } }),
+    );
 
     expect(res.status).toBe(400);
     const json = await res.json();
     expect(json.error.code).toBe('validation_error');
+    expect(json.error.message).toContain('eventType');
   });
 
   it('returns 400 when payload is not an object', async () => {
-    const { Hono: H } = await import('hono');
-    const app = new H();
+    const { app } = createMessageApp();
 
-    app.post('/:appId/msg', async (c) => {
-      const body = await c.req.json();
-      if (
-        body.payload !== undefined &&
-        (typeof body.payload !== 'object' || body.payload === null || Array.isArray(body.payload))
-      ) {
-        return c.json(
-          { error: { code: 'validation_error', message: 'payload must be a JSON object' } },
-          400,
-        );
-      }
-      return c.json({ data: {} }, 202);
-    });
-
-    const res = await app.request('/app-123/msg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventType: 'test.event', payload: 'not-an-object' }),
-    });
+    const res = await app.request(
+      jsonRequest('/api/v1/app/app-123/msg', {
+        eventType: 'test.event',
+        payload: 'not-an-object',
+      }),
+    );
 
     expect(res.status).toBe(400);
     const json = await res.json();
@@ -261,66 +137,54 @@ describe('POST /api/v1/app/:appId/msg', () => {
   });
 
   it('returns 400 when payload is an array', async () => {
-    const { Hono: H } = await import('hono');
-    const app = new H();
+    const { app } = createMessageApp();
 
-    app.post('/:appId/msg', async (c) => {
-      const body = await c.req.json();
-      if (
-        body.payload !== undefined &&
-        (typeof body.payload !== 'object' || body.payload === null || Array.isArray(body.payload))
-      ) {
-        return c.json(
-          { error: { code: 'validation_error', message: 'payload must be a JSON object' } },
-          400,
-        );
-      }
-      return c.json({ data: {} }, 202);
-    });
-
-    const res = await app.request('/app-123/msg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventType: 'test.event', payload: [1, 2, 3] }),
-    });
+    const res = await app.request(
+      jsonRequest('/api/v1/app/app-123/msg', {
+        eventType: 'test.event',
+        payload: [1, 2, 3],
+      }),
+    );
 
     expect(res.status).toBe(400);
   });
 
   it('returns 413 when content-length exceeds limit', async () => {
-    const { Hono: H } = await import('hono');
-    const app = new H();
+    const { app } = createMessageApp();
 
-    const MAX_PAYLOAD_BYTES = 256 * 1024;
-    app.post('/:appId/msg', async (c) => {
-      const contentLength = c.req.header('content-length');
-      if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
-        return c.json(
-          { error: { code: 'payload_too_large', message: 'Payload must be under 256KB' } },
-          413,
-        );
-      }
-      return c.json({ data: {} }, 202);
-    });
-
-    const res = await app.request('/app-123/msg', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': '500000',
-      },
-      body: '{}',
-    });
+    const res = await app.request(
+      jsonRequest(
+        '/api/v1/app/app-123/msg',
+        { eventType: 'test.event' },
+        {
+          'Content-Length': '500000',
+        },
+      ),
+    );
 
     expect(res.status).toBe(413);
     const json = await res.json();
     expect(json.error.code).toBe('payload_too_large');
   });
+
+  it('returns 404 when application not found', async () => {
+    const { app, mockTx } = createMessageApp();
+
+    // App lookup → not found
+    mockTx.limit.mockResolvedValueOnce([]);
+
+    const res = await app.request(
+      jsonRequest('/api/v1/app/nonexistent/msg', { eventType: 'test.event' }),
+    );
+
+    expect(res.status).toBe(404);
+    const json = await res.json();
+    expect(json.error.code).toBe('not_found');
+  });
 });
 
 describe('isUniqueViolation', () => {
   it('detects PostgreSQL unique constraint violation code 23505', () => {
-    // Test the pattern used in the route
     const pgError = { code: '23505', detail: 'Key already exists' };
     const isUnique =
       typeof pgError === 'object' &&
@@ -338,65 +202,5 @@ describe('isUniqueViolation', () => {
       'code' in otherError &&
       otherError.code === '23505';
     expect(isUnique).toBe(false);
-  });
-});
-
-describe('quota check', () => {
-  it('returns 429 when quota is exceeded', async () => {
-    const { Hono: H } = await import('hono');
-    const app = new H();
-
-    const TIER_LIMITS: Record<string, number> = {
-      free: 100_000,
-      starter: 500_000,
-    };
-
-    app.post('/:appId/msg', async (c) => {
-      const org = { tier: 'free', eventCountMonth: 100_000 };
-      const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS.free;
-      if (org.eventCountMonth >= limit) {
-        return c.json(
-          { error: { code: 'quota_exceeded', message: 'Monthly event limit reached' } },
-          429,
-        );
-      }
-      return c.json({ data: {} }, 202);
-    });
-
-    const res = await app.request('/app-123/msg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventType: 'test.event' }),
-    });
-
-    expect(res.status).toBe(429);
-    const json = await res.json();
-    expect(json.error.code).toBe('quota_exceeded');
-  });
-
-  it('allows request when under quota', async () => {
-    const { Hono: H } = await import('hono');
-    const app = new H();
-
-    const TIER_LIMITS: Record<string, number> = {
-      free: 100_000,
-    };
-
-    app.post('/:appId/msg', async (c) => {
-      const org = { tier: 'free', eventCountMonth: 50_000 };
-      const limit = TIER_LIMITS[org.tier] ?? TIER_LIMITS.free;
-      if (org.eventCountMonth >= limit) {
-        return c.json({ error: { code: 'quota_exceeded' } }, 429);
-      }
-      return c.json({ data: { ok: true } }, 202);
-    });
-
-    const res = await app.request('/app-123/msg', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ eventType: 'test.event' }),
-    });
-
-    expect(res.status).toBe(202);
   });
 });

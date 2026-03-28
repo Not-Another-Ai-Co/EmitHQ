@@ -46,7 +46,7 @@ vi.mock('../queue/redis', () => ({
 }));
 
 import { adminDb } from '../db/client';
-import { deliverWebhook, processDeliveryJob } from './delivery-worker';
+import { deliverWebhook, processDeliveryJob, handleExhaustedDelivery } from './delivery-worker';
 
 const TEST_JOB_DATA = {
   messageId: 'msg-1',
@@ -326,5 +326,127 @@ describe('processDeliveryJob', () => {
 
     expect(caught).toBeInstanceOf(Error);
     expect(caught).not.toBeInstanceOf(UnrecoverableError);
+  });
+
+  it('triggers circuit breaker when failure count reaches threshold (10)', async () => {
+    // Endpoint starts with failureCount=9 — one more failure triggers circuit breaker
+    mockDbSelect([
+      [{ id: 'msg-1', payload: { test: true }, eventType: 'test' }],
+      [
+        {
+          id: 'ep-1',
+          url: 'https://example.com',
+          signingSecret: 'whsec_dGVzdA==',
+          disabled: false,
+          failureCount: 9,
+          rateLimit: null,
+        },
+      ],
+    ]);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 500,
+        text: vi.fn().mockResolvedValue('Server Error'),
+      }),
+    );
+
+    // Capture set() args from all update calls
+    const setCalls: unknown[] = [];
+    vi.mocked(adminDb.update).mockImplementation(
+      () =>
+        ({
+          set: vi.fn().mockImplementation((args: unknown) => {
+            setCalls.push(args);
+            return { where: vi.fn().mockResolvedValue(undefined) };
+          }),
+        }) as never,
+    );
+
+    // processDeliveryJob throws on retriable failure — catch it
+    await expect(processDeliveryJob(TEST_JOB_DATA)).rejects.toThrow();
+
+    // Find the endpoint update (the one with 'disabled' field)
+    const endpointUpdate = setCalls.find(
+      (c) => typeof c === 'object' && c !== null && 'disabled' in c,
+    );
+    expect(endpointUpdate).toBeDefined();
+    expect(endpointUpdate).toMatchObject({
+      failureCount: 10,
+      disabled: true,
+      disabledReason: expect.stringContaining('circuit_breaker'),
+    });
+  });
+
+  it('increments failure count without circuit breaker when below threshold', async () => {
+    mockDbSelect([
+      [{ id: 'msg-1', payload: { test: true }, eventType: 'test' }],
+      [
+        {
+          id: 'ep-1',
+          url: 'https://example.com',
+          signingSecret: 'whsec_dGVzdA==',
+          disabled: false,
+          failureCount: 3,
+          rateLimit: null,
+        },
+      ],
+    ]);
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        status: 500,
+        text: vi.fn().mockResolvedValue('Server Error'),
+      }),
+    );
+
+    const setCalls: unknown[] = [];
+    vi.mocked(adminDb.update).mockImplementation(
+      () =>
+        ({
+          set: vi.fn().mockImplementation((args: unknown) => {
+            setCalls.push(args);
+            return { where: vi.fn().mockResolvedValue(undefined) };
+          }),
+        }) as never,
+    );
+
+    await expect(processDeliveryJob(TEST_JOB_DATA)).rejects.toThrow();
+
+    // Endpoint update should increment count but NOT disable
+    const endpointUpdate = setCalls.find(
+      (c) => typeof c === 'object' && c !== null && 'failureCount' in c && !('disabled' in c),
+    );
+    expect(endpointUpdate).toBeDefined();
+    expect(endpointUpdate).toMatchObject({ failureCount: 4 });
+  });
+});
+
+describe('handleExhaustedDelivery', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('marks delivery attempt as exhausted with null nextAttemptAt', async () => {
+    const setCalls: unknown[] = [];
+    vi.mocked(adminDb.update).mockImplementation(
+      () =>
+        ({
+          set: vi.fn().mockImplementation((args: unknown) => {
+            setCalls.push(args);
+            return { where: vi.fn().mockResolvedValue(undefined) };
+          }),
+        }) as never,
+    );
+
+    await handleExhaustedDelivery(TEST_JOB_DATA);
+
+    expect(setCalls).toHaveLength(1);
+    expect(setCalls[0]).toMatchObject({
+      status: 'exhausted',
+      nextAttemptAt: null,
+    });
   });
 });
