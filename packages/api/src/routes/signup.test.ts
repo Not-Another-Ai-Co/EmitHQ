@@ -171,6 +171,22 @@ describe('POST /api/v1/signup', () => {
     expect(json.error.code).toBe('signup_failed');
   });
 
+  it('does not log email addresses in Clerk error output', async () => {
+    const testEmail = 'sensitive-user@example.com';
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    mockCreateUser.mockRejectedValue({
+      errors: [{ code: 'some_error', message: `'${testEmail}' is not valid` }],
+    });
+
+    await app.request(signupRequest({ email: testEmail, password: 'securepass123' }));
+
+    for (const call of errorSpy.mock.calls) {
+      const logOutput = call.join(' ');
+      expect(logOutput).not.toContain(testEmail);
+    }
+    errorSpy.mockRestore();
+  });
+
   it('returns 500 when Clerk org creation fails', async () => {
     mockCreateOrganization.mockRejectedValue(new Error('Org creation failed'));
 

@@ -232,6 +232,35 @@ describe('billing routes (real handlers)', () => {
       const json = await res.json();
       expect(json.error.code).toBe('unauthorized');
     });
+
+    it('does not leak stack trace or secret chars on signature verification failure', async () => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret_value_1234567890';
+      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const { getStripe } = await import('@emithq/core');
+      const stripe = (getStripe as ReturnType<typeof vi.fn>)();
+      (stripe.webhooks.constructEvent as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+        throw new Error('No signatures found matching the expected signature');
+      });
+      const res = await app.request(
+        jsonRequest('/api/v1/billing/webhook', {
+          method: 'POST',
+          body: { type: 'test' },
+          headers: { 'stripe-signature': 'invalid-sig' },
+        }),
+      );
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      // No stack field in response
+      expect(json).not.toHaveProperty('stack');
+      // Console.error should not contain webhook secret chars or signature header
+      for (const call of errorSpy.mock.calls) {
+        const logOutput = call.join(' ');
+        expect(logOutput).not.toContain('Webhook secret starts with');
+        expect(logOutput).not.toContain('Signature header:');
+      }
+      errorSpy.mockRestore();
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
   });
 });
 

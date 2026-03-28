@@ -8,6 +8,7 @@ vi.mock('../middleware/tenant', () => tenantMock());
 
 import { adminRoutes } from './admin';
 import { Hono } from 'hono';
+import { secureHeaders } from 'hono/secure-headers';
 
 function createAdminApp(secret?: string) {
   if (secret) process.env.ADMIN_SECRET = secret;
@@ -65,6 +66,19 @@ describe('admin secret middleware', () => {
     expect(json.error.code).toBe('server_error');
   });
 
+  it('returns 401 when same-length wrong secret provided', async () => {
+    const app = createAdminApp('correct-secret-1234');
+    const res = await app.request('/api/v1/admin/org/some-id/disable', {
+      method: 'POST',
+      headers: {
+        'x-admin-secret': 'wrongXX-secret-1234',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({}),
+    });
+    expect(res.status).toBe(401);
+  });
+
   it('passes through with correct secret', async () => {
     const app = createAdminApp('correct-secret');
     const { adminDb } = await import('@emithq/core');
@@ -86,5 +100,37 @@ describe('admin secret middleware', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.data.disabled).toBe(true);
+  });
+});
+
+describe('security headers on API responses', () => {
+  it('includes security headers when secureHeaders middleware is applied', async () => {
+    const app = new Hono();
+    app.use(
+      '*',
+      secureHeaders({
+        xFrameOptions: 'DENY',
+        xContentTypeOptions: 'nosniff',
+        strictTransportSecurity: 'max-age=63072000; includeSubDomains',
+        referrerPolicy: 'strict-origin-when-cross-origin',
+        crossOriginEmbedderPolicy: false,
+        crossOriginResourcePolicy: false,
+        crossOriginOpenerPolicy: false,
+        originAgentCluster: false,
+        xDnsPrefetchControl: false,
+        xDownloadOptions: false,
+        xPermittedCrossDomainPolicies: false,
+        xXssProtection: false,
+      }),
+    );
+    app.get('/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/test');
+    expect(res.headers.get('x-frame-options')).toBe('DENY');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('strict-transport-security')).toBe(
+      'max-age=63072000; includeSubDomains',
+    );
+    expect(res.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
   });
 });
