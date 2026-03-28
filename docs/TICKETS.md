@@ -517,7 +517,7 @@ _Research: ~/.claude/tmp/research-emithq-codebase-audit.md. 6-agent audit found 
 
 ---
 
-### T-112: Security Hardening — Timing-Safe Comparisons, Headers, Leak Cleanup [x]
+### T-112: Security Hardening — Timing-Safe Comparisons, Headers, Leak Cleanup [x] [verified]
 
 **Phase:** 13a
 **Effort:** Low
