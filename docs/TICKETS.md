@@ -541,7 +541,7 @@ _Research: ~/.claude/tmp/research-emithq-codebase-audit.md. 6-agent audit found 
 
 ---
 
-### T-113: Test Integrity — Fix Message Tests, Add Circuit Breaker + Billing Coverage [x]
+### T-113: Test Integrity — Fix Message Tests, Add Circuit Breaker + Billing Coverage [x] [verified]
 
 **Phase:** 13a
 **Effort:** Medium
