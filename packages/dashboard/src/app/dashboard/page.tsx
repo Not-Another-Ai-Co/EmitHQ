@@ -127,6 +127,7 @@ export default function AppsLandingPage() {
           {error}
           <button
             onClick={() => setLocalError(null)}
+            aria-label="Dismiss error"
             className="ml-2 text-[var(--color-error)]/70 hover:text-[var(--color-error)]"
           >
             ×
@@ -141,10 +142,14 @@ export default function AppsLandingPage() {
         >
           <h2 className="mb-4 text-lg font-semibold">Create Application</h2>
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-[var(--color-text-muted)]">
+            <label
+              htmlFor="create-app-name"
+              className="mb-1 block text-sm text-[var(--color-text-muted)]"
+            >
               Name <span className="text-[var(--color-error)]">*</span>
             </label>
             <input
+              id="create-app-name"
               type="text"
               value={createName}
               onChange={(e) => setCreateName(e.target.value)}
@@ -154,10 +159,14 @@ export default function AppsLandingPage() {
             />
           </div>
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-[var(--color-text-muted)]">
+            <label
+              htmlFor="create-app-uid"
+              className="mb-1 block text-sm text-[var(--color-text-muted)]"
+            >
               UID <span className="text-xs">(optional — your own identifier)</span>
             </label>
             <input
+              id="create-app-uid"
               type="text"
               value={createUid}
               onChange={(e) => setCreateUid(e.target.value)}
@@ -202,8 +211,16 @@ export default function AppsLandingPage() {
             return (
               <div
                 key={app.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => selectApp(app)}
-                className="group cursor-pointer rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 transition-all hover:border-[var(--color-accent)]/40 hover:shadow-md hover:shadow-[var(--color-accent)]/5"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectApp(app);
+                  }
+                }}
+                className="group cursor-pointer rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6 transition-all hover:border-[var(--color-accent)]/40 hover:shadow-md hover:shadow-[var(--color-accent)]/5 focus:border-[var(--color-accent)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/30"
               >
                 <div className="mb-4 flex items-start justify-between">
                   <div className="flex items-center gap-2">

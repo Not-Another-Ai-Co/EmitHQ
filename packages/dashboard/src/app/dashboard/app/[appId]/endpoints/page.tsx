@@ -272,6 +272,10 @@ export default function EndpointsPage() {
       const res = await apiFetch(`/api/v1/app/${APP_ID}/endpoint/${epId}/test`, {
         method: 'POST',
       });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message ?? `Test failed (${res.status})`);
+      }
       const json = await res.json();
       setTestResults((prev) => ({ ...prev, [epId]: json.data }));
     } catch {
@@ -335,10 +339,14 @@ export default function EndpointsPage() {
         >
           <h2 className="mb-4 text-lg font-semibold">Create Endpoint</h2>
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-[var(--color-text-muted)]">
+            <label
+              htmlFor="create-ep-url"
+              className="mb-1 block text-sm text-[var(--color-text-muted)]"
+            >
               URL <span className="text-[var(--color-error)]">*</span>
             </label>
             <input
+              id="create-ep-url"
               type="url"
               value={createUrl}
               onChange={(e) => setCreateUrl(e.target.value)}
@@ -348,8 +356,14 @@ export default function EndpointsPage() {
             />
           </div>
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-[var(--color-text-muted)]">Description</label>
+            <label
+              htmlFor="create-ep-desc"
+              className="mb-1 block text-sm text-[var(--color-text-muted)]"
+            >
+              Description
+            </label>
             <input
+              id="create-ep-desc"
               type="text"
               value={createDesc}
               onChange={(e) => setCreateDesc(e.target.value)}
@@ -359,11 +373,15 @@ export default function EndpointsPage() {
             />
           </div>
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-[var(--color-text-muted)]">
+            <label
+              htmlFor="create-ep-filter"
+              className="mb-1 block text-sm text-[var(--color-text-muted)]"
+            >
               Event type filter{' '}
               <span className="text-xs">(comma-separated, leave empty for all)</span>
             </label>
             <input
+              id="create-ep-filter"
               type="text"
               value={createFilter}
               onChange={(e) => setCreateFilter(e.target.value)}
@@ -510,10 +528,14 @@ export default function EndpointsPage() {
                 {isEditing ? (
                   <div className="mb-3 space-y-3 border-t border-[var(--color-border)] pt-3">
                     <div>
-                      <label className="mb-1 block text-xs text-[var(--color-text-muted)]">
+                      <label
+                        htmlFor={`edit-ep-url-${ep.id}`}
+                        className="mb-1 block text-xs text-[var(--color-text-muted)]"
+                      >
                         URL
                       </label>
                       <input
+                        id={`edit-ep-url-${ep.id}`}
                         type="url"
                         value={editUrl}
                         onChange={(e) => setEditUrl(e.target.value)}
@@ -521,10 +543,14 @@ export default function EndpointsPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs text-[var(--color-text-muted)]">
+                      <label
+                        htmlFor={`edit-ep-desc-${ep.id}`}
+                        className="mb-1 block text-xs text-[var(--color-text-muted)]"
+                      >
                         Description
                       </label>
                       <input
+                        id={`edit-ep-desc-${ep.id}`}
                         type="text"
                         value={editDesc}
                         onChange={(e) => setEditDesc(e.target.value)}
@@ -533,10 +559,14 @@ export default function EndpointsPage() {
                       />
                     </div>
                     <div>
-                      <label className="mb-1 block text-xs text-[var(--color-text-muted)]">
+                      <label
+                        htmlFor={`edit-ep-filter-${ep.id}`}
+                        className="mb-1 block text-xs text-[var(--color-text-muted)]"
+                      >
                         Event filter (comma-separated)
                       </label>
                       <input
+                        id={`edit-ep-filter-${ep.id}`}
                         type="text"
                         value={editFilter}
                         onChange={(e) => setEditFilter(e.target.value)}

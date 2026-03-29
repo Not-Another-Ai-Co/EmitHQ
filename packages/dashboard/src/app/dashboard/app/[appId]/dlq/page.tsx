@@ -30,6 +30,7 @@ export default function DlqPage() {
   const fetchDlq = useCallback(
     async (reset = false) => {
       setLoading(true);
+      setError(null);
       try {
         const params = new URLSearchParams();
         if (!reset && cursor) params.set('cursor', cursor);

@@ -615,7 +615,7 @@ _Research: ~/.claude/tmp/research-emithq-codebase-audit.md. 6-agent audit found 
 
 ---
 
-### T-116: Dashboard Error Boundaries + Accessibility [ ]
+### T-116: Dashboard Error Boundaries + Accessibility [x]
 
 **Phase:** 13c
 **Effort:** Medium

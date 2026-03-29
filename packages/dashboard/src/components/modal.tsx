@@ -24,15 +24,21 @@ export function Modal({ open, onClose, title, children }: ModalProps) {
   return (
     <div
       className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div className="modal-content w-full max-w-lg rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 id="modal-title" className="text-lg font-semibold">
+            {title}
+          </h2>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-text)]"
           >
             ✕

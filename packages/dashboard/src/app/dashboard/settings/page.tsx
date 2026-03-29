@@ -140,6 +140,7 @@ function ApiKeysTab() {
           {error}
           <button
             onClick={() => setError(null)}
+            aria-label="Dismiss"
             className="ml-2 text-[var(--color-error)]/70 hover:text-[var(--color-error)]"
           >
             ×
@@ -163,10 +164,14 @@ function ApiKeysTab() {
           className="mb-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5"
         >
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-[var(--color-text-muted)]">
+            <label
+              htmlFor="api-key-name"
+              className="mb-1 block text-sm text-[var(--color-text-muted)]"
+            >
               Key name <span className="text-[var(--color-error)]">*</span>
             </label>
             <input
+              id="api-key-name"
               type="text"
               value={createName}
               onChange={(e) => setCreateName(e.target.value)}
@@ -475,6 +480,7 @@ function BillingTab() {
           Subscription activated! Your plan has been upgraded.
           <button
             onClick={() => setShowSuccess(false)}
+            aria-label="Dismiss"
             className="ml-2 text-[var(--color-success)]/70 hover:text-[var(--color-success)]"
           >
             ×
@@ -487,6 +493,7 @@ function BillingTab() {
           {error}
           <button
             onClick={() => setError(null)}
+            aria-label="Dismiss"
             className="ml-2 text-[var(--color-error)]/70 hover:text-[var(--color-error)]"
           >
             ×
@@ -735,6 +742,7 @@ function DangerZoneTab() {
           {error}
           <button
             onClick={() => setError(null)}
+            aria-label="Dismiss"
             className="ml-2 text-[var(--color-error)]/70 hover:text-[var(--color-error)]"
           >
             ×

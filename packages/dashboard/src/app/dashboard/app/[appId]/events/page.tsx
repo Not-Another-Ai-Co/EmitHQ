@@ -127,8 +127,15 @@ export default function EventsPage() {
                 {messages.map((msg) => (
                   <tr
                     key={msg.id}
+                    tabIndex={0}
                     onClick={() => loadDetail(msg.id)}
-                    className={`cursor-pointer transition-colors hover:bg-[var(--color-surface)] ${
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        loadDetail(msg.id);
+                      }
+                    }}
+                    className={`cursor-pointer transition-colors hover:bg-[var(--color-surface)] focus:bg-[var(--color-accent)]/5 focus:outline-none ${
                       selected?.id === msg.id ? 'bg-[var(--color-accent)]/5' : ''
                     }`}
                   >
