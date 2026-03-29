@@ -14,7 +14,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@clerk/backend": "^3.2.0",
+    "@clerk/backend": "^3.2.3",
     "@emithq/core": "*",
     "@hono/clerk-auth": "^3.1.0",
     "@hono/node-server": "^1.19.11",

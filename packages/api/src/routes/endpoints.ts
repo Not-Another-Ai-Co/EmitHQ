@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { eq, and, or, ne, desc, isNull } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import {
-  applications,
   endpoints,
   organizations,
   adminDb,
@@ -13,9 +12,11 @@ import {
   TransformValidationError,
   trackEvent,
   validateEndpointUrl as validateEndpointUrlSsrf,
+  TIER_FEATURES,
 } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
+import { resolveApp } from '../lib/resolve-app';
 import type { AuthEnv } from '../types';
 
 export const endpointRoutes = new Hono<AuthEnv>();
@@ -24,8 +25,6 @@ endpointRoutes.use('*', requireAuth, tenantScope);
 
 const DEFAULT_PAGE_SIZE = 20;
 
-const TRANSFORM_ALLOWED_TIERS = ['starter', 'growth', 'scale'];
-
 /** Check if org tier allows payload transforms (Starter+). */
 async function checkTransformTier(orgId: string): Promise<boolean> {
   const [org] = await adminDb
@@ -33,7 +32,7 @@ async function checkTransformTier(orgId: string): Promise<boolean> {
     .from(organizations)
     .where(eq(organizations.id, orgId))
     .limit(1);
-  return TRANSFORM_ALLOWED_TIERS.includes(org?.tier ?? 'free');
+  return TIER_FEATURES[org?.tier ?? 'free']?.transforms ?? false;
 }
 const MAX_PAGE_SIZE = 100;
 
@@ -60,22 +59,6 @@ async function validateEndpointUrl(url: string): Promise<string | null> {
 /** Mask a signing secret for display — show only prefix. */
 function maskSecret(secret: string): string {
   return secret.slice(0, 10) + '...';
-}
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** Resolve an application by UUID or uid within the tenant scope. */
-async function resolveApp(tx: unknown, appId: string) {
-  const typedTx = tx as typeof import('@emithq/core').db;
-  const condition = UUID_RE.test(appId)
-    ? or(eq(applications.id, appId), eq(applications.uid, appId))
-    : eq(applications.uid, appId);
-  const [app] = await typedTx
-    .select({ id: applications.id })
-    .from(applications)
-    .where(and(condition, isNull(applications.deletedAt)))
-    .limit(1);
-  return app ?? null;
 }
 
 // ─── CREATE ─────────────────────────────────────────────────────────────────
@@ -142,9 +125,8 @@ endpointRoutes.post('/:appId/endpoint', async (c) => {
   }
 
   const signingSecret = generateSigningSecret();
-  const typedTx = tx as typeof import('@emithq/core').db;
 
-  const [created] = await typedTx
+  const [created] = await tx
     .insert(endpoints)
     .values({
       appId: app.id,
@@ -201,8 +183,7 @@ endpointRoutes.get('/:appId/endpoint', async (c) => {
   );
   const cursor = c.req.query('cursor');
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-  let query = typedTx
+  let query = tx
     .select({
       id: endpoints.id,
       uid: endpoints.uid,
@@ -228,7 +209,7 @@ endpointRoutes.get('/:appId/endpoint', async (c) => {
   if (cursor) {
     try {
       const decoded = JSON.parse(Buffer.from(cursor, 'base64').toString());
-      query = typedTx
+      query = tx
         .select({
           id: endpoints.id,
           uid: endpoints.uid,
@@ -290,8 +271,7 @@ endpointRoutes.get('/:appId/endpoint/:epId', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-  const [ep] = await typedTx
+  const [ep] = await tx
     .select()
     .from(endpoints)
     .where(
@@ -331,8 +311,7 @@ endpointRoutes.put('/:appId/endpoint/:epId', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-  const [existing] = await typedTx
+  const [existing] = await tx
     .select({ id: endpoints.id, disabled: endpoints.disabled })
     .from(endpoints)
     .where(
@@ -415,7 +394,7 @@ endpointRoutes.put('/:appId/endpoint/:epId', async (c) => {
     return c.json({ error: { code: 'validation_error', message: 'No fields to update' } }, 400);
   }
 
-  const [updated] = await typedTx
+  const [updated] = await tx
     .update(endpoints)
     .set(updates)
     .where(eq(endpoints.id, existing.id))
@@ -445,8 +424,7 @@ endpointRoutes.delete('/:appId/endpoint/:epId', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-  const [deleted] = await typedTx
+  const [deleted] = await tx
     .update(endpoints)
     .set({ disabled: true, disabledReason: 'deleted' })
     .where(
@@ -481,8 +459,7 @@ endpointRoutes.post('/:appId/endpoint/:epId/test', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-  const [ep] = await typedTx
+  const [ep] = await tx
     .select({
       id: endpoints.id,
       url: endpoints.url,

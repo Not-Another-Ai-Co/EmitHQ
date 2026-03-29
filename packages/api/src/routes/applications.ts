@@ -3,13 +3,12 @@ import { eq, or, and, isNull, isNotNull, sql } from 'drizzle-orm';
 import { applications, endpoints } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
+import { UUID_RE } from '../lib/constants';
 import type { AuthEnv } from '../types';
 
 export const applicationRoutes = new Hono<AuthEnv>();
 
 applicationRoutes.use('*', requireAuth, tenantScope);
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function appCondition(appId: string) {
   return UUID_RE.test(appId)

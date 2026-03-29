@@ -12,6 +12,7 @@ import {
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
 import { quotaCheck } from '../middleware/quota';
+import { UUID_RE } from '../lib/constants';
 import type { AuthEnv } from '../types';
 
 export const messageRoutes = new Hono<AuthEnv>();
@@ -115,7 +116,6 @@ messageRoutes.post('/:appId/msg', quotaCheck, async (c) => {
   }
 
   // --- Resolve application ---
-  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   const appCondition = UUID_RE.test(appId)
     ? or(eq(applications.id, appId), eq(applications.uid, appId))
     : eq(applications.uid, appId);

@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
-import { eq, and, or, desc, sql, gte, lte, isNull } from 'drizzle-orm';
-import { applications, messages, endpoints, deliveryAttempts } from '@emithq/core';
+import { eq, and, desc, sql, gte, lte } from 'drizzle-orm';
+import { messages, endpoints, deliveryAttempts } from '@emithq/core';
 import { requireAuth } from '../middleware/auth';
 import { tenantScope } from '../middleware/tenant';
+import { resolveApp } from '../lib/resolve-app';
 import type { AuthEnv } from '../types';
 
 export const dashboardRoutes = new Hono<AuthEnv>();
@@ -17,22 +18,6 @@ function parseLimit(raw: string | undefined): number {
     parseInt(raw ?? String(DEFAULT_PAGE_SIZE), 10) || DEFAULT_PAGE_SIZE,
     MAX_PAGE_SIZE,
   );
-}
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** Resolve an application by UUID or uid within tenant scope. */
-async function resolveApp(tx: unknown, appId: string) {
-  const typedTx = tx as typeof import('@emithq/core').db;
-  const condition = UUID_RE.test(appId)
-    ? or(eq(applications.id, appId), eq(applications.uid, appId))
-    : eq(applications.uid, appId);
-  const [app] = await typedTx
-    .select({ id: applications.id })
-    .from(applications)
-    .where(and(condition, isNull(applications.deletedAt)))
-    .limit(1);
-  return app ?? null;
 }
 
 // ─── LIST MESSAGES ──────────────────────────────────────────────────────────
@@ -56,8 +41,6 @@ dashboardRoutes.get('/:appId/msg', async (c) => {
   const since = c.req.query('since');
   const until = c.req.query('until');
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-
   // Build WHERE conditions
   const conditions = [eq(messages.appId, app.id)];
   if (eventType) conditions.push(eq(messages.eventType, eventType));
@@ -75,7 +58,7 @@ dashboardRoutes.get('/:appId/msg', async (c) => {
     }
   }
 
-  const rows = await typedTx
+  const rows = await tx
     .select({
       id: messages.id,
       eventType: messages.eventType,
@@ -115,9 +98,7 @@ dashboardRoutes.get('/:appId/msg/:msgId', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-
-  const [msg] = await typedTx
+  const [msg] = await tx
     .select()
     .from(messages)
     .where(and(eq(messages.appId, app.id), eq(messages.id, msgId)))
@@ -127,7 +108,7 @@ dashboardRoutes.get('/:appId/msg/:msgId', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Message not found' } }, 404);
   }
 
-  const attempts = await typedTx
+  const attempts = await tx
     .select({
       id: deliveryAttempts.id,
       endpointId: deliveryAttempts.endpointId,
@@ -161,9 +142,8 @@ dashboardRoutes.get('/:appId/msg/:msgId', async (c) => {
 dashboardRoutes.get('/:appId/msg/:msgId/attempt', async (c) => {
   const msgId = c.req.param('msgId');
   const tx = c.get('tx');
-  const typedTx = tx as typeof import('@emithq/core').db;
 
-  const attempts = await typedTx
+  const attempts = await tx
     .select({
       id: deliveryAttempts.id,
       endpointId: deliveryAttempts.endpointId,
@@ -197,17 +177,16 @@ dashboardRoutes.get('/:appId/stats', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   // Events in last 24 hours (timezone-agnostic rolling window)
-  const [eventCount] = await typedTx
+  const [eventCount] = await tx
     .select({ count: sql<number>`count(*)::int` })
     .from(messages)
     .where(and(eq(messages.appId, app.id), gte(messages.createdAt, oneDayAgo)));
 
   // Delivery success rate (last 24h)
-  const [deliveryStats] = await typedTx
+  const [deliveryStats] = await tx
     .select({
       total: sql<number>`count(*)::int`,
       delivered: sql<number>`count(*) filter (where status = 'delivered')::int`,
@@ -218,13 +197,13 @@ dashboardRoutes.get('/:appId/stats', async (c) => {
     );
 
   // Active endpoints
-  const [endpointCount] = await typedTx
+  const [endpointCount] = await tx
     .select({ count: sql<number>`count(*)::int` })
     .from(endpoints)
     .where(and(eq(endpoints.appId, app.id), eq(endpoints.disabled, false)));
 
   // Pending retries
-  const [pendingCount] = await typedTx
+  const [pendingCount] = await tx
     .select({ count: sql<number>`count(*)::int` })
     .from(deliveryAttempts)
     .where(and(eq(deliveryAttempts.orgId, c.get('orgId')), eq(deliveryAttempts.status, 'pending')));
@@ -260,7 +239,6 @@ dashboardRoutes.get('/:appId/dlq', async (c) => {
 
   const limit = parseLimit(c.req.query('limit'));
   const cursor = c.req.query('cursor');
-  const typedTx = tx as typeof import('@emithq/core').db;
 
   const conditions = [
     eq(deliveryAttempts.orgId, c.get('orgId')),
@@ -278,7 +256,7 @@ dashboardRoutes.get('/:appId/dlq', async (c) => {
     }
   }
 
-  const rows = await typedTx
+  const rows = await tx
     .select({
       id: deliveryAttempts.id,
       messageId: deliveryAttempts.messageId,
@@ -323,10 +301,8 @@ dashboardRoutes.get('/:appId/endpoint-health', async (c) => {
     return c.json({ error: { code: 'not_found', message: 'Application not found' } }, 404);
   }
 
-  const typedTx = tx as typeof import('@emithq/core').db;
-
   // Get endpoints with aggregated delivery stats
-  const rows = await typedTx
+  const rows = await tx
     .select({
       id: endpoints.id,
       uid: endpoints.uid,
