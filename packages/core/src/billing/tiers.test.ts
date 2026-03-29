@@ -16,6 +16,8 @@ describe('TIER_FEATURES', () => {
     expect(starter.transforms).toBe(true);
     expect(starter.customRetrySchedules).toBe(false);
     expect(starter.prioritySupport).toBe(false);
+    expect(starter.slaGuarantee).toBe(false);
+    expect(starter.staticIps).toBe(false);
   });
 
   it('growth tier has transforms + retry + support', () => {
@@ -24,6 +26,7 @@ describe('TIER_FEATURES', () => {
     expect(growth.customRetrySchedules).toBe(true);
     expect(growth.prioritySupport).toBe(true);
     expect(growth.slaGuarantee).toBe(false);
+    expect(growth.staticIps).toBe(false);
   });
 
   it('scale tier has all features', () => {
