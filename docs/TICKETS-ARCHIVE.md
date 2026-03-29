@@ -287,3 +287,35 @@ _Playwright MCP established as browser testing tool. T-097: 5 dashboard pages ve
 ### T-103: Transform Tier Gating UI [x] [verified] [audited]
 
 _Pricing aligned: transforms Starter+ ($49/mo) across landing site + dashboard (DEC-034). Visual form-based transform editor: collapsible details/summary section, rule rows (Source Path → Target Field → Template), max 20 rules, inline validation, function reference tooltip, mobile-responsive. Live preview panel with debounced 300ms API calls to POST /transform/preview. Free tier upgrade prompt, paid tiers get full editor. Component: `packages/dashboard/src/components/transform-rule-editor.tsx`._
+
+---
+
+## Archived 2026-03-29
+
+### T-104: API-Level Tier Enforcement for Payload Transforms [x] [verified] [audited]
+
+### T-096: Research — LLM & SEO Discovery Optimization [x] [verified] [audited]
+
+### T-105: Technical SEO & LLM Discovery Foundations [x] [verified] [audited]
+
+### T-108: Blog Infrastructure on Landing Site [x] [verified] [audited]
+
+### T-109: Origin Story Blog Post + Distribution [x] [verified] [audited]
+
+### T-110: Technical Deep-Dive Blog Post + Distribution [x] [verified] [audited]
+
+_SEO foundation: JSON-LD schemas, robots.txt AI bot differentiation, llms.txt, canonical URLs, Google Search Console. Blog infrastructure on landing site with MDX rendering, JSON-LD, OG meta, RSS feed. Two blog posts published: origin story + technical deep-dive._
+
+### T-112: Security Hardening — Timing-Safe Comparisons, Headers, Leak Cleanup [x] [verified] [audited]
+
+### T-113: Test Integrity — Fix Message Tests, Add Circuit Breaker + Billing Coverage [x] [verified] [audited]
+
+### T-114: CI Hardening — Typecheck All Packages, Gate SDK Publish, Fix Coverage [x] [verified] [audited]
+
+### T-115: Architecture Documentation Alignment [x] [verified] [audited]
+
+### T-116: Dashboard Error Boundaries + Accessibility [x] [verified] [audited]
+
+### T-117: Settings + Endpoints Page Decomposition [x] [verified with notes] [audited]
+
+_Codebase health refactoring (Phase 13a-c): timing-safe secret comparisons, security headers on API+dashboard, Stripe/signup log leak cleanup. Test integrity: messages.test.ts now tests real handler, circuit breaker + DLQ + billing webhook tests added (372 total). CI: typecheck:all covers dashboard+landing, SDK publish gated on CI, coverage-v8 installed. ARCHITECTURE.md aligned to code reality. Dashboard: error boundaries on all route segments, keyboard/ARIA accessibility, settings page decomposed (832→85 lines), endpoints page decomposed (724→382 lines), shared ErrorBanner component._

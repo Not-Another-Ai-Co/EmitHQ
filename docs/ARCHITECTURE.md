@@ -1,6 +1,6 @@
 # Architecture — EmitHQ
 
-> Last verified: 2026-03-27
+> Last verified: 2026-03-29
 
 ## Overview
 
