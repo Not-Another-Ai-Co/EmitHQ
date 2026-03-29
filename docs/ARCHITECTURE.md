@@ -44,18 +44,18 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 5. Persist message to PostgreSQL (BEFORE queueing — critical)
 6. Fan-out: find active endpoints matching `eventTypeFilter`, create `delivery_attempt` rows (status=pending)
 7. Enqueue one BullMQ job per delivery attempt (best-effort — message safe in DB if queue fails)
-8. Increment `event_count_month` atomically in same transaction
+8. Increment `event_count_month` via separate `adminDb` UPDATE (organizations table has no RLS, requires admin pool). Not in the same PostgreSQL transaction as the message persist — a crash between steps 5 and 8 would lose a count increment.
 9. Return 202 Accepted with message ID
 10. BullMQ Worker (T-014): load message payload + endpoint config from adminDb (BYPASSRLS)
 11. Sign payload per Standard Webhooks spec: `HMAC-SHA256(msg_{id}.{timestamp}.{body}, whsec_secret)` → `v1,{base64}`
-12. SSRF check: validate endpoint URL against blocked IP ranges and DNS rebinding (DEC-031)
+12. SSRF check: `validateEndpointUrl()` (async, DNS-resolving) validates endpoint URL against blocked IP ranges and DNS rebinding at both endpoint creation AND delivery time (DEC-031)
 13. HTTP POST to endpoint URL via native `fetch` + `AbortSignal.timeout()` (default 30s)
 14. Record result in `delivery_attempts`: status, statusCode, responseBody (1KB), responseTimeMs
 15. On 2xx: mark `delivered`, reset endpoint `failureCount`
 16. On 5xx/timeout/network error: mark `failed`, increment `failureCount`, BullMQ retries with exponential backoff
 17. On 400/401/403/404/410: throw `UnrecoverableError` (no retry — permanent error)
 18. Circuit breaker: `failureCount ≥ 10` → disable endpoint with reason `circuit_breaker`
-19. On exhaustion (T-015): move to DLQ, send operational webhook
+19. On exhaustion: mark status as `exhausted` in `delivery_attempts` table, set `nextAttemptAt: null`. Operational webhook notification deferred (not yet implemented).
 
 ## Data Flow: Inbound
 
@@ -69,7 +69,7 @@ EmitHQ is a webhook infrastructure platform handling both inbound (receiving) an
 Dual auth model:
 
 - **Dashboard users:** Clerk sessions via `@hono/clerk-auth` middleware. Clerk org ID maps to internal `org_id` via `clerk_org_id` column on organizations table.
-- **Programmatic access:** Custom `emhq_` prefixed API keys. SHA-256 hashed in `api_keys` table, verified with `crypto.timingSafeEqual`. Multiple active keys per org for zero-downtime rotation.
+- **Programmatic access:** Custom `emhq_` prefixed API keys. SHA-256 hashed in `api_keys` table, looked up by hash via database equality (`WHERE keyHash = ?`). `verifyApiKey()` with `timingSafeEqual` exists in core but is not used in the production auth middleware path. Multiple active keys per org for zero-downtime rotation.
 
 Auth middleware stack: `clerk` (global) → `requireAuth` (dual path) → `tenantScope` (RLS) → route handler. `quotaHeaders` middleware on all `/api/v1/*` routes injects `X-EmitHQ-Quota-*` response headers (limit, used, remaining, reset, tier + warning at 80%/95%).
 

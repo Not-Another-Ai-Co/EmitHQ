@@ -590,7 +590,7 @@ _Research: ~/.claude/tmp/research-emithq-codebase-audit.md. 6-agent audit found 
 
 ---
 
-### T-115: Architecture Documentation Alignment [ ]
+### T-115: Architecture Documentation Alignment [x]
 
 **Phase:** 13b
 **Effort:** Low
