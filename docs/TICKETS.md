@@ -662,7 +662,7 @@ Scenario: Screen reader announces modal as dialog
 
 ---
 
-### T-117: Settings + Endpoints Page Decomposition [ ]
+### T-117: Settings + Endpoints Page Decomposition [x]
 
 **Phase:** 13c
 **Effort:** Medium
