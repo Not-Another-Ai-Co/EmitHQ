@@ -148,6 +148,35 @@ Dev.to cross-posting uses the REST API directly (not through Postiz). The API ke
    - `"svix alternative"` (daily digest)
    - `"hookdeck alternative"` (daily digest)
 
+## Postiz API Reference
+
+**REST API (Public v1):**
+
+- Base: `http://localhost:4007/api/public/v1/`
+- Auth header: `Authorization: <api_key>` (NO "Bearer" prefix — Postiz rejects Bearer format)
+- API key: 1Password `EmitHQ/postiz-config/api_key` (64-char hex)
+- Required params: `startDate` and `endDate` (ISO 8601) on GET endpoints
+- POST `/posts` — create/schedule posts. Requires `integrationId` from connected channels.
+
+**MCP Server:**
+
+- URL: `http://localhost:4007/api/mcp/<api_key>` (key embedded in URL path, not header)
+- Transport: HTTP Streamable
+- Claude config: `claude mcp add -s user -- postiz npx mcp-remote http://localhost:4007/api/mcp/<key>`
+
+**Postiz UI (cookie auth):**
+
+- `http://100.82.36.13:4007` (Tailscale) or `http://localhost:4007`
+- Login: 1Password `EmitHQ/Postiz - Local Hosted` (email + password)
+- Internal API (`/api/posts`, `/api/integrations/social`) uses cookie auth, NOT the API key
+
+**Secret management:**
+
+- Postiz secrets live in 1Password `EmitHQ/postiz-config`
+- Baked to `~/postiz/.env` via `op inject -f -i .env.tpl -o .env`
+- Re-inject + restart after changing any Postiz secret in 1Password: `cd ~/postiz && op inject -f -i .env.tpl -o .env && docker compose restart`
+- Connect token rotation (during /meta) does NOT require re-injection — the `.env` contains resolved secret values, not `op://` references
+
 ## After All Accounts Are Created
 
 1. Regenerate env + restart: `cd ~/postiz && op inject -f -i .env.tpl -o .env && docker compose up -d`
