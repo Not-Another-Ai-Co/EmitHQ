@@ -71,11 +71,11 @@ Initial content to establish active profiles:
 
 ### X (@EmitHQ)
 
-- [x] Post 1: Persist-before-enqueue pattern (2026-03-29)
-- [x] Post 2: Why we chose AGPL over MIT (2026-03-29)
-- [x] Post 3: Full-jitter vs decorrelated jitter (2026-03-29)
-- [x] Post 4: SSRF protection in webhook delivery (2026-03-29)
-- [x] Post 5: The $49-$490 pricing gap observation (2026-03-29)
+- [x] Post 1: Persist-before-enqueue pattern — scheduled via Postiz (2026-03-30)
+- [x] Post 2: Why we chose AGPL over MIT — scheduled via Postiz (2026-03-30)
+- [x] Post 3: Full-jitter vs decorrelated jitter — scheduled via Postiz (2026-03-30)
+- [x] Post 4: SSRF protection in webhook delivery — scheduled via Postiz (2026-03-30)
+- [x] Post 5: The $49-$490 pricing gap observation — scheduled via Postiz (2026-03-30)
 
 ### Dev.to
 

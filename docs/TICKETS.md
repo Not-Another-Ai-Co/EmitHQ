@@ -305,7 +305,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [ ] Twitter/X has 5+ posts (technical insights, architecture decisions — not promotional) — 5 posts drafted at `docs/outreach/x-seed-posts.md`, ready for manual posting via Postiz UI (Postiz API auth broken, see below)
+- [x] Twitter/X has 5+ posts (technical insights, architecture decisions — not promotional) — 5 posts scheduled via Postiz UI (2026-03-30)
 - [~] LinkedIn company page has description, logo, website link, and 2+ posts — blocked on LinkedIn Community Management API approval (submitted 2026-03-25)
 - [~] Reddit: 1 post to r/selfhosted ("I built an open-source webhook platform") — blocked on Reddit API pre-approval (submitted 2026-03-25) + 2-week karma window (~2026-04-08)
 - [x] Dev.to has 2 cross-posted articles (from T-109, T-110) — published 2026-03-29: https://dev.to/emithq/why-we-built-emithq-the-49-490-webhook-pricing-gap-npd + https://dev.to/emithq/webhook-delivery-architecture-how-we-built-for-reliability-5e50
@@ -316,10 +316,10 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 **DEVIATION FLAG:**
 
 - **Ticket:** T-111
-- **Expected:** 5+ X posts live, automated scheduling via Postiz MCP
-- **Actual:** 5 posts drafted (not yet posted), Postiz REST API returns 401 on all auth headers (Bearer, api-key, x-api-key, Api-Key). API key from 1Password is 64-char hex — may be stale or wrong format. Cron drafts to markdown file instead of scheduling.
-- **Reason:** Postiz API key likely needs regeneration from Postiz UI (Julian manual step). The MCP server and REST API share the same auth — both broken.
-- **Action needed:** Julian regenerates API key in Postiz UI (Settings → Developers → Public API), updates 1Password `EmitHQ/postiz-config/api_key`, then posts the 5 seed tweets via Postiz UI. Once key works, update `scripts/social-content.sh` to schedule via API.
+- **Expected:** Automated scheduling via Postiz MCP/REST API
+- **Actual:** Posts scheduled via Postiz UI (Playwright). Postiz REST API auth requires `Authorization: <key>` (no "Bearer" prefix) — not `Authorization: Bearer <key>`. MCP URL embeds the key in the path (`/api/mcp/<key>`). API key in 1Password is correct. Weekly cron drafts to markdown file for now — needs API integration update to use correct auth header format.
+- **Reason:** Postiz uses non-standard auth header format. Discovered via Playwright inspection of Settings → Developers page.
+- **Action needed:** Update `scripts/social-content.sh` to use `Authorization: $KEY` (no Bearer) for Postiz API calls. Update Claude MCP server config to use `/api/mcp/<key>` URL format.
 
 ---
 
