@@ -1,6 +1,6 @@
 # Decisions — EmitHQ
 
-> Last verified: 2026-03-23
+> Last verified: 2026-03-30
 > Archived decisions: see [DECISIONS-ARCHIVE.md](DECISIONS-ARCHIVE.md)
 
 ## DEC-038 | 2026-03-23 | Restrict Umami Analytics to Tailscale

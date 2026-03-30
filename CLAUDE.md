@@ -73,6 +73,7 @@ See @docs/research/technical-architecture.md for full details.
 - @docs/show-hn-draft.md — Show HN post draft (for T-095)
 - @docs/show-hn-playbook.md — Show HN execution playbook (for T-095)
 - @docs/outreach/ — Outreach campaign materials (for T-090)
+- @docs/verify-feedback.md — /verify test pattern feedback loop (read by /build before writing tests)
 
 **Environment context:** This machine uses 1Password Connect Server on miniPC (`localhost:8888`). Uses `OP_CONNECT_HOST` + `OP_CONNECT_TOKEN` in `~/.bashrc`. SSH key is configured for GitHub (`ssh -T git@github.com` works). Git remote protocol is HTTPS (via `gh`); SSH also available.
 

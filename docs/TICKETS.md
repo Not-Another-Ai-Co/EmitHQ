@@ -1,6 +1,6 @@
 # Tickets — Webhook Infrastructure SaaS
 
-> Last verified: 2026-03-29
+> Last verified: 2026-03-30
 > Archived tickets: see [TICKETS-ARCHIVE.md](TICKETS-ARCHIVE.md)
 
 Status markers: `[ ]` open | `[x]` complete | `[x] [verified] [audited]` passed quality gates | `[x] [verified] [audited] [audited]` docs audited | `[-]` skipped/deferred | `[~]` blocked
@@ -293,7 +293,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-111: Social Content Seeding + Automation [x] [verified]
+### T-111: Social Content Seeding + Automation [x] [verified] [audited]
 
 **Phase:** 11b-3
 **Effort:** Low
@@ -378,7 +378,7 @@ _Phases 13a–13c complete (T-112 through T-117 archived). See TICKETS-ARCHIVE.m
 
 ---
 
-### T-118: Code DRY + Type Safety — Extract Shared Utils, Fix AuthEnv Types [x] [verified]
+### T-118: Code DRY + Type Safety — Extract Shared Utils, Fix AuthEnv Types [x] [verified] [audited]
 
 **Phase:** 13d
 **Effort:** Low
