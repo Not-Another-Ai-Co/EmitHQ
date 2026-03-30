@@ -293,7 +293,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-111: Social Content Seeding + Automation [x]
+### T-111: Social Content Seeding + Automation [x] [verified]
 
 **Phase:** 11b-3
 **Effort:** Low
