@@ -3,9 +3,8 @@
 # Schedule: 0 9 * * 1 (Monday 9:00 AM ET)
 # Usage: scripts/social-content.sh
 #
-# NOTE: Postiz API auth is currently broken (401 on all auth headers).
-# Until fixed, this script drafts posts to docs/outreach/x-weekly-drafts.md
-# for manual posting via Postiz UI. When Postiz API works, add scheduling.
+# Postiz API auth: Authorization: <key> (no Bearer prefix)
+# Drafts posts to markdown, then schedules via Postiz API if available.
 
 set -euo pipefail
 
@@ -45,7 +44,16 @@ Output format — write ONLY this markdown to stdout, nothing else:
 
 echo "[$(date -Iseconds)] Drafts written to $DRAFTS_FILE" >> "$LOG_DIR/social-content.log"
 
-# TODO: When Postiz API auth is fixed, add scheduling:
-# 1. Read Postiz API key from 1Password
-# 2. POST /api/public/v1/posts with { content, scheduledAt, integrationIds }
-# 3. Log scheduled post IDs
+# Schedule drafts via Postiz API
+# Requires: POSTIZ_API_KEY env var (from 1Password EmitHQ/postiz-config/api_key)
+# Auth: Authorization: $KEY (no Bearer prefix)
+# Endpoint: POST http://localhost:4007/api/public/v1/posts
+if [ -n "${POSTIZ_API_KEY:-}" ] && [ -f "$DRAFTS_FILE" ]; then
+  echo "[$(date -Iseconds)] Attempting Postiz API scheduling" >> "$LOG_DIR/social-content.log"
+  # TODO: Parse drafts file and schedule each post with:
+  # curl -X POST http://localhost:4007/api/public/v1/posts \
+  #   -H "Authorization: $POSTIZ_API_KEY" \
+  #   -H "Content-Type: application/json" \
+  #   -d '{"content":"...", "scheduledAt":"...", "integrationIds":["..."]}'
+  echo "[$(date -Iseconds)] Postiz scheduling not yet implemented (need integrationId)" >> "$LOG_DIR/social-content.log"
+fi

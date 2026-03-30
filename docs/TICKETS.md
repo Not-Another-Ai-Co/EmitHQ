@@ -319,7 +319,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 - **Expected:** Automated scheduling via Postiz MCP/REST API
 - **Actual:** Posts scheduled via Postiz UI (Playwright). Postiz REST API auth requires `Authorization: <key>` (no "Bearer" prefix) — not `Authorization: Bearer <key>`. MCP URL embeds the key in the path (`/api/mcp/<key>`). API key in 1Password is correct. Weekly cron drafts to markdown file for now — needs API integration update to use correct auth header format.
 - **Reason:** Postiz uses non-standard auth header format. Discovered via Playwright inspection of Settings → Developers page.
-- **Action needed:** Update `scripts/social-content.sh` to use `Authorization: $KEY` (no Bearer) for Postiz API calls. Update Claude MCP server config to use `/api/mcp/<key>` URL format.
+- **Action needed:** Full Postiz API scheduling (parse drafts, POST to `/api/public/v1/posts` with `integrationIds`). MCP server URL format documented in `docs/outreach/social-setup-checklist.md`.
 
 ---
 
