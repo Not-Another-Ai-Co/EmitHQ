@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 800px; height: 450px;
+    background: #0a0a0a;
+    color: #e5e5e5;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px;
+  }
+  h2 {
+    font-size: 20px; font-weight: 600;
+    color: #a3a3a3; margin-bottom: 28px;
+    letter-spacing: 0.5px;
+  }
+  .timeline {
+    display: flex; flex-direction: column;
+    gap: 6px; width: 100%; max-width: 640px;
+  }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 14px;
+  }
+  .attempt {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .fail { background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; }
+  .bar {
+    height: 20px; border-radius: 4px;
+    background: #1e3a5f;
+    position: relative;
+  }
+  .delay { color: #737373; font-size: 12px; width: 80px; text-align: right; flex-shrink: 0; }
+  .cumulative { color: #525252; font-size: 11px; width: 70px; flex-shrink: 0; }
+  .section-label {
+    font-size: 12px; color: #525252;
+    margin: 10px 0 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .outcome {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 14px; padding: 12px 16px;
+    border-radius: 8px; font-size: 14px;
+  }
+  .circuit {
+    background: #1a1a0a; border: 1px solid #3a3a1a;
+    color: #facc15;
+  }
+  .dlq {
+    background: #0a1a0a; border: 1px solid #1a3a1a;
+    color: #22c55e;
+  }
+  .icon { font-size: 18px; }
+</style>
+</head>
+<body>
+  <h2>When Your Endpoint Goes Down</h2>
+  <div class="timeline">
+    <div class="row">
+      <div class="attempt fail">1</div>
+      <div class="delay">immediate</div>
+      <div class="bar" style="width: 8px;"></div>
+      <div class="cumulative">0s</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">2</div>
+      <div class="delay">~30s</div>
+      <div class="bar" style="width: 20px;"></div>
+      <div class="cumulative">30s</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">3</div>
+      <div class="delay">~2 min</div>
+      <div class="bar" style="width: 40px;"></div>
+      <div class="cumulative">2.5m</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">4</div>
+      <div class="delay">~15 min</div>
+      <div class="bar" style="width: 80px;"></div>
+      <div class="cumulative">17m</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">5</div>
+      <div class="delay">~1 hour</div>
+      <div class="bar" style="width: 140px;"></div>
+      <div class="cumulative">1h 17m</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">6</div>
+      <div class="delay">~4 hours</div>
+      <div class="bar" style="width: 220px;"></div>
+      <div class="cumulative">5h</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">7</div>
+      <div class="delay">~12 hours</div>
+      <div class="bar" style="width: 340px;"></div>
+      <div class="cumulative">17h</div>
+    </div>
+    <div class="row">
+      <div class="attempt fail">8</div>
+      <div class="delay">~12 hours</div>
+      <div class="bar" style="width: 340px;"></div>
+      <div class="cumulative">29h</div>
+    </div>
+  </div>
+  <div class="outcome circuit">
+    <span class="icon">&#9889;</span>
+    10 consecutive failures &rarr; circuit breaker auto-disables endpoint
+  </div>
+  <div class="outcome dlq">
+    <span class="icon">&#9745;</span>
+    All retries exhausted &rarr; dead-letter queue &rarr; one-click replay
+  </div>
+</body>
+</html>

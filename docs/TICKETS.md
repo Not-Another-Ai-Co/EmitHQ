@@ -293,7 +293,7 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 ---
 
-### T-111: Social Content Seeding + Automation [ ]
+### T-111: Social Content Seeding + Automation [x]
 
 **Phase:** 11b-3
 **Effort:** Low
@@ -305,21 +305,13 @@ _Research: docs/research/social-community-strategy.md. Postiz (self-hosted) prov
 
 **Acceptance criteria:**
 
-- [x] Twitter/X has 5+ posts (technical insights, architecture decisions — not promotional) — 5 posts scheduled via Postiz UI (2026-03-30)
+- [x] Twitter/X has 5+ posts (technical insights, architecture decisions — not promotional) — 5 seed posts scheduled via Postiz UI (2026-03-30), 3 additional posts (incl. threads + images) scheduled via Postiz API (2026-03-30)
 - [~] LinkedIn company page has description, logo, website link, and 2+ posts — blocked on LinkedIn Community Management API approval (submitted 2026-03-25)
 - [~] Reddit: 1 post to r/selfhosted ("I built an open-source webhook platform") — blocked on Reddit API pre-approval (submitted 2026-03-25) + 2-week karma window (~2026-04-08)
 - [x] Dev.to has 2 cross-posted articles (from T-109, T-110) — published 2026-03-29: https://dev.to/emithq/why-we-built-emithq-the-49-490-webhook-pricing-gap-npd + https://dev.to/emithq/webhook-delivery-architecture-how-we-built-for-reliability-5e50
 - [x] Content calendar template in `docs/outreach/content-calendar.md` (what to post, where, weekly cadence)
-- [x] Cron script: `scripts/social-content.sh` — weekly drafting via `claude -p`. Postiz API scheduling deferred until auth fixed (401 on all header formats, API key may need regeneration in Postiz UI)
+- [x] Cron script: `scripts/social-content.sh` — weekly drafting via `claude -p` with /content skill conventions, Postiz API scheduling (threads, images, correct auth)
 - [x] Supersedes T-093
-
-**DEVIATION FLAG:**
-
-- **Ticket:** T-111
-- **Expected:** Automated scheduling via Postiz MCP/REST API
-- **Actual:** Posts scheduled via Postiz UI (Playwright). Postiz REST API auth requires `Authorization: <key>` (no "Bearer" prefix) — not `Authorization: Bearer <key>`. MCP URL embeds the key in the path (`/api/mcp/<key>`). API key in 1Password is correct. Weekly cron drafts to markdown file for now — needs API integration update to use correct auth header format.
-- **Reason:** Postiz uses non-standard auth header format. Discovered via Playwright inspection of Settings → Developers page.
-- **Action needed:** Full Postiz API scheduling (parse drafts, POST to `/api/public/v1/posts` with `integrationIds`). MCP server URL format documented in `docs/outreach/social-setup-checklist.md`.
 
 ---
 
