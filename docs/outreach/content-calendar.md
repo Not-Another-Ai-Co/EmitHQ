@@ -21,7 +21,7 @@
 ## Content Rules
 
 - No self-promotion in the first 3 words. Lead with the insight, not the product.
-- Never disparage competitors by name in social posts. Blog posts can compare factually.
+- Never disparage competitors by name. Factual pricing comparisons that name competitors are OK — stating "$490/mo" is a fact, not an attack.
 - Every post should be useful even if the reader never visits emithq.com.
 - Code snippets > generic statements. Show the actual TypeScript.
 - No fabricated metrics. Only use real production numbers once they exist.

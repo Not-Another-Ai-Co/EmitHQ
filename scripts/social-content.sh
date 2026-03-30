@@ -27,9 +27,10 @@ if command -v op &>/dev/null; then
 fi
 
 # Calculate schedule dates (Mon 2pm UTC, Wed 2pm UTC, Fri 2pm UTC)
-MON_DATE=$(date -u -d "next Monday 14:00" +%Y-%m-%dT%H:%M:%S.000Z 2>/dev/null || date -u -d "Monday 14:00" +%Y-%m-%dT%H:%M:%S.000Z)
-WED_DATE=$(date -u -d "next Wednesday 14:00" +%Y-%m-%dT%H:%M:%S.000Z 2>/dev/null || date -u -d "Wednesday 14:00" +%Y-%m-%dT%H:%M:%S.000Z)
-FRI_DATE=$(date -u -d "next Friday 14:00" +%Y-%m-%dT%H:%M:%S.000Z 2>/dev/null || date -u -d "Friday 14:00" +%Y-%m-%dT%H:%M:%S.000Z)
+# Script runs on Monday — "today" for Mon, "next Wednesday/Friday" for mid/end of week
+MON_DATE=$(date -u -d "today 14:00" +%Y-%m-%dT%H:%M:%S.000Z)
+WED_DATE=$(date -u -d "next Wednesday 14:00" +%Y-%m-%dT%H:%M:%S.000Z)
+FRI_DATE=$(date -u -d "next Friday 14:00" +%Y-%m-%dT%H:%M:%S.000Z)
 
 # Use claude -p to draft 3 posts for the week
 # Uses /content skill conventions: voice rules, anti-slop, audience-appropriate language
@@ -92,7 +93,7 @@ for post in data:
             values.append(json.dumps({'content': t, 'image': []}))
         print('[' + ','.join(values) + ']')
         break
-" 2>/dev/null) || continue
+" 2>&1) || { log "Failed to parse JSON for $DAY — check $DRAFTS_FILE"; continue; }
 
     if [ -z "$TWEETS" ]; then
       log "No tweets found for $DAY, skipping"
