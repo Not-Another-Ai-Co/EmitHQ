@@ -37,9 +37,9 @@ EmitHQ follows the patterns in `@docs/CONVENTIONS.md` (TypeScript + security + d
 Key non-obvious invariants — do not rely on memory, read CONVENTIONS.md:
 
 - Persist message to PostgreSQL BEFORE enqueueing to Redis (DEC-023 idempotency via `onConflictDoNothing`)
-- `crypto.timingSafeEqual` for ALL signature verification — never string equality
+- `crypto.timingSafeEqual` for ALL signature verification — never string equality (DEC-008 auth + DEC-012 delivery worker, archive)
 - RLS via `SET LOCAL app.current_tenant` per-request (DEC-022 uses `sql.raw()` with UUID pre-validation)
-- Two DB roles: `app_user` (RLS enforced) vs `app_admin` (BYPASSRLS, for workers / admin ops)
+- Two DB roles: `app_user` (RLS enforced) vs `app_admin` (BYPASSRLS, for workers / admin ops) (DEC-005 RLS multi-tenancy + DEC-008 auth, archive)
 - SSRF protection on endpoint URLs (DEC-031) — DNS-resolving validation at creation + sync check at delivery
 
 For third-party integration discipline (vendor specs first, cite before claim), see `~/.claude/CLAUDE.md` "Third-Party Integrations" section — applies to Stripe, Clerk, Resend.
