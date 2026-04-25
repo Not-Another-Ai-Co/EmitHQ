@@ -30,6 +30,15 @@ npm run db:migrate          # Drizzle migration run
 npm run db:push             # Drizzle schema push
 ```
 
+## Verification
+
+Read by `/verify` to dispatch test + browser-testing strategy without hardcoding project names.
+
+- **Unit tests:** `npm test`
+- **Integration tests:** local
+- **E2E / browser tests:** local-dev-server
+- **E2E command:** `cd packages/dashboard && npm run test:e2e`
+
 ## Conventions, architecture, and decisions
 
 EmitHQ follows the patterns in `@docs/CONVENTIONS.md` (TypeScript + security + database + testing + naming + API design + monorepo layout). Architecture diagrams, data flow, auth model, multi-tenancy, deployment topology, and incident runbook live in `@docs/ARCHITECTURE.md`. Architectural decisions with rationale are in `@docs/DECISIONS.md` (see DECISIONS-ARCHIVE.md for older entries).
