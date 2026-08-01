@@ -57,16 +57,19 @@ For third-party integration discipline (vendor specs first, cite before claim), 
 
 **Always load:** `@docs/TICKETS.md`, `@docs/CONVENTIONS.md`
 
-**On demand:**
+**On demand** — read these with the Read tool when relevant. **Paths below are deliberately NOT
+`@`-prefixed:** `@path` in CLAUDE.md is an _import_, so an `@` here loads the file every session
+regardless of this heading. Do not add one back.
 
-- `@docs/ARCHITECTURE.md` — system diagram, data flows, deployment, incident runbook
-- `@docs/DECISIONS.md` — architectural decision log
-- `@docs/PERSONAS.md` — user personas + core flows
-- `@docs/TEST_PLAN.md` — testing archetypes + Playwright setup
-- `@docs/research/technical-architecture.md` — full architecture research with cost analysis and SLO targets
-- `@docs/show-hn-draft.md` + `@docs/show-hn-playbook.md` — launch materials (T-095)
-- `@docs/outreach/` — outreach campaign materials (T-090)
-- `@docs/verify-feedback.md` — /verify test pattern feedback loop (read by /build before writing tests)
+- `docs/ARCHITECTURE.md` — system diagram, data flows, deployment, incident runbook
+- `docs/DECISIONS.md` — architectural decision log
+- `docs/PERSONAS.md` — user personas + core flows
+- `docs/TEST_PLAN.md` — testing archetypes + Playwright setup
+- `docs/research/technical-architecture.md` — full architecture research with cost analysis and SLO targets
+- `docs/show-hn-draft.md` + `docs/show-hn-playbook.md` — launch materials (T-095)
+- `docs/outreach/` — outreach campaign materials (T-090). A directory of 35 files, incl. 20
+  cold-outreach drafts and two PNGs that were being pulled in as ~55K chars of binary-as-text.
+- `docs/verify-feedback.md` — /verify test pattern feedback loop (read by /build before writing tests)
 
 ## Portfolio Integration
 
