@@ -41,7 +41,7 @@ Read by `/verify` to dispatch test + browser-testing strategy without hardcoding
 
 ## Conventions, architecture, and decisions
 
-EmitHQ follows the patterns in `@docs/CONVENTIONS.md` (TypeScript + security + database + testing + naming + API design + monorepo layout). Architecture diagrams, data flow, auth model, multi-tenancy, deployment topology, and incident runbook live in `@docs/ARCHITECTURE.md`. Architectural decisions with rationale are in `@docs/DECISIONS.md` (see DECISIONS-ARCHIVE.md for older entries).
+EmitHQ follows the patterns in `docs/CONVENTIONS.md` (TypeScript + security + database + testing + naming + API design + monorepo layout). Architecture diagrams, data flow, auth model, multi-tenancy, deployment topology, and incident runbook live in `docs/ARCHITECTURE.md`. Architectural decisions with rationale are in `docs/DECISIONS.md` (see DECISIONS-ARCHIVE.md for older entries).
 
 Key non-obvious invariants — do not rely on memory, read CONVENTIONS.md:
 
