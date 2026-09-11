@@ -16,3 +16,6 @@ next-env.d.ts
 playwright-report/
 test-results/
 playwright/.clerk/
+
+# EmitHQ wind-down 2026-09-11: local DB dumps, never committed
+backups/

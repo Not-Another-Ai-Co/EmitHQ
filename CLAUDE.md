@@ -4,6 +4,8 @@
 
 EmitHQ is an open-source webhook infrastructure platform (AGPL-3.0 server + MIT SDKs). Inbound (receiving webhooks from Stripe/GitHub/etc.) and outbound (sending webhooks to customers' endpoints) with fair pricing ($49-349/mo) filling the gap between free tiers and $490+ enterprise platforms.
 
+**Status: INACTIVE since 2026-09-11** (wound down, not deleted). Railway compute and auto-deploy are off. Read `docs/WIND-DOWN-20260911.md` before any work: what was stopped, what still runs, and the revive order.
+
 ## Tech Stack
 
 - **Edge:** Cloudflare Workers
@@ -70,6 +72,7 @@ regardless of this heading. Do not add one back.
 - `docs/outreach/` — outreach campaign materials (T-090). A directory of 35 files, incl. 20
   cold-outreach drafts and two PNGs that were being pulled in as ~55K chars of binary-as-text.
 - `docs/verify-feedback.md` — /verify test pattern feedback loop (read by /build before writing tests)
+- `docs/WIND-DOWN-20260911.md` — the 2026-09-11 wind-down: stopped vs still-running surfaces, backups, and the revive checklist (read before reviving or touching infra)
 
 ## Portfolio Integration
 
